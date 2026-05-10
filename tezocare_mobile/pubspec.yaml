@@ -31,9 +31,6 @@ dependencies:
   # Functional Programming (Either, Option for error handling)
   dartz: ^0.10.1
 
-  # Local Notifications (for push notification display)
-  flutter_local_notifications: ^17.2.2
-
   # Firebase (for FCM push notifications - aligns with backend)
   firebase_core: ^3.4.1
   firebase_messaging: ^15.1.3
