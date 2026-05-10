@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
 import '../bloc/patient_state.dart';
@@ -92,7 +93,7 @@ class _PatientsPageState extends State<PatientsPage> {
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            Navigator.of(context).pushNamed(
+                            context.push(
                               '/patients/detail/${patient.id}',
                             );
                           },
@@ -109,7 +110,7 @@ class _PatientsPageState extends State<PatientsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).pushNamed('/patients/create');
+          context.push('/patients/create');
         },
         child: const Icon(Icons.add),
       ),

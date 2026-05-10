@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../config/themes/app_colors.dart';
+import '../../../../config/themes/app_text_styles.dart';
+import '../../../../shared/widgets/stat_card.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -20,217 +28,272 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('TezoCare'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthUnauthenticated) {
+          context.go('/login');
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'TezoCare',
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-        ],
-      ),
-      body: BlocBuilder<DashboardBloc, DashboardState>(
-        builder: (context, state) {
-          if (state is DashboardLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is DashboardError) {
-            return Center(child: Text(state.message));
-          }
-          if (state is DashboardLoaded) {
-            final stats = state.stats;
-            return RefreshIndicator(
-              onRefresh: () async {
-                context
-                    .read<DashboardBloc>()
-                    .add(const GetDashboardStatsEvent());
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Overview',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      childAspectRatio: 1.5,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      children: [
-                        _buildStatCard(
-                          'Total Patients',
-                          stats.totalPatients.toString(),
-                          Icons.pets,
-                          Colors.blue,
-                        ),
-                        _buildStatCard(
-                          'Active Visits',
-                          stats.activeVisits.toString(),
-                          Icons.medical_services,
-                          Colors.green,
-                        ),
-                        _buildStatCard(
-                          "Today's Appointments",
-                          stats.todayAppointments.toString(),
-                          Icons.calendar_today,
-                          Colors.orange,
-                        ),
-                        _buildStatCard(
-                          'Pending Refills',
-                          stats.pendingRefills.toString(),
-                          Icons.refresh,
-                          Colors.red,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Quick Actions',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionButton(
-                            context,
-                            'Patients',
-                            Icons.pets,
-                            () => Navigator.of(context).pushNamed('/patients'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildActionButton(
-                            context,
-                            'Visits',
-                            Icons.medical_services,
-                            () =>
-                                Navigator.of(context).pushNamed('/visits/create'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionButton(
-                            context,
-                            'Medications',
-                            Icons.medication,
-                            () =>
-                                Navigator.of(context).pushNamed('/medications'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildActionButton(
-                            context,
-                            'Add Patient',
-                            Icons.person_add,
-                            () => Navigator.of(context)
-                                .pushNamed('/patients/create'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (state.refillsDue.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      Text(
-                        'Refills Due',
-                        style: Theme.of(context).textTheme.titleLarge,
+          centerTitle: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to logout?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
                       ),
-                      const SizedBox(height: 12),
-                      ...state.refillsDue.map(
-                        (refill) => Card(
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.refresh,
-                              color: refill.isOverdue
-                                  ? Colors.red
-                                  : Colors.orange,
-                            ),
-                            title: Text(refill.medicationName),
-                            subtitle: Text(
-                              '${refill.patientName} - Due: ${refill.nextRefillDate.toLocal().toString().split(' ')[0]}',
-                            ),
-                          ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          context.read<AuthBloc>().add(
+                            const AuthLogoutRequested(),
+                          );
+                        },
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(color: Colors.red),
                         ),
                       ),
                     ],
-                  ],
-                ),
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12),
-              textAlign: TextAlign.center,
+                  ),
+                );
+              },
             ),
           ],
+        ),
+        body: BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            if (state is DashboardLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state is DashboardError) {
+              return Center(
+                child: Text(state.message, style: AppTextStyles.bodyMedium),
+              );
+            }
+            if (state is DashboardLoaded) {
+              final stats = state.stats;
+              final colors = AppColors.statCardColors;
+              final statItems = [
+                (
+                  stats.totalPatients.toString(),
+                  'Total Patients',
+                  Icons.pets,
+                  colors[0],
+                ),
+                (
+                  stats.activeVisits.toString(),
+                  'Active Visits',
+                  Icons.medical_services,
+                  colors[1],
+                ),
+                (
+                  stats.todayAppointments.toString(),
+                  "Today's Appointments",
+                  Icons.calendar_today,
+                  colors[2],
+                ),
+                (
+                  stats.pendingRefills.toString(),
+                  'Pending Refills',
+                  Icons.refresh,
+                  colors[3],
+                ),
+              ];
+
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<DashboardBloc>().add(
+                    const GetDashboardStatsEvent(),
+                  );
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.all(16.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Overview', style: AppTextStyles.headlineMedium),
+                      SizedBox(height: 16.h),
+                      GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 1.3,
+                          crossAxisSpacing: 12.w,
+                          mainAxisSpacing: 12.h,
+                        ),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: statItems.length,
+                        itemBuilder: (context, index) {
+                          final item = statItems[index];
+                          return StatCard(
+                            value: item.$1,
+                            label: item.$2,
+                            icon: item.$3,
+                            color: item.$4,
+                          );
+                        },
+                      ),
+                      SizedBox(height: 24.h),
+                      Text('Quick Actions', style: AppTextStyles.titleLarge),
+                      SizedBox(height: 12.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildActionCard(
+                              'Patients',
+                              Icons.pets,
+                              AppColors.primary,
+                              () => context.push('/patients'),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: _buildActionCard(
+                              'Visits',
+                              Icons.medical_services,
+                              AppColors.secondary,
+                              () => context.push('/visits/create'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildActionCard(
+                              'Medications',
+                              Icons.medication,
+                              AppColors.accent,
+                              () => context.push('/medications'),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: _buildActionCard(
+                              'Add Patient',
+                              Icons.person_add,
+                              AppColors.success,
+                              () => context.push('/patients/create'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (state.refillsDue.isNotEmpty) ...[
+                        SizedBox(height: 24.h),
+                        Text('Refills Due', style: AppTextStyles.titleLarge),
+                        SizedBox(height: 12.h),
+                        ...state.refillsDue.map(
+                          (refill) => Container(
+                            margin: EdgeInsets.only(bottom: 8.h),
+                            decoration: BoxDecoration(
+                              color: AppColors.cardBg,
+                              borderRadius: BorderRadius.circular(12.r),
+                              boxShadow: [AppColors.cardShadow],
+                            ),
+                            child: ListTile(
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16.w,
+                                vertical: 4.h,
+                              ),
+                              leading: Container(
+                                width: 40.w,
+                                height: 40.w,
+                                decoration: BoxDecoration(
+                                  color:
+                                      (refill.isOverdue
+                                              ? AppColors.error
+                                              : AppColors.warning)
+                                          .withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.refresh,
+                                  color: refill.isOverdue
+                                      ? AppColors.error
+                                      : AppColors.warning,
+                                  size: 20.sp,
+                                ),
+                              ),
+                              title: Text(
+                                refill.medicationName,
+                                style: AppTextStyles.titleMedium,
+                              ),
+                              subtitle: Text(
+                                '${refill.patientName} - Due: ${refill.nextRefillDate.toLocal().toString().split(' ')[0]}',
+                                style: AppTextStyles.bodySmall,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
         ),
       ),
     );
   }
 
-  Widget _buildActionButton(
-    BuildContext context,
+  Widget _buildActionCard(
     String label,
     IconData icon,
-    VoidCallback onPressed,
+    Color color,
+    VoidCallback onTap,
   ) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12)),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 20.h),
+        decoration: BoxDecoration(
+          color: AppColors.cardBg,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [AppColors.cardShadow],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40.w,
+              height: 40.w,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 20.sp),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              label,
+              style: AppTextStyles.labelLarge.copyWith(
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

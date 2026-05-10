@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/visit_model.dart';
 import '../../data/models/vitals_model.dart';
 import '../bloc/visit_bloc.dart';
@@ -105,7 +106,7 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Visit created successfully')),
             );
-            Navigator.of(context).pop();
+            context.pop();
           } else if (state is VisitError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),

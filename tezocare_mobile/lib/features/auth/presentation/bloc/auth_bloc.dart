@@ -34,9 +34,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await loginUseCase(
       LoginParams(email: event.email, password: event.password),
     );
-    result.fold(
-      (failure) => _mapFailureToState(failure, emit),
-      (_) => add(const AuthCheckRequested()),
+    await result.fold(
+      (failure) async => _mapFailureToState(failure, emit),
+      (token) async {
+        final userResult = await getCurrentUserUseCase(const NoParams());
+        userResult.fold(
+          (failure) => _mapFailureToState(failure, emit),
+          (staff) => emit(AuthAuthenticated(staff: staff)),
+        );
+      },
     );
   }
 
@@ -77,9 +83,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await refreshTokenUseCase(
       RefreshTokenParams(refreshToken: event.refreshToken),
     );
-    result.fold(
-      (failure) => _mapFailureToState(failure, emit),
-      (_) => add(const AuthCheckRequested()),
+    await result.fold(
+      (failure) async => _mapFailureToState(failure, emit),
+      (token) async {
+        final userResult = await getCurrentUserUseCase(const NoParams());
+        userResult.fold(
+          (failure) => _mapFailureToState(failure, emit),
+          (staff) => emit(AuthAuthenticated(staff: staff)),
+        );
+      },
     );
   }
 

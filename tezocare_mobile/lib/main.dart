@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:tezocare_mobile/firebase_options.dart';
 import 'config/routes/app_router.dart';
 import 'config/themes/app_theme.dart';
@@ -40,11 +41,16 @@ class TezoCareApp extends StatelessWidget {
           ),
         ),
       ],
-      child: MaterialApp.router(
-        title: 'TezoCare',
-        theme: AppTheme.lightTheme,
-        routerConfig: appRouter.router,
-        debugShowCheckedModeBanner: false,
+      child: ScreenUtilInit(
+        designSize: const Size(375, 812),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (_, _) => MaterialApp.router(
+          title: 'TezoCare',
+          theme: AppTheme.lightTheme,
+          routerConfig: appRouter.router,
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }

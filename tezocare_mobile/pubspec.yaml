@@ -47,6 +47,18 @@ dependencies:
   # Loading indicators
   shimmer: ^3.0.0
 
+  # Responsive Design
+  flutter_screenutil: ^5.9.3
+
+  # Fonts
+  google_fonts: ^6.2.1
+
+  # Animations
+  flutter_animate: ^4.5.2
+
+  # SVG Support
+  flutter_svg: ^2.0.16
+
   # PDF Export (aligns with backend export feature)
   printing: ^5.13.1
   pdf: ^3.11.1

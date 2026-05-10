@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/medication_bloc.dart';
 import '../bloc/medication_event.dart';
 import '../bloc/medication_state.dart';
@@ -106,7 +107,7 @@ class _MedicationsPageState extends State<MedicationsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).pushNamed('/medications/add');
+          context.push('/medications/add');
         },
         child: const Icon(Icons.add),
       ),

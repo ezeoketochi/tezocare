@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/patient_model.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
@@ -88,7 +89,7 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Patient created successfully')),
             );
-            Navigator.of(context).pop();
+            context.pop();
           } else if (state is PatientError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),

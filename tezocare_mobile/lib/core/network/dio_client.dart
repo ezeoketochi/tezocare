@@ -46,7 +46,9 @@ class DioClient {
   InterceptorsWrapper _authInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await secureStorage.read(key: ApiConstants.accessTokenKey);
+        final token = await secureStorage.read(
+          key: ApiConstants.accessTokenKey,
+        );
         if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';
         }
@@ -115,7 +117,9 @@ class DioClient {
             handler.reject(
               DioException(
                 requestOptions: error.requestOptions,
-                error: const NetworkException(message: 'No internet connection'),
+                error: const NetworkException(
+                  message: 'No internet connection',
+                ),
                 type: DioExceptionType.unknown,
               ),
             );
@@ -141,7 +145,8 @@ class DioClient {
                 requestOptions: error.requestOptions,
                 response: error.response,
                 error: PermissionException(
-                  message: _extractMessage(error.response?.data) ??
+                  message:
+                      _extractMessage(error.response?.data) ??
                       'Access forbidden',
                 ),
                 type: DioExceptionType.badResponse,
@@ -153,7 +158,8 @@ class DioClient {
                 requestOptions: error.requestOptions,
                 response: error.response,
                 error: NotFoundException(
-                  message: _extractMessage(error.response?.data) ??
+                  message:
+                      _extractMessage(error.response?.data) ??
                       'Resource not found',
                 ),
                 type: DioExceptionType.badResponse,
@@ -165,10 +171,11 @@ class DioClient {
                 requestOptions: error.requestOptions,
                 response: error.response,
                 error: ValidationException(
-                  message: _extractMessage(error.response?.data) ??
+                  message:
+                      _extractMessage(error.response?.data) ??
                       'Validation failed',
-                  errors: error.response?.data?['errors']
-                      as Map<String, dynamic>?,
+                  errors:
+                      error.response?.data?['errors'] as Map<String, dynamic>?,
                 ),
                 type: DioExceptionType.badResponse,
               ),
@@ -179,7 +186,8 @@ class DioClient {
                 requestOptions: error.requestOptions,
                 response: error.response,
                 error: ServerException(
-                  message: _extractMessage(error.response?.data) ??
+                  message:
+                      _extractMessage(error.response?.data) ??
                       'Server error occurred',
                   statusCode: statusCode,
                 ),
@@ -218,8 +226,9 @@ class DioClient {
 
     _isRefreshing = true;
     try {
-      final storedRefreshToken =
-          await secureStorage.read(key: ApiConstants.refreshTokenKey);
+      final storedRefreshToken = await secureStorage.read(
+        key: ApiConstants.refreshTokenKey,
+      );
 
       if (storedRefreshToken == null || storedRefreshToken.isEmpty) {
         await _clearTokens();
@@ -227,7 +236,9 @@ class DioClient {
           DioException(
             requestOptions: error.requestOptions,
             response: error.response,
-            error: const UnauthorizedException(message: 'No refresh token available'),
+            error: const UnauthorizedException(
+              message: 'No refresh token available',
+            ),
             type: DioExceptionType.badResponse,
           ),
         );
@@ -239,7 +250,8 @@ class DioClient {
         data: {'refresh_token': storedRefreshToken},
       );
 
-      final data = refreshResponse.data['data'] as Map<String, dynamic>? ??
+      final data =
+          refreshResponse.data['data'] as Map<String, dynamic>? ??
           refreshResponse.data as Map<String, dynamic>;
 
       final newAccessToken = data['access_token'] as String?;
