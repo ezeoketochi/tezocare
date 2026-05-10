@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
@@ -25,10 +26,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<TokenModel> login(String email, String password) async {
     try {
+      debugPrint('running  ${ApiConstants.login}');
       final response = await dioClient.dio.post(
         ApiConstants.login,
         data: {'email': email, 'password': password},
       );
+      debugPrint(
+        'Login response: ${response}',
+      ); // Debug print for response data
       final tokenModel = TokenModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
       );
@@ -74,9 +79,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<StaffModel> getCurrentUser() async {
     try {
       final response = await dioClient.dio.get(ApiConstants.currentUser);
-      return StaffModel.fromJson(
-        response.data['data'] as Map<String, dynamic>,
-      );
+      return StaffModel.fromJson(response.data['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
       throw _mapDioException(e, defaultMessage: 'Failed to get current user');
     }
@@ -97,7 +100,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     if (customException is NetworkException) return customException;
 
     return ServerException(
-      message: e.response?.data['message'] as String? ??
+      message:
+          e.response?.data['message'] as String? ??
           e.response?.data['detail'] as String? ??
           defaultMessage,
       statusCode: e.response?.statusCode,
