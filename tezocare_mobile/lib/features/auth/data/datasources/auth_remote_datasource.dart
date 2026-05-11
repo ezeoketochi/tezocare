@@ -32,7 +32,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: {'email': email, 'password': password},
       );
       debugPrint(
-        'Login response: ${response}',
+        'Login response: $response',
       ); // Debug print for response data
       final tokenModel = TokenModel.fromJson(
         response.data['data'] as Map<String, dynamic>,

@@ -20,9 +20,15 @@ class NetworkFailure extends Failure {
 }
 
 class ValidationFailure extends Failure {
-  final Map<String, dynamic>? errors;
+  final Map<String, dynamic> errors;
 
-  const ValidationFailure({required super.message, this.errors});
+  const ValidationFailure({
+    required super.message,
+    this.errors = const {},
+  });
+
+  @override
+  List<Object> get props => [message, errors];
 }
 
 class PermissionFailure extends Failure {
@@ -35,6 +41,15 @@ class NotFoundFailure extends Failure {
 
 class UnauthorizedFailure extends Failure {
   const UnauthorizedFailure({required super.message});
+}
+
+class ConflictFailure extends Failure {
+  final String? field;
+
+  const ConflictFailure({required super.message, this.field});
+
+  @override
+  List<Object> get props => [message, field ?? ''];
 }
 
 class CacheFailure extends Failure {

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/error/repository_helper.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/visit.dart';
 import '../../domain/entities/vitals.dart';
@@ -62,18 +62,8 @@ class VisitRepositoryImpl implements VisitRepository {
         vitals: vitalsModel,
       );
       return Right(result);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -85,18 +75,8 @@ class VisitRepositoryImpl implements VisitRepository {
     try {
       final result = await remoteDataSource.getPatientVisits(patientId);
       return Right(result);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -108,18 +88,8 @@ class VisitRepositoryImpl implements VisitRepository {
     try {
       final result = await remoteDataSource.getVisitDetail(id);
       return Right(result);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 }

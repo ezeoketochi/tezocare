@@ -108,12 +108,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _mapFailureToState(Failure failure, Emitter<AuthState> emit) {
-    if (failure is UnauthorizedFailure || failure is PermissionFailure) {
+    if (failure is ValidationFailure) {
+      emit(AuthValidationError(errors: failure.errors));
+    } else if (failure is UnauthorizedFailure || failure is PermissionFailure) {
       emit(const AuthUnauthenticated());
-    } else if (failure is ValidationFailure) {
-      emit(AuthValidationError(errors: failure.errors ?? {}));
     } else {
-      emit(AuthError(message: failure.message));
+      emit(AuthError(
+        message: failure.message.isNotEmpty
+            ? failure.message
+            : 'Something went wrong. Please try again.',
+      ));
     }
   }
 }

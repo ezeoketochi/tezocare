@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/error/failures.dart';
 import '../../domain/usecases/create_patient_usecase.dart';
 import '../../domain/usecases/get_patient_detail_usecase.dart';
 import '../../domain/usecases/get_patients_usecase.dart';
@@ -37,7 +38,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       GetPatientsParams(page: event.page),
     );
     result.fold(
-      (failure) => emit(PatientError(message: failure.message)),
+      (failure) => emit(PatientError(message: _failureMessage(failure))),
       (patients) => emit(PatientsLoaded(patients: patients, currentPage: event.page)),
     );
   }
@@ -51,7 +52,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       GetPatientDetailParams(id: event.id),
     );
     result.fold(
-      (failure) => emit(PatientError(message: failure.message)),
+      (failure) => emit(PatientError(message: _failureMessage(failure))),
       (patient) => emit(PatientDetailLoaded(patient: patient)),
     );
   }
@@ -65,7 +66,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       CreatePatientParams(patient: event.patient),
     );
     result.fold(
-      (failure) => emit(PatientError(message: failure.message)),
+      (failure) => emit(PatientError(message: _failureMessage(failure))),
       (patient) => emit(PatientCreated(patient: patient)),
     );
   }
@@ -79,7 +80,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       UpdatePatientParams(patient: event.patient),
     );
     result.fold(
-      (failure) => emit(PatientError(message: failure.message)),
+      (failure) => emit(PatientError(message: _failureMessage(failure))),
       (patient) => emit(PatientUpdated(patient: patient)),
     );
   }
@@ -93,8 +94,17 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
       SearchPatientsParams(query: event.query),
     );
     result.fold(
-      (failure) => emit(PatientError(message: failure.message)),
+      (failure) => emit(PatientError(message: _failureMessage(failure))),
       (patients) => emit(PatientsLoaded(patients: patients)),
     );
+  }
+
+  String _failureMessage(Failure failure) {
+    if (failure is ValidationFailure && failure.errors.isNotEmpty) {
+      return failure.errors.values.first.toString();
+    }
+    return failure.message.isNotEmpty
+        ? failure.message
+        : 'Something went wrong. Please try again.';
   }
 }

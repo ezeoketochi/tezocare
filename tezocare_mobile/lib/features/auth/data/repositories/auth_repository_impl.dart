@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/error/repository_helper.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/staff.dart';
 import '../../domain/entities/token.dart';
@@ -24,18 +24,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final tokenModel = await remoteDataSource.login(email, password);
       return Right(tokenModel);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -47,18 +37,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final staffModel = await remoteDataSource.getCurrentUser();
       return Right(staffModel);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -68,21 +48,10 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final tokenModel =
-          await remoteDataSource.refreshToken(refreshToken);
+      final tokenModel = await remoteDataSource.refreshToken(refreshToken);
       return Right(tokenModel);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -91,12 +60,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await remoteDataSource.logout();
       return const Right(null);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 }

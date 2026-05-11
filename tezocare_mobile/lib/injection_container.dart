@@ -82,7 +82,12 @@ void _initCore() {
   );
 
   sl.registerLazySingleton<DioClient>(
-    () => DioClient(dio: sl(), secureStorage: sl(), logger: sl()),
+    () => DioClient(
+      dio: sl(),
+      secureStorage: sl(),
+      connectionChecker: sl(),
+      logger: sl(),
+    ),
   );
 
   sl.registerLazySingleton<AppRouter>(() => AppRouter(secureStorage: sl()));

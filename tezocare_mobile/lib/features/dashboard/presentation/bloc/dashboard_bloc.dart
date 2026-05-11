@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/usecases/get_dashboard_stats_usecase.dart';
 import '../../domain/usecases/get_refills_due_usecase.dart';
@@ -26,10 +27,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     final refillsResult = await getRefillsDueUseCase(const NoParams());
 
     statsResult.fold(
-      (failure) => emit(DashboardError(message: failure.message)),
+      (failure) => emit(DashboardError(message: _failureMessage(failure))),
       (stats) {
         refillsResult.fold(
-          (failure) => emit(DashboardError(message: failure.message)),
+          (failure) => emit(DashboardError(message: _failureMessage(failure))),
           (refills) => emit(
             DashboardLoaded(stats: stats, refillsDue: refills),
           ),
@@ -45,7 +46,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(const DashboardLoading());
     final result = await getRefillsDueUseCase(const NoParams());
     result.fold(
-      (failure) => emit(DashboardError(message: failure.message)),
+      (failure) => emit(DashboardError(message: _failureMessage(failure))),
       (refills) {
         final currentState = state;
         if (currentState is DashboardLoaded) {
@@ -56,5 +57,14 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         }
       },
     );
+  }
+
+  String _failureMessage(Failure failure) {
+    if (failure is ValidationFailure && failure.errors.isNotEmpty) {
+      return failure.errors.values.first.toString();
+    }
+    return failure.message.isNotEmpty
+        ? failure.message
+        : 'Something went wrong. Please try again.';
   }
 }

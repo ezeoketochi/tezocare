@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../constants/api_constants.dart';
 import '../error/exceptions.dart';
 import '../utils/logger.dart';
@@ -7,6 +8,7 @@ import '../utils/logger.dart';
 class DioClient {
   final Dio dio;
   final FlutterSecureStorage secureStorage;
+  final InternetConnectionChecker connectionChecker;
   final Logger logger;
   late final Dio _refreshDio;
   bool _isRefreshing = false;
@@ -14,6 +16,7 @@ class DioClient {
   DioClient({
     required this.dio,
     required this.secureStorage,
+    required this.connectionChecker,
     required this.logger,
   }) {
     dio.options.baseUrl = ApiConstants.baseUrl;
@@ -46,6 +49,17 @@ class DioClient {
   InterceptorsWrapper _authInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) async {
+        final isConnected = await connectionChecker.hasConnection;
+        if (!isConnected) {
+          return handler.reject(
+            DioException(
+              requestOptions: options,
+              error: const NetworkException(
+                message: 'No internet connection. Please check your network and try again.',
+              ),
+            ),
+          );
+        }
         final token = await secureStorage.read(
           key: ApiConstants.accessTokenKey,
         );
@@ -90,6 +104,61 @@ class DioClient {
     );
   }
 
+  Map<String, dynamic> _parseErrorResponse(Response? response) {
+    if (response == null || response.data == null) {
+      return {
+        'message': 'An unexpected error occurred',
+        'code': 'UNKNOWN_ERROR',
+        'errors': <String, dynamic>{},
+      };
+    }
+
+    final data = response.data;
+    if (data is! Map) {
+      return {
+        'message': 'An unexpected error occurred',
+        'code': 'UNKNOWN_ERROR',
+        'errors': <String, dynamic>{},
+      };
+    }
+
+    final message = data['message'] as String? ?? 'An error occurred';
+    final code = data['code'] as String? ?? '';
+    final errorsRaw = data['errors'];
+
+    Map<String, dynamic> errorsMap = {};
+
+    if (errorsRaw is List) {
+      for (final error in errorsRaw) {
+        if (error is Map) {
+          final field = error['field'] as String? ??
+              error['path'] as String? ??
+              'error';
+          final msg = error['message'] as String? ?? '';
+          errorsMap[field] = msg;
+        } else if (error is String) {
+          errorsMap['error_${errorsMap.length}'] = error;
+        }
+      }
+    } else if (errorsRaw is Map<String, dynamic>) {
+      errorsMap = errorsRaw;
+    }
+
+    return {
+      'message': message,
+      'code': code,
+      'errors': errorsMap,
+    };
+  }
+
+  String _getReadableMessage(Map<String, dynamic> parsed) {
+    final errors = parsed['errors'] as Map<String, dynamic>;
+    if (errors.isNotEmpty) {
+      return errors.values.first.toString();
+    }
+    return parsed['message'] as String;
+  }
+
   InterceptorsWrapper _errorInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) {
@@ -111,117 +180,107 @@ class DioClient {
         }
       },
       onError: (error, handler) async {
-        if (error.response == null) {
-          if (error.type == DioExceptionType.connectionError ||
-              error.type == DioExceptionType.connectionTimeout) {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                error: const NetworkException(
-                  message: 'No internet connection',
-                ),
-                type: DioExceptionType.unknown,
+        final response = error.response;
+        final parsed = _parseErrorResponse(response);
+        final message = _getReadableMessage(parsed);
+        final errors = parsed['errors'] as Map<String, dynamic>;
+        final statusCode = response?.statusCode;
+
+        if (error.type == DioExceptionType.connectionError ||
+            error.type == DioExceptionType.unknown) {
+          return handler.reject(
+            DioException(
+              requestOptions: error.requestOptions,
+              error: const NetworkException(
+                message: 'No internet connection. Please check your network.',
               ),
-            );
-            return;
-          }
-          handler.next(error);
-          return;
+            ),
+          );
         }
 
-        final statusCode = error.response!.statusCode;
-        if (statusCode == null) {
-          handler.next(error);
-          return;
+        if (error.type == DioExceptionType.connectionTimeout ||
+            error.type == DioExceptionType.receiveTimeout ||
+            error.type == DioExceptionType.sendTimeout) {
+          return handler.reject(
+            DioException(
+              requestOptions: error.requestOptions,
+              error: const NetworkException(
+                message: 'Connection timed out. Please try again.',
+              ),
+            ),
+          );
         }
 
         switch (statusCode) {
+          case 400:
+            return handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: ServerException(message: message, statusCode: 400),
+            ));
           case 401:
-            await _handleUnauthorized(error, handler);
-            return;
+            final refreshed = await _attemptTokenRefresh(error.requestOptions);
+            if (refreshed != null) {
+              return handler.resolve(refreshed);
+            }
+            await _clearTokens();
+            return handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: UnauthorizedException(message: message),
+            ));
           case 403:
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                error: PermissionException(
-                  message:
-                      _extractMessage(error.response?.data) ??
-                      'Access forbidden',
-                ),
-                type: DioExceptionType.badResponse,
-              ),
-            );
+            return handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: PermissionException(message: message),
+            ));
           case 404:
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                error: NotFoundException(
-                  message:
-                      _extractMessage(error.response?.data) ??
-                      'Resource not found',
-                ),
-                type: DioExceptionType.badResponse,
+            return handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: NotFoundException(message: message),
+            ));
+          case 409:
+            return handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: ConflictException(
+                message: message,
+                field: errors.keys.isNotEmpty ? errors.keys.first : null,
               ),
-            );
+            ));
           case 422:
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                error: ValidationException(
-                  message:
-                      _extractMessage(error.response?.data) ??
-                      'Validation failed',
-                  errors:
-                      error.response?.data?['errors'] as Map<String, dynamic>?,
-                ),
-                type: DioExceptionType.badResponse,
+            return handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: ValidationException(message: message, errors: errors),
+            ));
+          case 500:
+          case 502:
+          case 503:
+            return handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: ServerException(
+                message: 'Server error. Please try again later.',
+                statusCode: statusCode,
               ),
-            );
-          case >= 500:
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                response: error.response,
-                error: ServerException(
-                  message:
-                      _extractMessage(error.response?.data) ??
-                      'Server error occurred',
-                  statusCode: statusCode,
-                ),
-                type: DioExceptionType.badResponse,
-              ),
-            );
+            ));
           default:
-            handler.next(error);
+            return handler.reject(DioException(
+              requestOptions: error.requestOptions,
+              error: ServerException(
+                message: message,
+                statusCode: statusCode,
+              ),
+            ));
         }
       },
     );
   }
 
-  Future<void> _handleUnauthorized(
-    DioException error,
-    ErrorInterceptorHandler handler,
+  Future<Response?> _attemptTokenRefresh(
+    RequestOptions originalRequestOptions,
   ) async {
-    if (_isRefreshing) {
-      handler.next(error);
-      return;
-    }
+    if (_isRefreshing) return null;
 
-    if (error.requestOptions.path.contains('/auth/refresh') ||
-        error.requestOptions.path.contains('/auth/login')) {
-      await _clearTokens();
-      handler.reject(
-        DioException(
-          requestOptions: error.requestOptions,
-          response: error.response,
-          error: const UnauthorizedException(message: 'Session expired'),
-          type: DioExceptionType.badResponse,
-        ),
-      );
-      return;
+    if (originalRequestOptions.path.contains('/auth/refresh') ||
+        originalRequestOptions.path.contains('/auth/login')) {
+      return null;
     }
 
     _isRefreshing = true;
@@ -231,18 +290,7 @@ class DioClient {
       );
 
       if (storedRefreshToken == null || storedRefreshToken.isEmpty) {
-        await _clearTokens();
-        handler.reject(
-          DioException(
-            requestOptions: error.requestOptions,
-            response: error.response,
-            error: const UnauthorizedException(
-              message: 'No refresh token available',
-            ),
-            type: DioExceptionType.badResponse,
-          ),
-        );
-        return;
+        return null;
       }
 
       final refreshResponse = await _refreshDio.post(
@@ -257,18 +305,7 @@ class DioClient {
       final newAccessToken = data['access_token'] as String?;
       final newRefreshToken = data['refresh_token'] as String?;
 
-      if (newAccessToken == null) {
-        await _clearTokens();
-        handler.reject(
-          DioException(
-            requestOptions: error.requestOptions,
-            response: error.response,
-            error: const UnauthorizedException(message: 'Token refresh failed'),
-            type: DioExceptionType.badResponse,
-          ),
-        );
-        return;
-      }
+      if (newAccessToken == null) return null;
 
       await secureStorage.write(
         key: ApiConstants.accessTokenKey,
@@ -281,30 +318,14 @@ class DioClient {
         );
       }
 
-      error.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-
-      final retryResponse = await dio.fetch(error.requestOptions);
-      handler.resolve(retryResponse);
-    } catch (e) {
-      await _clearTokens();
-      handler.reject(
-        DioException(
-          requestOptions: error.requestOptions,
-          response: error.response,
-          error: const UnauthorizedException(message: 'Session expired'),
-          type: DioExceptionType.badResponse,
-        ),
-      );
+      originalRequestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+      final retryResponse = await dio.fetch(originalRequestOptions);
+      return retryResponse;
+    } catch (_) {
+      return null;
     } finally {
       _isRefreshing = false;
     }
-  }
-
-  String? _extractMessage(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data['message'] as String? ?? data['detail'] as String?;
-    }
-    return null;
   }
 
   Future<void> _clearTokens() async {

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/error/failures.dart';
 import '../../domain/usecases/add_medication_usecase.dart';
 import '../../domain/usecases/deactivate_medication_usecase.dart';
 import '../../domain/usecases/get_patient_medications_usecase.dart';
@@ -33,7 +34,7 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
       AddMedicationParams(medication: event.medication),
     );
     result.fold(
-      (failure) => emit(MedicationError(message: failure.message)),
+      (failure) => emit(MedicationError(message: _failureMessage(failure))),
       (medication) => emit(MedicationAdded(medication: medication)),
     );
   }
@@ -47,7 +48,7 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
       GetPatientMedicationsParams(patientId: event.patientId),
     );
     result.fold(
-      (failure) => emit(MedicationError(message: failure.message)),
+      (failure) => emit(MedicationError(message: _failureMessage(failure))),
       (medications) => emit(MedicationsLoaded(medications: medications)),
     );
   }
@@ -61,7 +62,7 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
       UpdateMedicationParams(medication: event.medication),
     );
     result.fold(
-      (failure) => emit(MedicationError(message: failure.message)),
+      (failure) => emit(MedicationError(message: _failureMessage(failure))),
       (medication) => emit(MedicationUpdated(medication: medication)),
     );
   }
@@ -75,8 +76,17 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
       DeactivateMedicationParams(id: event.id),
     );
     result.fold(
-      (failure) => emit(MedicationError(message: failure.message)),
+      (failure) => emit(MedicationError(message: _failureMessage(failure))),
       (_) => emit(const MedicationDeactivated()),
     );
+  }
+
+  String _failureMessage(Failure failure) {
+    if (failure is ValidationFailure && failure.errors.isNotEmpty) {
+      return failure.errors.values.first.toString();
+    }
+    return failure.message.isNotEmpty
+        ? failure.message
+        : 'Something went wrong. Please try again.';
   }
 }

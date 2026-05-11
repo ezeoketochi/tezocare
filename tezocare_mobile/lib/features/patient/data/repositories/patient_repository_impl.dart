@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/error/repository_helper.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/patient.dart';
 import '../../domain/repositories/patient_repository.dart';
@@ -43,18 +43,8 @@ class PatientRepositoryImpl implements PatientRepository {
       );
       final result = await remoteDataSource.createPatient(patientModel);
       return Right(result);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -66,18 +56,8 @@ class PatientRepositoryImpl implements PatientRepository {
     try {
       final result = await remoteDataSource.getPatients(page: page);
       return Right(result);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -89,18 +69,8 @@ class PatientRepositoryImpl implements PatientRepository {
     try {
       final result = await remoteDataSource.getPatientDetail(id);
       return Right(result);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -112,18 +82,8 @@ class PatientRepositoryImpl implements PatientRepository {
     try {
       final result = await remoteDataSource.searchPatients(query);
       return Right(result);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 
@@ -154,18 +114,8 @@ class PatientRepositoryImpl implements PatientRepository {
       );
       final result = await remoteDataSource.updatePatient(patientModel);
       return Right(result);
-    } on UnauthorizedException catch (e) {
-      return Left(UnauthorizedFailure(message: e.message));
-    } on ValidationException catch (e) {
-      return Left(ValidationFailure(message: e.message, errors: e.errors));
-    } on PermissionException catch (e) {
-      return Left(PermissionFailure(message: e.message));
-    } on NotFoundException catch (e) {
-      return Left(NotFoundFailure(message: e.message));
-    } on NetworkException catch (e) {
-      return Left(NetworkFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return handleException(e);
     }
   }
 }

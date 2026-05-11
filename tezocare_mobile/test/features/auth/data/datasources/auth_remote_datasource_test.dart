@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:tezocare_mobile/core/error/exceptions.dart';
 import 'package:tezocare_mobile/core/network/dio_client.dart';
 import 'package:tezocare_mobile/features/auth/data/datasources/auth_remote_datasource.dart';
 

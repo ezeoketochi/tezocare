@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:tezocare_mobile/core/error/failures.dart';
 import 'package:tezocare_mobile/features/patient/domain/entities/patient.dart';
 import 'package:tezocare_mobile/features/patient/domain/repositories/patient_repository.dart';
 import 'package:tezocare_mobile/features/patient/domain/usecases/search_patients_usecase.dart';

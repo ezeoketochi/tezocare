@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/error/failures.dart';
 import '../../domain/usecases/create_visit_usecase.dart';
 import '../../domain/usecases/get_patient_visits_usecase.dart';
 import '../../domain/usecases/get_visit_detail_usecase.dart';
@@ -29,7 +30,7 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
       CreateVisitParams(visit: event.visit, vitals: event.vitals),
     );
     result.fold(
-      (failure) => emit(VisitError(message: failure.message)),
+      (failure) => emit(VisitError(message: _failureMessage(failure))),
       (visit) => emit(VisitCreated(visit: visit)),
     );
   }
@@ -43,7 +44,7 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
       GetPatientVisitsParams(patientId: event.patientId),
     );
     result.fold(
-      (failure) => emit(VisitError(message: failure.message)),
+      (failure) => emit(VisitError(message: _failureMessage(failure))),
       (visits) => emit(VisitsLoaded(visits: visits)),
     );
   }
@@ -57,8 +58,17 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
       GetVisitDetailParams(id: event.id),
     );
     result.fold(
-      (failure) => emit(VisitError(message: failure.message)),
+      (failure) => emit(VisitError(message: _failureMessage(failure))),
       (visit) => emit(VisitDetailLoaded(visit: visit)),
     );
+  }
+
+  String _failureMessage(Failure failure) {
+    if (failure is ValidationFailure && failure.errors.isNotEmpty) {
+      return failure.errors.values.first.toString();
+    }
+    return failure.message.isNotEmpty
+        ? failure.message
+        : 'Something went wrong. Please try again.';
   }
 }

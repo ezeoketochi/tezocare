@@ -137,7 +137,7 @@ class _AppButtonState extends State<AppButton>
   }
 
   Widget _buildGhostButton(double height, double width) {
-    return Container(
+    return SizedBox(
       width: width,
       height: height,
       child: _buildButtonContent(isWhiteText: false, textColor: AppColors.primary),

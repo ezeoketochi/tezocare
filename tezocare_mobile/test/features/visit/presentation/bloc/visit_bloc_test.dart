@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tezocare_mobile/core/error/failures.dart';
 import 'package:tezocare_mobile/features/visit/domain/entities/visit.dart';
-import 'package:tezocare_mobile/features/visit/domain/entities/vitals.dart';
 import 'package:tezocare_mobile/features/visit/domain/usecases/create_visit_usecase.dart';
 import 'package:tezocare_mobile/features/visit/domain/usecases/get_patient_visits_usecase.dart';
 import 'package:tezocare_mobile/features/visit/domain/usecases/get_visit_detail_usecase.dart';

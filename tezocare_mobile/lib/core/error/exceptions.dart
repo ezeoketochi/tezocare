@@ -35,9 +35,19 @@ class NotFoundException implements Exception {
   const NotFoundException({required this.message});
 }
 
+class ConflictException implements Exception {
+  final String message;
+  final String? field;
+
+  const ConflictException({required this.message, this.field});
+}
+
 class ValidationException implements Exception {
   final String message;
-  final Map<String, dynamic>? errors;
+  final Map<String, dynamic> errors;
 
-  const ValidationException({required this.message, this.errors});
+  const ValidationException({
+    required this.message,
+    this.errors = const {},
+  });
 }
