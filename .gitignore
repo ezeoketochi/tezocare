@@ -1,0 +1,42 @@
+# Python / Backend
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/.env
+backend/.env.local
+backend/.env.production
+backend/alembic/versions/__pycache__/
+
+# Flutter
+tezocare_mobile/.dart_tool/
+tezocare_mobile/build/
+tezocare_mobile/.flutter-plugins
+tezocare_mobile/.flutter-plugins-dependencies
+tezocare_mobile/.packages
+tezocare_mobile/pubspec.lock
+tezocare_mobile/android/local.properties
+tezocare_mobile/android/.gradle/
+tezocare_mobile/android/app/google-services.json
+tezocare_mobile/ios/GoogleService-Info.plist
+tezocare_mobile/ios/Pods/
+tezocare_mobile/ios/.symlinks/
+tezocare_mobile/lib/firebase_options.dart
+
+# React Native (for when you add it)
+mobile_rn/node_modules/
+mobile_rn/.expo/
+mobile_rn/.env
+
+# Dashboard (for when you add it)
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.env
+
+# General
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
