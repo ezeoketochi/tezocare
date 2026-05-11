@@ -38,7 +38,7 @@ void main() {
     registerFallbackValue(const RefreshTokenParams(refreshToken: ''));
   });
 
-  const staff = Staff(id: 1, name: 'Dr. Smith', email: 'smith@tezocare.com', isActive: true);
+  const staff = Staff(id: '1', name: 'Dr. Smith', email: 'smith@tezocare.com', isActive: true);
   const token = Token(accessToken: 'access', refreshToken: 'refresh');
 
   group('AuthBloc', () {

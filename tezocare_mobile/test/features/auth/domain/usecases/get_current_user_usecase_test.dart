@@ -19,7 +19,7 @@ void main() {
   });
 
   const staff = Staff(
-    id: 1,
+    id: '1',
     name: 'Dr. Smith',
     email: 'smith@tezocare.com',
     isActive: true,

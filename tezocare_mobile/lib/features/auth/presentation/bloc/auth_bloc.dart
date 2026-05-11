@@ -31,19 +31,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthLoading());
-    final result = await loginUseCase(
-      LoginParams(email: event.email, password: event.password),
-    );
-    await result.fold(
-      (failure) async => _mapFailureToState(failure, emit),
-      (token) async {
-        final userResult = await getCurrentUserUseCase(const NoParams());
-        userResult.fold(
-          (failure) => _mapFailureToState(failure, emit),
-          (staff) => emit(AuthAuthenticated(staff: staff)),
-        );
-      },
-    );
+    try {
+      final result = await loginUseCase(
+        LoginParams(email: event.email, password: event.password),
+      );
+      await result.fold(
+        (failure) async => _mapFailureToState(failure, emit),
+        (token) async {
+          final userResult = await getCurrentUserUseCase(const NoParams());
+          userResult.fold(
+            (failure) => _mapFailureToState(failure, emit),
+            (staff) => emit(AuthAuthenticated(staff: staff)),
+          );
+        },
+      );
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred'));
+    }
   }
 
   Future<void> _onLogout(
@@ -51,11 +55,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthLoading());
-    final result = await logoutUseCase(const NoParams());
-    result.fold(
-      (failure) => emit(AuthError(message: failure.message)),
-      (_) => emit(const AuthUnauthenticated()),
-    );
+    try {
+      final result = await logoutUseCase(const NoParams());
+      result.fold(
+        (failure) => emit(AuthError(message: failure.message)),
+        (_) => emit(const AuthUnauthenticated()),
+      );
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred'));
+    }
   }
 
   Future<void> _onCheckAuth(
@@ -80,19 +88,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthLoading());
-    final result = await refreshTokenUseCase(
-      RefreshTokenParams(refreshToken: event.refreshToken),
-    );
-    await result.fold(
-      (failure) async => _mapFailureToState(failure, emit),
-      (token) async {
-        final userResult = await getCurrentUserUseCase(const NoParams());
-        userResult.fold(
-          (failure) => _mapFailureToState(failure, emit),
-          (staff) => emit(AuthAuthenticated(staff: staff)),
-        );
-      },
-    );
+    try {
+      final result = await refreshTokenUseCase(
+        RefreshTokenParams(refreshToken: event.refreshToken),
+      );
+      await result.fold(
+        (failure) async => _mapFailureToState(failure, emit),
+        (token) async {
+          final userResult = await getCurrentUserUseCase(const NoParams());
+          userResult.fold(
+            (failure) => _mapFailureToState(failure, emit),
+            (staff) => emit(AuthAuthenticated(staff: staff)),
+          );
+        },
+      );
+    } catch (e) {
+      emit(AuthError(message: 'An unexpected error occurred'));
+    }
   }
 
   void _mapFailureToState(Failure failure, Emitter<AuthState> emit) {

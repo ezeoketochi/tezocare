@@ -68,7 +68,7 @@ void main() {
   });
 
   group('getCurrentUser', () {
-    const staff = StaffModel(id: 1, name: 'Dr. Smith', email: 'smith@tezocare.com', isActive: true);
+    const staff = StaffModel(id: '1', name: 'Dr. Smith', email: 'smith@tezocare.com', isActive: true);
 
     test('should return Staff on success', () async {
       when(() => remoteDataSource.getCurrentUser()).thenAnswer((_) async => staff);

@@ -6,7 +6,7 @@ import 'package:tezocare_mobile/features/auth/domain/entities/staff.dart';
 void main() {
   final testDate = DateTime.parse('2025-01-01T10:00:00.000');
   final testJson = {
-    'id': 1,
+    'id': '1',
     'name': 'Dr. Smith',
     'email': 'smith@tezocare.com',
     'role': 'veterinarian',
@@ -14,7 +14,7 @@ void main() {
     'created_at': '2025-01-01T10:00:00.000',
   };
   final testModel = StaffModel(
-    id: 1,
+    id: '1',
     name: 'Dr. Smith',
     email: 'smith@tezocare.com',
     role: 'veterinarian',
@@ -25,7 +25,7 @@ void main() {
   group('StaffModel', () {
     test('fromJson creates model correctly', () {
       final model = StaffModel.fromJson(testJson);
-      expect(model.id, 1);
+      expect(model.id, '1');
       expect(model.name, 'Dr. Smith');
       expect(model.email, 'smith@tezocare.com');
       expect(model.role, 'veterinarian');
@@ -35,7 +35,7 @@ void main() {
 
     test('fromJson handles null optional fields', () {
       final json = {
-        'id': 2,
+        'id': '2',
         'name': 'Jane',
         'email': 'jane@tezocare.com',
         'is_active': false,
@@ -53,7 +53,7 @@ void main() {
 
     test('toJson handles null optional fields', () {
       final model = StaffModel(
-        id: 2,
+        id: '2',
         name: 'Jane',
         email: 'jane@tezocare.com',
         isActive: false,
