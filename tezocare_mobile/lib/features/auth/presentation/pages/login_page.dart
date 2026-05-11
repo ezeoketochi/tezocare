@@ -5,8 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/routes/route_names.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
+import '../../../../shared/services/app_toast.dart';
+import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
-import '../../../../shared/widgets/gradient_button.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -22,8 +23,6 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -50,20 +49,10 @@ class _LoginPageState extends State<LoginPage> {
           if (state is AuthAuthenticated) {
             context.go(RouteNames.dashboard);
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppToast.error(context, title: state.message);
           } else if (state is AuthValidationError) {
             final messages = state.errors.values.join('\n');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(messages),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppToast.warning(context, title: messages);
           }
         },
         builder: (context, state) {
@@ -75,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Container(
                     width: double.infinity,
                     decoration: const BoxDecoration(
-                      gradient: AppColors.primaryGradientVertical,
+                      gradient: AppColors.primaryGradient,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -84,31 +73,27 @@ class _LoginPageState extends State<LoginPage> {
                           width: 72.w,
                           height: 72.w,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            Icons.local_pharmacy,
+                            Icons.local_pharmacy_rounded,
                             size: 36.sp,
-                            color: Colors.white,
+                            color: AppColors.accentLight,
                           ),
                         ),
                         SizedBox(height: 16.h),
                         Text(
                           'TezoCare',
-                          style: TextStyle(
-                            fontSize: 28.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1,
+                          style: AppTextStyles.displayMedium.copyWith(
+                            color: AppColors.white,
                           ),
                         ),
                         SizedBox(height: 4.h),
                         Text(
                           'Veterinary Clinic Management',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: Colors.white70,
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            color: Colors.white.withValues(alpha: 0.7),
                           ),
                         ),
                       ],
@@ -120,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.scaffoldBg,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(32.r),
                         topRight: Radius.circular(32.r),
@@ -142,16 +127,17 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             SizedBox(height: 4.h),
                             Text(
-                              'Sign in to continue',
+                              'Sign in to your account',
                               style: AppTextStyles.bodyMedium,
                             ),
                             SizedBox(height: 32.h),
                             AppTextField(
                               controller: _emailController,
-                              labelText: 'Email',
+                              label: 'Email',
                               prefixIcon: Icon(
                                 Icons.email_outlined,
                                 size: 20.sp,
+                                color: AppColors.primary,
                               ),
                               keyboardType: TextInputType.emailAddress,
                               validator: (value) {
@@ -164,25 +150,13 @@ class _LoginPageState extends State<LoginPage> {
                             SizedBox(height: 16.h),
                             AppTextField(
                               controller: _passwordController,
-                              labelText: 'Password',
+                              label: 'Password',
                               prefixIcon: Icon(
                                 Icons.lock_outlined,
                                 size: 20.sp,
+                                color: AppColors.primary,
                               ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  size: 20.sp,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                              ),
-                              obscureText: _obscurePassword,
+                              isPassword: true,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your password';
@@ -191,10 +165,11 @@ class _LoginPageState extends State<LoginPage> {
                               },
                             ),
                             SizedBox(height: 32.h),
-                            GradientButton(
+                            AppButton(
+                              label: 'Sign In',
                               onPressed: state is AuthLoading ? null : _onLogin,
                               isLoading: state is AuthLoading,
-                              child: const Text('Sign In'),
+                              isDisabled: state is AuthLoading,
                             ),
                           ],
                         ),

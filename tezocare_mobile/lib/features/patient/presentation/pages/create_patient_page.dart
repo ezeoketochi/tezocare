@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/services/app_toast.dart';
 import '../../data/models/patient_model.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
@@ -86,14 +87,10 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
       body: BlocListener<PatientBloc, PatientState>(
         listener: (context, state) {
           if (state is PatientCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Patient created successfully')),
-            );
+            AppToast.success(context, title: 'Patient created successfully');
             context.pop();
           } else if (state is PatientError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            AppToast.error(context, title: state.message);
           }
         },
         child: SingleChildScrollView(

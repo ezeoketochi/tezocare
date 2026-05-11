@@ -59,6 +59,12 @@ dependencies:
   # SVG Support
   flutter_svg: ^2.0.16
 
+  # Toast Notifications
+  toastification: ^2.3.0
+
+  # Charts
+  fl_chart: ^0.69.0
+
   # PDF Export (aligns with backend export feature)
   printing: ^5.13.1
   pdf: ^3.11.1

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/services/app_toast.dart';
 import '../../data/models/visit_model.dart';
 import '../../data/models/vitals_model.dart';
 import '../bloc/visit_bloc.dart';
@@ -103,14 +104,10 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
       body: BlocListener<VisitBloc, VisitState>(
         listener: (context, state) {
           if (state is VisitCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Visit created successfully')),
-            );
+            AppToast.success(context, title: 'Visit created successfully');
             context.pop();
           } else if (state is VisitError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            AppToast.error(context, title: state.message);
           }
         },
         child: SingleChildScrollView(

@@ -7,7 +7,9 @@ import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
-import '../../../../shared/widgets/stat_card.dart';
+import '../../../../shared/widgets/app_badge.dart';
+import '../../../../shared/widgets/app_section_header.dart';
+import '../../../../shared/widgets/app_stat_card.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -38,43 +40,46 @@ class _DashboardPageState extends State<DashboardPage> {
         appBar: AppBar(
           title: Text(
             'TezoCare',
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            style: AppTextStyles.headlineSmall.copyWith(
+              color: AppColors.textPrimary,
             ),
           ),
-          centerTitle: false,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Logout'),
-                    content: const Text('Are you sure you want to logout?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          context.read<AuthBloc>().add(
-                            const AuthLogoutRequested(),
-                          );
-                        },
-                        child: const Text(
-                          'Logout',
-                          style: TextStyle(color: Colors.red),
+            Container(
+              margin: EdgeInsets.only(right: 8.w),
+              child: IconButton(
+                icon: Icon(
+                  Icons.logout_rounded,
+                  color: AppColors.textSecondary,
+                ),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Logout'),
+                      content: const Text('Are you sure you want to logout?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Cancel'),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            context.read<AuthBloc>().add(
+                              const AuthLogoutRequested(),
+                            );
+                          },
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -85,37 +90,52 @@ class _DashboardPageState extends State<DashboardPage> {
             }
             if (state is DashboardError) {
               return Center(
-                child: Text(state.message, style: AppTextStyles.bodyMedium),
+                child: Padding(
+                  padding: EdgeInsets.all(32.w),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline_rounded,
+                        size: 48.sp,
+                        color: AppColors.coral,
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        state.message,
+                        style: AppTextStyles.bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
               );
             }
             if (state is DashboardLoaded) {
               final stats = state.stats;
-              final colors = AppColors.statCardColors;
-              final statItems = [
-                (
-                  stats.totalPatients.toString(),
-                  'Total Patients',
-                  Icons.pets,
-                  colors[0],
-                ),
-                (
-                  stats.activeVisits.toString(),
-                  'Active Visits',
-                  Icons.medical_services,
-                  colors[1],
-                ),
-                (
-                  stats.todayAppointments.toString(),
-                  "Today's Appointments",
-                  Icons.calendar_today,
-                  colors[2],
-                ),
-                (
-                  stats.pendingRefills.toString(),
-                  'Pending Refills',
-                  Icons.refresh,
-                  colors[3],
-                ),
+              final statVariants = [
+                StatCardVariant.primary,
+                StatCardVariant.success,
+                StatCardVariant.gold,
+                StatCardVariant.coral,
+              ];
+              final statIcons = [
+                Icons.pets_rounded,
+                Icons.medical_services_rounded,
+                Icons.calendar_today_rounded,
+                Icons.refresh_rounded,
+              ];
+              final statLabels = [
+                'Total Patients',
+                'Active Visits',
+                "Today's Appointments",
+                'Pending Refills',
+              ];
+              final statValues = [
+                stats.totalPatients.toString(),
+                stats.activeVisits.toString(),
+                stats.todayAppointments.toString(),
+                stats.pendingRefills.toString(),
               ];
 
               return RefreshIndicator(
@@ -126,126 +146,155 @@ class _DashboardPageState extends State<DashboardPage> {
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.all(16.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Overview', style: AppTextStyles.headlineMedium),
-                      SizedBox(height: 16.h),
-                      GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 1.3,
-                          crossAxisSpacing: 12.w,
-                          mainAxisSpacing: 12.h,
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 16.h),
+                        child: Text(
+                          'Overview',
+                          style: AppTextStyles.headlineMedium,
                         ),
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: statItems.length,
-                        itemBuilder: (context, index) {
-                          final item = statItems[index];
-                          return StatCard(
-                            value: item.$1,
-                            label: item.$2,
-                            icon: item.$3,
-                            color: item.$4,
-                          );
-                        },
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        child: GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 1.5,
+                            crossAxisSpacing: 12.w,
+                            mainAxisSpacing: 12.h,
+                          ),
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: 4,
+                          itemBuilder: (context, index) {
+                            return AppStatCard(
+                              value: statValues[index],
+                              label: statLabels[index],
+                              icon: statIcons[index],
+                              variant: statVariants[index],
+                            );
+                          },
+                        ),
                       ),
                       SizedBox(height: 24.h),
-                      Text('Quick Actions', style: AppTextStyles.titleLarge),
+                      const AppSectionHeader(title: 'Quick Actions'),
                       SizedBox(height: 12.h),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildActionCard(
-                              'Patients',
-                              Icons.pets,
-                              AppColors.primary,
-                              () => context.push('/patients'),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildQuickAction(
+                                label: 'Patients',
+                                icon: Icons.pets_rounded,
+                                color: AppColors.primary,
+                                onTap: () => context.push('/patients'),
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: _buildActionCard(
-                              'Visits',
-                              Icons.medical_services,
-                              AppColors.secondary,
-                              () => context.push('/visits/create'),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: _buildQuickAction(
+                                label: 'Visits',
+                                icon: Icons.medical_services_rounded,
+                                color: AppColors.accent,
+                                onTap: () => context.push('/visits/create'),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       SizedBox(height: 12.h),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildActionCard(
-                              'Medications',
-                              Icons.medication,
-                              AppColors.accent,
-                              () => context.push('/medications'),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildQuickAction(
+                                label: 'Medications',
+                                icon: Icons.medication_rounded,
+                                color: AppColors.coral,
+                                onTap: () => context.push('/medications'),
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: _buildActionCard(
-                              'Add Patient',
-                              Icons.person_add,
-                              AppColors.success,
-                              () => context.push('/patients/create'),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: _buildQuickAction(
+                                label: 'Add Patient',
+                                icon: Icons.person_add_rounded,
+                                color: AppColors.gold,
+                                onTap: () => context.push('/patients/create'),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       if (state.refillsDue.isNotEmpty) ...[
                         SizedBox(height: 24.h),
-                        Text('Refills Due', style: AppTextStyles.titleLarge),
+                        const AppSectionHeader(title: 'Refills Due'),
                         SizedBox(height: 12.h),
-                        ...state.refillsDue.map(
-                          (refill) => Container(
-                            margin: EdgeInsets.only(bottom: 8.h),
-                            decoration: BoxDecoration(
-                              color: AppColors.cardBg,
-                              borderRadius: BorderRadius.circular(12.r),
-                              boxShadow: [AppColors.cardShadow],
-                            ),
-                            child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16.w,
-                                vertical: 4.h,
-                              ),
-                              leading: Container(
-                                width: 40.w,
-                                height: 40.w,
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20.w),
+                          child: Column(
+                            children: state.refillsDue.map(
+                              (refill) => Container(
+                                margin: EdgeInsets.only(bottom: 8.h),
                                 decoration: BoxDecoration(
-                                  color:
-                                      (refill.isOverdue
-                                              ? AppColors.error
+                                  color: AppColors.white,
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withValues(alpha: 0.06),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16.w,
+                                    vertical: 8.h,
+                                  ),
+                                  leading: Container(
+                                    width: 44.w,
+                                    height: 44.w,
+                                    decoration: BoxDecoration(
+                                      color: (refill.isOverdue
+                                              ? AppColors.coral
                                               : AppColors.warning)
                                           .withValues(alpha: 0.12),
-                                  shape: BoxShape.circle,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.refresh_rounded,
+                                      color: refill.isOverdue
+                                          ? AppColors.coral
+                                          : AppColors.warning,
+                                      size: 20.sp,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    refill.medicationName,
+                                    style: AppTextStyles.titleMedium,
+                                  ),
+                                  subtitle: Text(
+                                    '${refill.patientName} - Due: ${refill.nextRefillDate.toLocal().toString().split(' ')[0]}',
+                                    style: AppTextStyles.bodySmall,
+                                  ),
+                                  trailing: AppBadge(
+                                    text: refill.isOverdue ? 'Overdue' : 'Pending',
+                                    variant: refill.isOverdue
+                                        ? BadgeVariant.critical
+                                        : BadgeVariant.pending,
+                                  ),
                                 ),
-                                child: Icon(
-                                  Icons.refresh,
-                                  color: refill.isOverdue
-                                      ? AppColors.error
-                                      : AppColors.warning,
-                                  size: 20.sp,
-                                ),
                               ),
-                              title: Text(
-                                refill.medicationName,
-                                style: AppTextStyles.titleMedium,
-                              ),
-                              subtitle: Text(
-                                '${refill.patientName} - Due: ${refill.nextRefillDate.toLocal().toString().split(' ')[0]}',
-                                style: AppTextStyles.bodySmall,
-                              ),
-                            ),
+                            ).toList(),
                           ),
                         ),
                       ],
+                      SizedBox(height: 32.h),
                     ],
                   ),
                 ),
@@ -258,37 +307,43 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildActionCard(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
+  Widget _buildQuickAction({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 20.h),
         decoration: BoxDecoration(
-          color: AppColors.cardBg,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [AppColors.cardShadow],
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40.w,
-              height: 40.w,
+              width: 44.w,
+              height: 44.w,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: color, size: 20.sp),
+              child: Icon(icon, color: color, size: 22.sp),
             ),
             SizedBox(height: 8.h),
             Text(
               label,
-              style: AppTextStyles.labelLarge.copyWith(
+              style: AppTextStyles.titleSmall.copyWith(
                 color: AppColors.textPrimary,
               ),
             ),

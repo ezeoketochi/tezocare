@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/routes/route_names.dart';
 import '../../../../config/themes/app_colors.dart';
@@ -24,13 +25,10 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> _navigate() async {
     await Future.delayed(const Duration(seconds: 2));
-
     try {
       final storage = sl<FlutterSecureStorage>();
       final token = await storage.read(key: ApiConstants.accessTokenKey);
-
       if (!mounted) return;
-
       if (token != null && token.isNotEmpty) {
         context.go(RouteNames.dashboard);
       } else {
@@ -58,31 +56,46 @@ class _SplashPageState extends State<SplashPage> {
                   width: 100.w,
                   height: 100.w,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.local_pharmacy,
+                    Icons.local_pharmacy_rounded,
                     size: 48.sp,
-                    color: Colors.white,
+                    color: AppColors.accentLight,
                   ),
-                ),
+                )
+                    .animate()
+                    .fadeIn(duration: 600.ms)
+                    .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
                 SizedBox(height: 24.h),
-                Text('TezoCare', style: AppTextStyles.splashTitle),
+                Text('TezoCare', style: AppTextStyles.displayLarge.copyWith(
+                  color: AppColors.white,
+                ))
+                    .animate()
+                    .fadeIn(duration: 600.ms, delay: 200.ms)
+                    .slideY(begin: 0.2, end: 0),
                 SizedBox(height: 8.h),
                 Text(
                   'Pharmacy Management',
-                  style: AppTextStyles.splashSubtitle,
-                ),
+                  style: AppTextStyles.bodyLarge.copyWith(
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(duration: 600.ms, delay: 400.ms)
+                    .slideY(begin: 0.2, end: 0),
                 SizedBox(height: 60.h),
                 SizedBox(
                   width: 32.w,
                   height: 32.w,
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    color: Colors.white.withValues(alpha: 0.8),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.accent.withValues(alpha: 0.8),
+                    ),
                   ),
-                ),
+                ).animate().fadeIn(duration: 400.ms, delay: 600.ms),
               ],
             ),
           ),

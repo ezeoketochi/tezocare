@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/services/app_toast.dart';
 import '../../data/models/medication_model.dart';
 import '../bloc/medication_bloc.dart';
 import '../bloc/medication_event.dart';
@@ -73,14 +74,10 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
       body: BlocListener<MedicationBloc, MedicationState>(
         listener: (context, state) {
           if (state is MedicationAdded) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Medication added successfully')),
-            );
+            AppToast.success(context, title: 'Medication added successfully');
             context.pop();
           } else if (state is MedicationError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            AppToast.error(context, title: state.message);
           }
         },
         child: SingleChildScrollView(

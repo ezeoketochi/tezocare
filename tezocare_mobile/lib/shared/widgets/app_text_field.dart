@@ -1,84 +1,128 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
+import '../../config/themes/app_text_styles.dart';
 
-class AppTextField extends StatelessWidget {
+class AppTextField extends StatefulWidget {
   final TextEditingController controller;
-  final String? labelText;
-  final String? hintText;
+  final String? label;
+  final String? hint;
   final String? Function(String?)? validator;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
-  final bool obscureText;
+  final bool isPassword;
   final TextInputType? keyboardType;
-  final bool enabled;
+  final bool isReadOnly;
+  final VoidCallback? onTap;
+  final ValueChanged<String>? onChanged;
+  final int? maxLines;
+  final String? errorText;
 
   const AppTextField({
     super.key,
     required this.controller,
-    this.labelText,
-    this.hintText,
+    this.label,
+    this.hint,
     this.validator,
     this.prefixIcon,
     this.suffixIcon,
-    this.obscureText = false,
+    this.isPassword = false,
     this.keyboardType,
-    this.enabled = true,
+    this.isReadOnly = false,
+    this.onTap,
+    this.onChanged,
+    this.maxLines = 1,
+    this.errorText,
   });
 
   @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  bool _obscure = true;
+
+  @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      enabled: enabled,
-      style: TextStyle(
-        fontSize: 16.sp,
-        color: AppColors.textPrimary,
-      ),
-      decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-        labelStyle: TextStyle(
-          fontSize: 14.sp,
-          color: AppColors.textSecondary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: widget.controller,
+          obscureText: widget.isPassword ? _obscure : false,
+          keyboardType: widget.keyboardType,
+          readOnly: widget.isReadOnly,
+          maxLines: widget.maxLines,
+          onTap: widget.onTap,
+          onChanged: widget.onChanged,
+          style: GoogleFonts.inter(
+            fontSize: 15.sp,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            labelText: widget.label,
+            hintText: widget.hint,
+            prefixIcon: widget.prefixIcon,
+            suffixIcon: widget.isPassword
+                ? IconButton(
+                    icon: Icon(
+                      _obscure
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20.sp,
+                      color: AppColors.textTertiary,
+                    ),
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                  )
+                : widget.suffixIcon,
+            filled: true,
+            fillColor: AppColors.white,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 20.w,
+              vertical: 18.h,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.r),
+              borderSide: const BorderSide(color: AppColors.divider, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.r),
+              borderSide: const BorderSide(color: AppColors.divider, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.r),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.r),
+              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.r),
+              borderSide: const BorderSide(color: AppColors.error, width: 2),
+            ),
+            hintStyle: AppTextStyles.bodyMedium,
+            labelStyle: AppTextStyles.bodyMedium,
+            floatingLabelStyle: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+            errorStyle: AppTextStyles.caption.copyWith(color: AppColors.error),
+          ),
+          validator: widget.validator,
         ),
-        hintStyle: TextStyle(
-          fontSize: 14.sp,
-          color: AppColors.textSecondary.withValues(alpha: 0.6),
-        ),
-        prefixIcon: prefixIcon,
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: AppColors.cardBg,
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: 16.w,
-          vertical: 14.h,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.divider),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.divider),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: AppColors.error, width: 2),
-        ),
-        errorStyle: TextStyle(fontSize: 12.sp, color: AppColors.error),
-      ),
-      validator: validator,
+        if (widget.errorText != null) ...[
+          SizedBox(height: 6.h),
+          Padding(
+            padding: EdgeInsets.only(left: 4.w),
+            child: Text(
+              widget.errorText!,
+              style: AppTextStyles.caption.copyWith(color: AppColors.error),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

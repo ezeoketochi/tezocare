@@ -1,136 +1,143 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
   AppTextStyles._();
 
-  static TextStyle get displayLarge => TextStyle(
-    fontSize: 32.sp,
-    fontWeight: FontWeight.bold,
+  static TextStyle get displayLarge => GoogleFonts.poppins(
+    fontSize: 34.sp,
+    fontWeight: FontWeight.w800,
     color: AppColors.textPrimary,
+    letterSpacing: -1,
+    height: 1.1,
+  );
+
+  static TextStyle get displayMedium => GoogleFonts.poppins(
+    fontSize: 28.sp,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    letterSpacing: -0.5,
     height: 1.2,
   );
 
-  static TextStyle get displayMedium => TextStyle(
-    fontSize: 28.sp,
-    fontWeight: FontWeight.bold,
-    color: AppColors.textPrimary,
-    height: 1.25,
-  );
-
-  static TextStyle get headlineLarge => TextStyle(
+  static TextStyle get headlineLarge => GoogleFonts.poppins(
     fontSize: 24.sp,
     fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
-  static TextStyle get headlineMedium => TextStyle(
+  static TextStyle get headlineMedium => GoogleFonts.poppins(
     fontSize: 20.sp,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
-  static TextStyle get titleLarge => TextStyle(
+  static TextStyle get headlineSmall => GoogleFonts.poppins(
     fontSize: 18.sp,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
-    height: 1.35,
+    height: 1.4,
   );
 
-  static TextStyle get titleMedium => TextStyle(
+  static TextStyle get titleLarge => GoogleFonts.poppins(
     fontSize: 16.sp,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.4,
   );
 
-  static TextStyle get bodyLarge => TextStyle(
-    fontSize: 16.sp,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textPrimary,
-    height: 1.5,
-  );
-
-  static TextStyle get bodyMedium => TextStyle(
+  static TextStyle get titleMedium => GoogleFonts.poppins(
     fontSize: 14.sp,
-    fontWeight: FontWeight.normal,
+    fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
-    height: 1.5,
-  );
-
-  static TextStyle get bodySmall => TextStyle(
-    fontSize: 12.sp,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textSecondary,
-    height: 1.5,
-  );
-
-  static TextStyle get labelLarge => TextStyle(
-    fontSize: 14.sp,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
     height: 1.4,
   );
 
-  static TextStyle get labelSmall => TextStyle(
-    fontSize: 11.sp,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
-    height: 1.3,
-    letterSpacing: 0.5,
-  );
-
-  static TextStyle get button => TextStyle(
-    fontSize: 16.sp,
-    fontWeight: FontWeight.w600,
-    color: Colors.white,
-    height: 1.2,
-  );
-
-  static TextStyle get buttonSmall => TextStyle(
+  static TextStyle get titleSmall => GoogleFonts.poppins(
     fontSize: 13.sp,
     fontWeight: FontWeight.w600,
-    color: Colors.white,
-    height: 1.2,
+    color: AppColors.textSecondary,
+    height: 1.4,
   );
 
-  static TextStyle get caption => TextStyle(
+  static TextStyle get bodyLarge => GoogleFonts.inter(
+    fontSize: 16.sp,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textPrimary,
+    height: 1.6,
+  );
+
+  static TextStyle get bodyMedium => GoogleFonts.inter(
+    fontSize: 14.sp,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textSecondary,
+    height: 1.6,
+  );
+
+  static TextStyle get bodySmall => GoogleFonts.inter(
     fontSize: 12.sp,
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
-    height: 1.4,
+    height: 1.5,
   );
 
-  static TextStyle get statValue => TextStyle(
-    fontSize: 28.sp,
-    fontWeight: FontWeight.bold,
-    color: AppColors.textPrimary,
+  static TextStyle get labelLarge => GoogleFonts.poppins(
+    fontSize: 15.sp,
+    fontWeight: FontWeight.w600,
+    color: AppColors.white,
+    letterSpacing: 0.3,
+  );
+
+  static TextStyle get labelMedium => GoogleFonts.poppins(
+    fontSize: 13.sp,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textSecondary,
+    letterSpacing: 0.2,
+  );
+
+  static TextStyle get labelSmall => GoogleFonts.inter(
+    fontSize: 11.sp,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textTertiary,
+    letterSpacing: 0.3,
+  );
+
+  static TextStyle get statNumber => GoogleFonts.poppins(
+    fontSize: 26.sp,
+    fontWeight: FontWeight.w700,
+    color: AppColors.white,
     height: 1.1,
   );
 
-  static TextStyle get statLabel => TextStyle(
+  static TextStyle get statLabel => GoogleFonts.inter(
     fontSize: 12.sp,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textSecondary,
-    height: 1.3,
-  );
-
-  static TextStyle get splashTitle => TextStyle(
-    fontSize: 36.sp,
-    fontWeight: FontWeight.bold,
-    color: Colors.white,
-    letterSpacing: 1.2,
-    height: 1.2,
-  );
-
-  static TextStyle get splashSubtitle => TextStyle(
-    fontSize: 16.sp,
     fontWeight: FontWeight.w400,
-    color: Colors.white70,
-    letterSpacing: 0.8,
+    color: AppColors.textOnDarkSecondary,
     height: 1.4,
+  );
+
+  static TextStyle get caption => GoogleFonts.inter(
+    fontSize: 11.sp,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textTertiary,
+    height: 1.4,
+  );
+
+  static TextStyle get onDarkTitle => GoogleFonts.poppins(
+    fontSize: 16.sp,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textOnDark,
+    height: 1.4,
+  );
+
+  static TextStyle get onDarkBody => GoogleFonts.inter(
+    fontSize: 13.sp,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textOnDarkSecondary,
+    height: 1.5,
   );
 }
