@@ -26,13 +26,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<TokenModel> login(String email, String password) async {
     try {
-      debugPrint('running  ${ApiConstants.login}');
       final response = await dioClient.dio.post(
         ApiConstants.login,
         data: {'email': email, 'password': password},
       );
       debugPrint(
-        'Login response: $response',
+        'Login response: ${response}',
       ); // Debug print for response data
       final tokenModel = TokenModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
@@ -81,7 +80,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final response = await dioClient.dio.get(ApiConstants.currentUser);
       return StaffModel.fromJson(response.data['data'] as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw _mapDioException(e, defaultMessage: 'Failed to get current user');
+      throw _mapDioException(
+        e,
+        defaultMessage: 'Failed to get current user in datasource',
+      );
     }
   }
 
@@ -98,12 +100,25 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     if (customException is PermissionException) return customException;
     if (customException is NotFoundException) return customException;
     if (customException is NetworkException) return customException;
+    if (customException is ConflictException) return customException;
+    if (customException is ServerException) return customException;
+
+    // Fallback — should rarely be hit now
+    final data = e.response?.data;
+    String message = defaultMessage;
+    if (data is Map) {
+      final detail = data['detail'];
+      if (detail is Map) {
+        message = detail['message'] as String? ?? defaultMessage;
+      } else if (detail is String) {
+        message = detail;
+      } else {
+        message = data['message'] as String? ?? defaultMessage;
+      }
+    }
 
     return ServerException(
-      message:
-          e.response?.data['message'] as String? ??
-          e.response?.data['detail'] as String? ??
-          defaultMessage,
+      message: message,
       statusCode: e.response?.statusCode,
     );
   }

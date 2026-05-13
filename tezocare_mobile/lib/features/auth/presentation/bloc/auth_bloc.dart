@@ -36,7 +36,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         LoginParams(email: event.email, password: event.password),
       );
       await result.fold(
-        (failure) async => _mapFailureToState(failure, emit),
+        (failure) async {
+          if (failure is UnauthorizedFailure || failure is PermissionFailure) {
+            emit(
+              AuthError(
+                message: failure.message.isNotEmpty
+                    ? failure.message
+                    : 'Invalid email or password',
+              ),
+            );
+          } else {
+            _mapFailureToState(failure, emit);
+          }
+        },
         (token) async {
           final userResult = await getCurrentUserUseCase(const NoParams());
           userResult.fold(
@@ -46,7 +58,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         },
       );
     } catch (e) {
-      emit(AuthError(message: 'An unexpected error occurred'));
+      emit(AuthError(message: 'An unexpected error occurred in the auth bloc'));
     }
   }
 
@@ -62,7 +74,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         (_) => emit(const AuthUnauthenticated()),
       );
     } catch (e) {
-      emit(AuthError(message: 'An unexpected error occurred'));
+      emit(AuthError(message: 'An unexpected error occurred for logout'));
     }
   }
 
@@ -71,16 +83,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     final result = await getCurrentUserUseCase(const NoParams());
-    result.fold(
-      (failure) {
-        if (failure is UnauthorizedFailure || failure is PermissionFailure) {
-          emit(const AuthUnauthenticated());
-        } else {
-          emit(AuthError(message: failure.message));
-        }
-      },
-      (staff) => emit(AuthAuthenticated(staff: staff)),
-    );
+    result.fold((failure) {
+      if (failure is UnauthorizedFailure || failure is PermissionFailure) {
+        emit(const AuthUnauthenticated());
+      } else {
+        emit(AuthError(message: failure.message));
+      }
+    }, (staff) => emit(AuthAuthenticated(staff: staff)));
   }
 
   Future<void> _onRefreshToken(
@@ -92,18 +101,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final result = await refreshTokenUseCase(
         RefreshTokenParams(refreshToken: event.refreshToken),
       );
-      await result.fold(
-        (failure) async => _mapFailureToState(failure, emit),
-        (token) async {
-          final userResult = await getCurrentUserUseCase(const NoParams());
-          userResult.fold(
-            (failure) => _mapFailureToState(failure, emit),
-            (staff) => emit(AuthAuthenticated(staff: staff)),
-          );
-        },
-      );
+      await result.fold((failure) async => _mapFailureToState(failure, emit), (
+        token,
+      ) async {
+        final userResult = await getCurrentUserUseCase(const NoParams());
+        userResult.fold(
+          (failure) => _mapFailureToState(failure, emit),
+          (staff) => emit(AuthAuthenticated(staff: staff)),
+        );
+      });
     } catch (e) {
-      emit(AuthError(message: 'An unexpected error occurred'));
+      emit(
+        AuthError(
+          message: 'An unexpected error occurred in the auth bloc for refresh',
+        ),
+      );
     }
   }
 
@@ -113,11 +125,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } else if (failure is UnauthorizedFailure || failure is PermissionFailure) {
       emit(const AuthUnauthenticated());
     } else {
-      emit(AuthError(
-        message: failure.message.isNotEmpty
-            ? failure.message
-            : 'Something went wrong. Please try again.',
-      ));
+      emit(
+        AuthError(
+          message: failure.message.isNotEmpty
+              ? failure.message
+              : 'Something went wrong. Please try again.',
+        ),
+      );
     }
   }
 }
