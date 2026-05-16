@@ -16,7 +16,7 @@ class GetPatientDetailUseCase implements UseCase<Patient, GetPatientDetailParams
 }
 
 class GetPatientDetailParams {
-  final int id;
+  final String id;
 
   const GetPatientDetailParams({required this.id});
 }

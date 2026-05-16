@@ -18,7 +18,7 @@ class GetPatientsEvent extends PatientEvent {
 }
 
 class GetPatientDetailEvent extends PatientEvent {
-  final int id;
+  final String id;
 
   const GetPatientDetailEvent({required this.id});
 

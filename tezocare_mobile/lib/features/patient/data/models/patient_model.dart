@@ -3,42 +3,37 @@ import '../../domain/entities/patient.dart';
 class PatientModel extends Patient {
   const PatientModel({
     required super.id,
-    required super.name,
-    required super.species,
-    super.breed,
-    super.color,
-    super.gender,
-    super.dateOfBirth,
-    super.weight,
-    super.microchipId,
-    super.ownerId,
-    super.ownerName,
-    super.ownerPhone,
-    super.ownerEmail,
-    super.notes,
+    required super.fullName,
+    required super.dob,
+    required super.gender,
+    super.bloodGroup,
+    required super.phone,
+    super.address,
+    super.emergencyContactName,
+    super.emergencyContactPhone,
+    super.allergies,
+    super.chronicConditions,
     required super.isActive,
     super.createdAt,
     super.updatedAt,
+    super.medications,
+    super.vitals,
+    super.nextRefill,
   });
 
   factory PatientModel.fromJson(Map<String, dynamic> json) {
     return PatientModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      species: json['species'] as String,
-      breed: json['breed'] as String?,
-      color: json['color'] as String?,
-      gender: json['gender'] as String?,
-      dateOfBirth: json['date_of_birth'] != null
-          ? DateTime.parse(json['date_of_birth'] as String)
-          : null,
-      weight: (json['weight'] as num?)?.toDouble(),
-      microchipId: json['microchip_id'] as String?,
-      ownerId: json['owner_id'] as int?,
-      ownerName: json['owner_name'] as String?,
-      ownerPhone: json['owner_phone'] as String?,
-      ownerEmail: json['owner_email'] as String?,
-      notes: json['notes'] as String?,
+      id: json['id'] as String,
+      fullName: json['full_name'] as String,
+      dob: DateTime.parse(json['dob'] as String),
+      gender: json['gender'] as String,
+      bloodGroup: json['blood_group'] as String?,
+      phone: json['phone'] as String,
+      address: json['address'] as String?,
+      emergencyContactName: json['emergency_contact_name'] as String?,
+      emergencyContactPhone: json['emergency_contact_phone'] as String?,
+      allergies: json['allergies'] as String?,
+      chronicConditions: json['chronic_conditions'] as String?,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
@@ -46,28 +41,68 @@ class PatientModel extends Patient {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'] as String)
           : null,
+      medications: (json['medications'] as List<dynamic>?)
+              ?.map((e) => MedicationInfo(
+                    id: e['id'] as String,
+                    drugName: e['drug_name'] as String,
+                    dosage: e['dosage'] as String,
+                    frequency: e['frequency'] as String,
+                    startDate: DateTime.parse(e['start_date'] as String),
+                    endDate: e['end_date'] != null
+                        ? DateTime.parse(e['end_date'] as String)
+                        : null,
+                    nextRefillDate: e['next_refill_date'] != null
+                        ? DateTime.parse(e['next_refill_date'] as String)
+                        : null,
+                    isActive: e['is_active'] as bool? ?? true,
+                    prescribedBy: e['prescribed_by'] as String?,
+                    notes: e['notes'] as String?,
+                  ))
+              .toList() ??
+          [],
+      vitals: (json['vitals'] as List<dynamic>?)
+              ?.map((e) => VitalSigns(
+                    id: e['id'] as String,
+                    bloodPressureSystolic:
+                        e['blood_pressure_systolic'] as int?,
+                    bloodPressureDiastolic:
+                        e['blood_pressure_diastolic'] as int?,
+                    glucose: (e['glucose'] as num?)?.toDouble(),
+                    temperature: (e['temperature'] as num?)?.toDouble(),
+                    weight: (e['weight'] as num?)?.toDouble(),
+                    heartRate: e['heart_rate'] as int?,
+                    spo2: e['spo2'] as int?,
+                    recordedAt: e['recorded_at'] != null
+                        ? DateTime.parse(e['recorded_at'] as String)
+                        : null,
+                  ))
+              .toList() ??
+          [],
+      nextRefill: json['next_refill'] != null
+          ? RefillInfo(
+              drugName: json['next_refill']['drug_name'] as String,
+              nextRefillDate: DateTime.parse(
+                  json['next_refill']['next_refill_date'] as String),
+              dosage: json['next_refill']['dosage'] as String,
+              frequency: json['next_refill']['frequency'] as String,
+            )
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'species': species,
-      'breed': breed,
-      'color': color,
+      'full_name': fullName,
+      'dob': dob.toIso8601String().split('T')[0],
       'gender': gender,
-      'date_of_birth': dateOfBirth?.toIso8601String(),
-      'weight': weight,
-      'microchip_id': microchipId,
-      'owner_id': ownerId,
-      'owner_name': ownerName,
-      'owner_phone': ownerPhone,
-      'owner_email': ownerEmail,
-      'notes': notes,
+      'blood_group': bloodGroup,
+      'phone': phone,
+      'address': address,
+      'emergency_contact_name': emergencyContactName,
+      'emergency_contact_phone': emergencyContactPhone,
+      'allergies': allergies,
+      'chronic_conditions': chronicConditions,
       'is_active': isActive,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 }

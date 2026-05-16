@@ -24,19 +24,16 @@ class PatientRepositoryImpl implements PatientRepository {
     try {
       final patientModel = PatientModel(
         id: patient.id,
-        name: patient.name,
-        species: patient.species,
-        breed: patient.breed,
-        color: patient.color,
+        fullName: patient.fullName,
+        dob: patient.dob,
         gender: patient.gender,
-        dateOfBirth: patient.dateOfBirth,
-        weight: patient.weight,
-        microchipId: patient.microchipId,
-        ownerId: patient.ownerId,
-        ownerName: patient.ownerName,
-        ownerPhone: patient.ownerPhone,
-        ownerEmail: patient.ownerEmail,
-        notes: patient.notes,
+        bloodGroup: patient.bloodGroup,
+        phone: patient.phone,
+        address: patient.address,
+        emergencyContactName: patient.emergencyContactName,
+        emergencyContactPhone: patient.emergencyContactPhone,
+        allergies: patient.allergies,
+        chronicConditions: patient.chronicConditions,
         isActive: patient.isActive,
         createdAt: patient.createdAt,
         updatedAt: patient.updatedAt,
@@ -62,7 +59,7 @@ class PatientRepositoryImpl implements PatientRepository {
   }
 
   @override
-  Future<Either<Failure, Patient>> getPatientDetail(int id) async {
+  Future<Either<Failure, Patient>> getPatientDetail(String id) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
@@ -95,19 +92,16 @@ class PatientRepositoryImpl implements PatientRepository {
     try {
       final patientModel = PatientModel(
         id: patient.id,
-        name: patient.name,
-        species: patient.species,
-        breed: patient.breed,
-        color: patient.color,
+        fullName: patient.fullName,
+        dob: patient.dob,
         gender: patient.gender,
-        dateOfBirth: patient.dateOfBirth,
-        weight: patient.weight,
-        microchipId: patient.microchipId,
-        ownerId: patient.ownerId,
-        ownerName: patient.ownerName,
-        ownerPhone: patient.ownerPhone,
-        ownerEmail: patient.ownerEmail,
-        notes: patient.notes,
+        bloodGroup: patient.bloodGroup,
+        phone: patient.phone,
+        address: patient.address,
+        emergencyContactName: patient.emergencyContactName,
+        emergencyContactPhone: patient.emergencyContactPhone,
+        allergies: patient.allergies,
+        chronicConditions: patient.chronicConditions,
         isActive: patient.isActive,
         createdAt: patient.createdAt,
         updatedAt: patient.updatedAt,

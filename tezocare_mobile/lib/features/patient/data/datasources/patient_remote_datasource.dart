@@ -7,7 +7,7 @@ import '../models/patient_model.dart';
 abstract class PatientRemoteDataSource {
   Future<PatientModel> createPatient(PatientModel patient);
   Future<List<PatientModel>> getPatients({int page = 1});
-  Future<PatientModel> getPatientDetail(int id);
+  Future<PatientModel> getPatientDetail(String id);
   Future<List<PatientModel>> searchPatients(String query);
   Future<PatientModel> updatePatient(PatientModel patient);
 }
@@ -49,7 +49,7 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
   }
 
   @override
-  Future<PatientModel> getPatientDetail(int id) async {
+  Future<PatientModel> getPatientDetail(String id) async {
     try {
       final response = await dioClient.dio.get('${ApiConstants.patients}/$id');
       return PatientModel.fromJson(
@@ -82,7 +82,7 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
   @override
   Future<PatientModel> updatePatient(PatientModel patient) async {
     try {
-      final response = await dioClient.dio.put(
+      final response = await dioClient.dio.patch(
         '${ApiConstants.patients}/${patient.id}',
         data: patient.toJson(),
       );

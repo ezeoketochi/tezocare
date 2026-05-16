@@ -18,7 +18,7 @@ class _EditPatientPageState extends State<EditPatientPage> {
   void initState() {
     super.initState();
     context.read<PatientBloc>().add(
-          GetPatientDetailEvent(id: int.parse(widget.patientId)),
+          GetPatientDetailEvent(id: widget.patientId),
         );
   }
 

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../config/themes/app_colors.dart';
+import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/services/app_toast.dart';
+import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_text_field.dart';
 import '../../data/models/patient_model.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
@@ -17,63 +22,65 @@ class CreatePatientPage extends StatefulWidget {
 class _CreatePatientPageState extends State<CreatePatientPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _breedController = TextEditingController();
-  final _colorController = TextEditingController();
-  final _weightController = TextEditingController();
-  final _microchipController = TextEditingController();
-  final _ownerNameController = TextEditingController();
-  final _ownerPhoneController = TextEditingController();
-  final _ownerEmailController = TextEditingController();
-  final _notesController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _emergencyNameController = TextEditingController();
+  final _emergencyPhoneController = TextEditingController();
+  final _allergiesController = TextEditingController();
+  final _chronicConditionsController = TextEditingController();
+  DateTime _dob = DateTime(2000, 1, 1);
+  String _gender = 'male';
+  String _bloodGroup = 'A+';
 
-  String _species = 'Canine';
-  String _gender = 'Male';
+  final _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  final _genders = ['male', 'female', 'other'];
 
   @override
   void dispose() {
     _nameController.dispose();
-    _breedController.dispose();
-    _colorController.dispose();
-    _weightController.dispose();
-    _microchipController.dispose();
-    _ownerNameController.dispose();
-    _ownerPhoneController.dispose();
-    _ownerEmailController.dispose();
-    _notesController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _emergencyNameController.dispose();
+    _emergencyPhoneController.dispose();
+    _allergiesController.dispose();
+    _chronicConditionsController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dob,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) setState(() => _dob = picked);
   }
 
   void _onCreate() {
     if (_formKey.currentState!.validate()) {
       final patient = PatientModel(
-        id: 0,
-        name: _nameController.text.trim(),
-        species: _species,
-        breed: _breedController.text.trim().isEmpty
-            ? null
-            : _breedController.text.trim(),
-        color: _colorController.text.trim().isEmpty
-            ? null
-            : _colorController.text.trim(),
+        id: '',
+        fullName: _nameController.text.trim(),
+        dob: _dob,
         gender: _gender,
-        weight: _weightController.text.trim().isEmpty
+        bloodGroup: _bloodGroup,
+        phone: _phoneController.text.trim(),
+        address: _addressController.text.trim().isEmpty
             ? null
-            : double.tryParse(_weightController.text.trim()),
-        microchipId: _microchipController.text.trim().isEmpty
+            : _addressController.text.trim(),
+        emergencyContactName: _emergencyNameController.text.trim().isEmpty
             ? null
-            : _microchipController.text.trim(),
-        ownerName: _ownerNameController.text.trim().isEmpty
+            : _emergencyNameController.text.trim(),
+        emergencyContactPhone: _emergencyPhoneController.text.trim().isEmpty
             ? null
-            : _ownerNameController.text.trim(),
-        ownerPhone: _ownerPhoneController.text.trim().isEmpty
+            : _emergencyPhoneController.text.trim(),
+        allergies: _allergiesController.text.trim().isEmpty
             ? null
-            : _ownerPhoneController.text.trim(),
-        ownerEmail: _ownerEmailController.text.trim().isEmpty
+            : _allergiesController.text.trim(),
+        chronicConditions: _chronicConditionsController.text.trim().isEmpty
             ? null
-            : _ownerEmailController.text.trim(),
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
+            : _chronicConditionsController.text.trim(),
         isActive: true,
       );
       context.read<PatientBloc>().add(CreatePatientEvent(patient: patient));
@@ -83,149 +90,145 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Patient')),
-      body: BlocListener<PatientBloc, PatientState>(
+      appBar: AppBar(title: const Text('Register Patient')),
+      body: BlocConsumer<PatientBloc, PatientState>(
         listener: (context, state) {
           if (state is PatientCreated) {
-            AppToast.success(context, title: 'Patient created successfully');
+            AppToast.success(context, title: 'Patient registered successfully');
             context.pop();
           } else if (state is PatientError) {
             AppToast.error(context, title: state.message);
           }
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Patient Information',
-                    style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Name *'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Name is required';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: _species,
-                  decoration: const InputDecoration(labelText: 'Species *'),
-                  items: const [
-                    DropdownMenuItem(value: 'Canine', child: Text('Canine')),
-                    DropdownMenuItem(value: 'Feline', child: Text('Feline')),
-                    DropdownMenuItem(value: 'Avian', child: Text('Avian')),
-                    DropdownMenuItem(value: 'Bovine', child: Text('Bovine')),
-                    DropdownMenuItem(
-                        value: 'Equine', child: Text('Equine')),
-                    DropdownMenuItem(value: 'Other', child: Text('Other')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _species = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _breedController,
-                  decoration: const InputDecoration(labelText: 'Breed'),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _colorController,
-                  decoration: const InputDecoration(labelText: 'Color'),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: _gender,
-                  decoration: const InputDecoration(labelText: 'Gender'),
-                  items: const [
-                    DropdownMenuItem(value: 'Male', child: Text('Male')),
-                    DropdownMenuItem(value: 'Female', child: Text('Female')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _gender = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _weightController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Weight (kg)',
+        builder: (context, state) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(20.w),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Full Name', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  AppTextField(
+                    controller: _nameController,
+                    hint: 'Enter full name',
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty ? 'Name is required' : null,
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _microchipController,
-                  decoration: const InputDecoration(labelText: 'Microchip ID'),
-                ),
-                const SizedBox(height: 24),
-                Text('Owner Information',
-                    style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _ownerNameController,
-                  decoration: const InputDecoration(labelText: 'Owner Name'),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _ownerPhoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(labelText: 'Owner Phone'),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _ownerEmailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Owner Email'),
-                ),
-                const SizedBox(height: 24),
-                Text('Notes', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _notesController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    hintText: 'Additional notes...',
+                  SizedBox(height: 16.h),
+                  Text('Date of Birth', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  AppTextField(
+                    controller: TextEditingController(
+                      text: '${_dob.year}-${_dob.month.toString().padLeft(2, '0')}-${_dob.day.toString().padLeft(2, '0')}',
+                    ),
+                    hint: 'Tap to select date',
+                    isReadOnly: true,
+                    onTap: _pickDate,
+                    validator: (v) => v == null || v.isEmpty ? 'Date is required' : null,
                   ),
-                ),
-                const SizedBox(height: 32),
-                BlocBuilder<PatientBloc, PatientState>(
-                  builder: (context, state) {
-                    return SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed:
-                            state is PatientLoading ? null : _onCreate,
-                        child: state is PatientLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Create Patient'),
+                  SizedBox(height: 16.h),
+                  Text('Gender', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  DropdownButtonFormField<String>(
+                    value: _gender,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppColors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16.r),
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
+                    ),
+                    items: _genders.map((g) => DropdownMenuItem(
+                      value: g,
+                      child: Text(g[0].toUpperCase() + g.substring(1)),
+                    )).toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _gender = v);
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Blood Group', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  DropdownButtonFormField<String>(
+                    value: _bloodGroup,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppColors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16.r),
+                      ),
+                    ),
+                    items: _bloodGroups.map((bg) => DropdownMenuItem(
+                      value: bg,
+                      child: Text(bg),
+                    )).toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _bloodGroup = v);
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Phone', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  AppTextField(
+                    controller: _phoneController,
+                    hint: 'Enter phone number',
+                    keyboardType: TextInputType.phone,
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty ? 'Phone is required' : null,
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Address', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  AppTextField(
+                    controller: _addressController,
+                    hint: 'Enter address (optional)',
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Emergency Contact Name', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  AppTextField(
+                    controller: _emergencyNameController,
+                    hint: 'Emergency contact name (optional)',
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Emergency Contact Phone', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  AppTextField(
+                    controller: _emergencyPhoneController,
+                    hint: 'Emergency contact phone (optional)',
+                    keyboardType: TextInputType.phone,
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Allergies', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  AppTextField(
+                    controller: _allergiesController,
+                    hint: 'List allergies (optional)',
+                    maxLines: 2,
+                  ),
+                  SizedBox(height: 16.h),
+                  Text('Chronic Conditions', style: AppTextStyles.titleSmall),
+                  SizedBox(height: 8.h),
+                  AppTextField(
+                    controller: _chronicConditionsController,
+                    hint: 'List chronic conditions (optional)',
+                    maxLines: 2,
+                  ),
+                  SizedBox(height: 32.h),
+                  AppButton(
+                    label: 'Register Patient',
+                    onPressed: state is PatientLoading ? null : _onCreate,
+                    isLoading: state is PatientLoading,
+                    isDisabled: state is PatientLoading,
+                  ),
+                  SizedBox(height: 32.h),
+                ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

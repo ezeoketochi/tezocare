@@ -64,4 +64,69 @@ class AuthRepositoryImpl implements AuthRepository {
       return handleException(e);
     }
   }
+
+  @override
+  Future<Either<Failure, void>> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      await remoteDataSource.register(name, email, password);
+      return const Right(null);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> forgotPassword({
+    required String email,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      await remoteDataSource.forgotPassword(email);
+      return const Right(null);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      await remoteDataSource.verifyOtp(email, otp);
+      return const Right(null);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      await remoteDataSource.resetPassword(email, otp, newPassword);
+      return const Right(null);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
 }

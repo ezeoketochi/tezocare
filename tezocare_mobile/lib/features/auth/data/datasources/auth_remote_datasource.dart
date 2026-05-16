@@ -12,6 +12,11 @@ abstract class AuthRemoteDataSource {
   Future<TokenModel> refreshToken(String refreshToken);
   Future<StaffModel> getCurrentUser();
   Future<void> logout();
+
+  Future<void> register(String name, String email, String password);
+  Future<void> forgotPassword(String email);
+  Future<void> verifyOtp(String email, String otp);
+  Future<void> resetPassword(String email, String otp, String newPassword);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -84,6 +89,67 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         e,
         defaultMessage: 'Failed to get current user in datasource',
       );
+    }
+  }
+
+  @override
+  Future<void> register(String name, String email, String password) async {
+    try {
+      await dioClient.dio.post(
+        ApiConstants.register,
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'role': 'pharmacist',
+        },
+      );
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Registration failed');
+    }
+  }
+
+  @override
+  Future<void> forgotPassword(String email) async {
+    try {
+      await dioClient.dio.post(
+        ApiConstants.forgotPassword,
+        data: {'email': email},
+      );
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Failed to send OTP');
+    }
+  }
+
+  @override
+  Future<void> verifyOtp(String email, String otp) async {
+    try {
+      await dioClient.dio.post(
+        ApiConstants.verifyOtp,
+        data: {'email': email, 'otp': otp},
+      );
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'OTP verification failed');
+    }
+  }
+
+  @override
+  Future<void> resetPassword(
+    String email,
+    String otp,
+    String newPassword,
+  ) async {
+    try {
+      await dioClient.dio.post(
+        ApiConstants.resetPassword,
+        data: {
+          'email': email,
+          'otp': otp,
+          'new_password': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Password reset failed');
     }
   }
 

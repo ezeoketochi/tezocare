@@ -8,4 +8,20 @@ abstract class AuthRepository {
   Future<Either<Failure, Staff>> getCurrentUser();
   Future<Either<Failure, Token>> refreshToken(String refreshToken);
   Future<Either<Failure, void>> logout();
+
+  Future<Either<Failure, void>> register({
+    required String name,
+    required String email,
+    required String password,
+  });
+  Future<Either<Failure, void>> forgotPassword({required String email});
+  Future<Either<Failure, void>> verifyOtp({
+    required String email,
+    required String otp,
+  });
+  Future<Either<Failure, void>> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  });
 }

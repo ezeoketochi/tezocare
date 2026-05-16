@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../config/routes/route_names.dart';
+import '../../../../config/themes/app_colors.dart';
+import '../../../../config/themes/app_text_styles.dart';
+import '../../../../shared/widgets/app_empty_state.dart';
+import '../../../../shared/widgets/app_loading.dart';
+import '../../../../shared/widgets/app_search_bar.dart';
+import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_avatar.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
 import '../bloc/patient_state.dart';
@@ -30,28 +39,14 @@ class _PatientsPageState extends State<PatientsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('TezoCare - Patients')),
+      appBar: AppBar(title: const Text('Patients')),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
+            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 12.h),
+            child: AppSearchBar(
               controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search patients...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          context
-                              .read<PatientBloc>()
-                              .add(const GetPatientsEvent());
-                        },
-                      )
-                    : null,
-              ),
+              hint: 'Search patients...',
               onChanged: (query) {
                 if (query.length >= 2) {
                   context
@@ -69,34 +64,88 @@ class _PatientsPageState extends State<PatientsPage> {
             child: BlocBuilder<PatientBloc, PatientState>(
               builder: (context, state) {
                 if (state is PatientLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: AppLoading.shimmerList(),
+                  );
                 }
                 if (state is PatientError) {
-                  return Center(child: Text(state.message));
+                  return AppEmptyState(
+                    icon: Icons.error_outline_rounded,
+                    title: 'Something went wrong',
+                    message: state.message,
+                    actionLabel: 'Retry',
+                    onAction: () =>
+                        context.read<PatientBloc>().add(const GetPatientsEvent()),
+                  );
                 }
                 if (state is PatientsLoaded) {
                   if (state.patients.isEmpty) {
-                    return const Center(child: Text('No patients found'));
+                    return AppEmptyState(
+                      icon: Icons.people_outline_rounded,
+                      title: 'No patients found',
+                      message: _searchController.text.isNotEmpty
+                          ? 'No patients match your search'
+                          : 'Start by registering a new patient',
+                      actionLabel:
+                          _searchController.text.isNotEmpty ? null : 'Add Patient',
+                      onAction: _searchController.text.isNotEmpty
+                          ? null
+                          : () => context.push(RouteNames.createPatient),
+                    );
                   }
                   return ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
                     itemCount: state.patients.length,
                     itemBuilder: (context, index) {
                       final patient = state.patients[index];
-                      return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            child: Text(patient.name[0].toUpperCase()),
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 12.h),
+                        child: AppCard(
+                          onTap: () => context.push(
+                            '${RouteNames.patients}/${patient.id}',
                           ),
-                          title: Text(patient.name),
-                          subtitle: Text(
-                            '${patient.species}${patient.breed != null ? ' - ${patient.breed}' : ''}',
+                          child: Row(
+                            children: [
+                              AppAvatar(
+                                name: patient.fullName,
+                                size: AvatarSize.medium,
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      patient.fullName,
+                                      style: AppTextStyles.titleMedium,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      '${patient.gender} \u2022 ${patient.phone}',
+                                      style: AppTextStyles.bodySmall,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (patient.bloodGroup != null) ...[
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        'Blood: ${patient.bloodGroup}',
+                                        style: AppTextStyles.caption,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20.sp,
+                                color: AppColors.textTertiary,
+                              ),
+                            ],
                           ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            context.push(
-                              '/patients/detail/${patient.id}',
-                            );
-                          },
                         ),
                       );
                     },
@@ -109,9 +158,9 @@ class _PatientsPageState extends State<PatientsPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/patients/create');
-        },
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+        onPressed: () => context.push(RouteNames.createPatient),
         child: const Icon(Icons.add),
       ),
     );

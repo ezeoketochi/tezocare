@@ -3,12 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/api_constants.dart';
+import '../../features/auth/presentation/bloc/auth_form_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/medication/presentation/bloc/medication_bloc.dart';
 import '../../features/patient/presentation/bloc/patient_bloc.dart';
 import '../../features/visit/presentation/bloc/visit_bloc.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/auth/presentation/pages/otp_verification_page.dart';
+import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/medication/presentation/pages/add_medication_page.dart';
 import '../../features/medication/presentation/pages/medications_page.dart';
@@ -50,6 +55,43 @@ class AppRouter {
         path: RouteNames.splash,
         name: 'splash',
         builder: (context, state) => const SplashPage(),
+      ),
+      GoRoute(
+        path: RouteNames.register,
+        name: 'register',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<AuthFormBloc>(),
+          child: const RegisterPage(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.forgotPassword,
+        name: 'forgotPassword',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<AuthFormBloc>(),
+          child: const ForgotPasswordPage(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.verifyOtp,
+        name: 'verifyOtp',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<AuthFormBloc>(),
+          child: OtpVerificationPage(
+            email: state.uri.queryParameters['email'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.resetPassword,
+        name: 'resetPassword',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<AuthFormBloc>(),
+          child: ResetPasswordPage(
+            email: state.uri.queryParameters['email'] ?? '',
+            otp: state.uri.queryParameters['otp'] ?? '',
+          ),
+        ),
       ),
       GoRoute(
         path: RouteNames.login,
@@ -206,6 +248,15 @@ class AppRouter {
 
   AppRouter({required this.secureStorage});
 
+  static const _publicRoutes = [
+    RouteNames.login,
+    RouteNames.splash,
+    RouteNames.register,
+    RouteNames.forgotPassword,
+    RouteNames.verifyOtp,
+    RouteNames.resetPassword,
+  ];
+
   Future<String?> _redirectLogic(
     BuildContext context,
     GoRouterState state,
@@ -214,9 +265,7 @@ class AppRouter {
         await secureStorage.read(key: ApiConstants.accessTokenKey) != null;
     final location = state.matchedLocation;
 
-    if (!isAuthenticated &&
-        location != RouteNames.login &&
-        location != RouteNames.splash) {
+    if (!isAuthenticated && !_publicRoutes.contains(location)) {
       return RouteNames.login;
     }
 

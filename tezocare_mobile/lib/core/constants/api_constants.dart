@@ -5,6 +5,9 @@ class ApiConstants {
 
   static const String login = '/api/v1/auth/login';
   static const String register = '/api/v1/auth/register';
+  static const String forgotPassword = '/api/v1/auth/forgot-password';
+  static const String verifyOtp = '/api/v1/auth/verify-otp';
+  static const String resetPassword = '/api/v1/auth/reset-password';
   static const String refreshToken = '/api/v1/auth/refresh';
   static const String currentUser = '/api/v1/auth/me';
   static const String patients = '/api/v1/patients';

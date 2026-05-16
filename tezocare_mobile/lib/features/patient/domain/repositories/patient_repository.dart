@@ -5,7 +5,7 @@ import '../entities/patient.dart';
 abstract class PatientRepository {
   Future<Either<Failure, Patient>> createPatient(Patient patient);
   Future<Either<Failure, List<Patient>>> getPatients({int page = 1});
-  Future<Either<Failure, Patient>> getPatientDetail(int id);
+  Future<Either<Failure, Patient>> getPatientDetail(String id);
   Future<Either<Failure, List<Patient>>> searchPatients(String query);
   Future<Either<Failure, Patient>> updatePatient(Patient patient);
 }

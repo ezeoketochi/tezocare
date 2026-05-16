@@ -6,38 +6,44 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/routes/route_names.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
-import '../../../../shared/services/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
+import '../../../../shared/services/app_toast.dart';
+import '../bloc/auth_form_bloc.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class ResetPasswordPage extends StatefulWidget {
+  final String email;
+  final String otp;
+
+  const ResetPasswordPage({
+    super.key,
+    required this.email,
+    required this.otp,
+  });
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _onLogin() {
+  void _onReset() {
     if (_formKey.currentState!.validate()) {
-      context.read<AuthBloc>().add(
-        AuthLoginRequested(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
+      context.read<AuthFormBloc>().add(
+        ResetPasswordRequested(
+          email: widget.email,
+          otp: widget.otp,
+          newPassword: _newPasswordController.text,
         ),
       );
     }
@@ -46,16 +52,13 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<AuthBloc, AuthState>(
+      body: BlocConsumer<AuthFormBloc, AuthFormState>(
         listener: (context, state) {
-          if (state is AuthAuthenticated) {
-            AppToast.success(context, title: 'Login successful');
-            context.go(RouteNames.dashboard);
-          } else if (state is AuthError) {
+          if (state is AuthFormSuccess) {
+            AppToast.success(context, title: state.message);
+            context.go(RouteNames.login);
+          } else if (state is AuthFormError) {
             AppToast.error(context, title: state.message);
-          } else if (state is AuthValidationError) {
-            final firstError = state.errors.values.first;
-            AppToast.error(context, title: firstError);
           }
         },
         builder: (context, state) {
@@ -106,34 +109,34 @@ class _LoginPageState extends State<LoginPage> {
                                 borderRadius: BorderRadius.circular(20.r),
                               ),
                               child: Icon(
-                                Icons.local_hospital_rounded,
+                                Icons.lock_outline_rounded,
                                 size: 36.sp,
                                 color: AppColors.primary,
                               ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 500.ms)
-                                .scaleXY(begin: 0.8, end: 1),
+                            ).animate().fadeIn(duration: 500.ms).scaleXY(
+                              begin: 0.8,
+                              end: 1,
+                            ),
                             SizedBox(height: 16.h),
                             Text(
-                              'Welcome Back',
+                              'Reset Password',
                               style: AppTextStyles.displayMedium.copyWith(
                                 color: AppColors.white,
                               ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 100.ms)
-                                .slideY(begin: 0.2, end: 0),
+                            ).animate().fadeIn(
+                              duration: 600.ms,
+                              delay: 100.ms,
+                            ).slideY(begin: 0.2, end: 0),
                             SizedBox(height: 6.h),
                             Text(
-                              'Sign in to continue',
+                              'Enter your new password',
                               style: AppTextStyles.bodyLarge.copyWith(
                                 color: Colors.white.withValues(alpha: 0.7),
                               ),
-                            )
-                                .animate()
-                                .fadeIn(duration: 600.ms, delay: 200.ms)
-                                .slideY(begin: 0.2, end: 0),
+                            ).animate().fadeIn(
+                              duration: 600.ms,
+                              delay: 200.ms,
+                            ).slideY(begin: 0.2, end: 0),
                           ],
                         ),
                       ),
@@ -160,44 +163,13 @@ class _LoginPageState extends State<LoginPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Email Address',
+                            'New Password',
                             style: AppTextStyles.titleSmall,
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 300.ms)
-                              .slideY(begin: 0.2, end: 0),
+                          ),
                           SizedBox(height: 8.h),
                           AppTextField(
-                            controller: _emailController,
-                            hint: 'Enter your email',
-                            prefixIcon: Icon(
-                              Icons.email_outlined,
-                              size: 20.sp,
-                              color: AppColors.primary,
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your email';
-                              }
-                              return null;
-                            },
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 400.ms)
-                              .slideY(begin: 0.2, end: 0),
-                          SizedBox(height: 20.h),
-                          Text(
-                            'Password',
-                            style: AppTextStyles.titleSmall,
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 500.ms)
-                              .slideY(begin: 0.2, end: 0),
-                          SizedBox(height: 8.h),
-                          AppTextField(
-                            controller: _passwordController,
-                            hint: 'Enter your password',
+                            controller: _newPasswordController,
+                            hint: 'Enter new password',
                             prefixIcon: Icon(
                               Icons.lock_outlined,
                               size: 20.sp,
@@ -206,91 +178,66 @@ class _LoginPageState extends State<LoginPage> {
                             isPassword: true,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your password';
+                                return 'Please enter a new password';
+                              }
+                              if (value.length < 8) {
+                                return 'Password must be at least 8 characters';
+                              }
+                              if (!value.contains(RegExp(r'[A-Z]'))) {
+                                return 'Password must contain an uppercase letter';
+                              }
+                              if (!value.contains(RegExp(r'[0-9]'))) {
+                                return 'Password must contain a number';
                               }
                               return null;
                             },
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 600.ms)
-                              .slideY(begin: 0.2, end: 0),
-                          SizedBox(height: 12.h),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () => context.push(RouteNames.forgotPassword),
-                              child: Text(
-                                'Forgot Password?',
-                                style: AppTextStyles.labelMedium.copyWith(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                          ),
+                          SizedBox(height: 20.h),
+                          Text(
+                            'Confirm Password',
+                            style: AppTextStyles.titleSmall,
+                          ),
+                          SizedBox(height: 8.h),
+                          AppTextField(
+                            controller: _confirmPasswordController,
+                            hint: 'Confirm new password',
+                            prefixIcon: Icon(
+                              Icons.lock_outlined,
+                              size: 20.sp,
+                              color: AppColors.primary,
                             ),
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 700.ms),
+                            isPassword: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please confirm your password';
+                              }
+                              if (value != _newPasswordController.text) {
+                                return 'Passwords do not match';
+                              }
+                              return null;
+                            },
+                          ),
                           SizedBox(height: 32.h),
                           AppButton(
-                            label: 'Sign In',
-                            onPressed: state is AuthLoading ? null : _onLogin,
-                            isLoading: state is AuthLoading,
-                            isDisabled: state is AuthLoading,
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 800.ms)
-                              .slideY(begin: 0.2, end: 0),
-                          SizedBox(height: 24.h),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: AppColors.textTertiary.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                                child: Text(
-                                  'OR',
-                                  style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.textTertiary,
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: AppColors.textTertiary.withValues(alpha: 0.3),
-                                ),
-                              ),
-                            ],
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 900.ms),
+                            label: 'Reset Password',
+                            onPressed:
+                                state is AuthFormLoading ? null : _onReset,
+                            isLoading: state is AuthFormLoading,
+                            isDisabled: state is AuthFormLoading,
+                          ),
                           SizedBox(height: 24.h),
                           Center(
                             child: TextButton(
-                              onPressed: () => context.push(RouteNames.register),
+                              onPressed: () => context.go(RouteNames.login),
                               child: Text(
-                                "Don't have an account? Sign Up",
+                                'Back to Sign In',
                                 style: AppTextStyles.labelMedium.copyWith(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 950.ms),
-                          SizedBox(height: 12.h),
-                          Center(
-                            child: Text(
-                              'Need help? Contact your administrator',
-                              style: AppTextStyles.caption,
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 1000.ms),
+                          ),
                           SizedBox(height: 32.h),
                         ],
                       ),
