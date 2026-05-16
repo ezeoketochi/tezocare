@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -13,6 +15,7 @@ class DioClient {
   final Logger logger;
   late final Dio _refreshDio;
   bool _isRefreshing = false;
+  Completer<void>? _refreshCompleter;
 
   DioClient({
     required this.dio,
@@ -345,20 +348,33 @@ class DioClient {
   Future<Response?> _attemptTokenRefresh(
     RequestOptions originalRequestOptions,
   ) async {
-    if (_isRefreshing) return null;
-
     if (originalRequestOptions.path.contains('/auth/refresh') ||
-        originalRequestOptions.path.contains('/auth/login')) {
+        originalRequestOptions.path.contains('/auth/login') ||
+        originalRequestOptions.path.contains('/auth/register')) {
+      return null;
+    }
+
+    if (_isRefreshing) {
+      await _refreshCompleter?.future;
+      final token = await secureStorage.read(
+        key: ApiConstants.accessTokenKey,
+      );
+      if (token != null && token.isNotEmpty) {
+        originalRequestOptions.headers['Authorization'] = 'Bearer $token';
+        return dio.fetch(originalRequestOptions);
+      }
       return null;
     }
 
     _isRefreshing = true;
+    _refreshCompleter = Completer<void>();
     try {
       final storedRefreshToken = await secureStorage.read(
         key: ApiConstants.refreshTokenKey,
       );
 
       if (storedRefreshToken == null || storedRefreshToken.isEmpty) {
+        await _clearTokens();
         return null;
       }
 
@@ -374,7 +390,10 @@ class DioClient {
       final newAccessToken = data['access_token'] as String?;
       final newRefreshToken = data['refresh_token'] as String?;
 
-      if (newAccessToken == null) return null;
+      if (newAccessToken == null || newAccessToken.isEmpty) {
+        await _clearTokens();
+        return null;
+      }
 
       await secureStorage.write(
         key: ApiConstants.accessTokenKey,
@@ -391,10 +410,18 @@ class DioClient {
           'Bearer $newAccessToken';
       final retryResponse = await dio.fetch(originalRequestOptions);
       return retryResponse;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await _clearTokens();
+      }
+      return null;
     } catch (_) {
       return null;
     } finally {
       _isRefreshing = false;
+      if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
+        _refreshCompleter!.complete();
+      }
     }
   }
 

@@ -10,7 +10,7 @@ class ApiConstants {
   static const String resetPassword = '/api/v1/auth/reset-password';
   static const String refreshToken = '/api/v1/auth/refresh';
   static const String currentUser = '/api/v1/auth/me';
-  static const String patients = '/api/v1/patients';
+  static const String patients = '/api/v1/patients/';
   static const String visits = '/api/v1/visits';
   static const String vitals = '/api/v1/vitals';
   static const String medications = '/api/v1/medications';

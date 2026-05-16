@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
@@ -24,6 +25,8 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
         ApiConstants.patients,
         data: patient.toJson(),
       );
+      // debugPrint(ApiConstants.patients);
+      debugPrint(response.data);
       return PatientModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
       );
@@ -103,7 +106,8 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
     if (customException is NetworkException) return customException;
 
     return ServerException(
-      message: e.response?.data['message'] as String? ??
+      message:
+          e.response?.data['message'] as String? ??
           e.response?.data['detail'] as String? ??
           defaultMessage,
       statusCode: e.response?.statusCode,

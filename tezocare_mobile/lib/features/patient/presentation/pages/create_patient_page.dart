@@ -6,7 +6,9 @@ import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/services/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_text_field.dart';
+import '../../../../shared/widgets/tag_input_field.dart';
 import '../../data/models/patient_model.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
@@ -21,29 +23,29 @@ class CreatePatientPage extends StatefulWidget {
 
 class _CreatePatientPageState extends State<CreatePatientPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _emergencyNameController = TextEditingController();
   final _emergencyPhoneController = TextEditingController();
-  final _allergiesController = TextEditingController();
-  final _chronicConditionsController = TextEditingController();
   DateTime _dob = DateTime(2000, 1, 1);
   String _gender = 'male';
   String _bloodGroup = 'A+';
+  List<String> _allergies = [];
+  List<String> _chronicConditions = [];
 
   final _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   final _genders = ['male', 'female', 'other'];
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
     _emergencyNameController.dispose();
     _emergencyPhoneController.dispose();
-    _allergiesController.dispose();
-    _chronicConditionsController.dispose();
     super.dispose();
   }
 
@@ -61,7 +63,8 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
     if (_formKey.currentState!.validate()) {
       final patient = PatientModel(
         id: '',
-        fullName: _nameController.text.trim(),
+        fullName:
+            '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
         dob: _dob,
         gender: _gender,
         bloodGroup: _bloodGroup,
@@ -75,12 +78,10 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
         emergencyContactPhone: _emergencyPhoneController.text.trim().isEmpty
             ? null
             : _emergencyPhoneController.text.trim(),
-        allergies: _allergiesController.text.trim().isEmpty
-            ? null
-            : _allergiesController.text.trim(),
-        chronicConditions: _chronicConditionsController.text.trim().isEmpty
-            ? null
-            : _chronicConditionsController.text.trim(),
+        allergies: _allergies.isNotEmpty ? _allergies.join(', ') : null,
+        chronicConditions: _chronicConditions.isNotEmpty
+            ? _chronicConditions.join(', ')
+            : null,
         isActive: true,
       );
       context.read<PatientBloc>().add(CreatePatientEvent(patient: patient));
@@ -106,117 +107,274 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
             child: Form(
               key: _formKey,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Full Name', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  AppTextField(
-                    controller: _nameController,
-                    hint: 'Enter full name',
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Name is required' : null,
-                  ),
-                  SizedBox(height: 16.h),
-                  Text('Date of Birth', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  AppTextField(
-                    controller: TextEditingController(
-                      text: '${_dob.year}-${_dob.month.toString().padLeft(2, '0')}-${_dob.day.toString().padLeft(2, '0')}',
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Personal Information',
+                          style: AppTextStyles.titleMedium,
+                        ),
+                        SizedBox(height: 20.h),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLabel(
+                                'First Name',
+                                isRequired: true,
+                                child: AppTextField(
+                                  controller: _firstNameController,
+                                  hint: 'Enter first name',
+                                  validator: (v) =>
+                                      v == null || v.trim().isEmpty
+                                      ? 'Required'
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: _buildLabel(
+                                'Last Name',
+                                isRequired: true,
+                                child: AppTextField(
+                                  controller: _lastNameController,
+                                  hint: 'Enter last name',
+                                  validator: (v) =>
+                                      v == null || v.trim().isEmpty
+                                      ? 'Required'
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16.h),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLabel(
+                                'Date of Birth',
+                                isRequired: true,
+                                child: AppTextField(
+                                  controller: TextEditingController(
+                                    text:
+                                        '${_dob.year}-${_dob.month.toString().padLeft(2, '0')}-${_dob.day.toString().padLeft(2, '0')}',
+                                  ),
+                                  hint: 'Tap to select date',
+                                  isReadOnly: true,
+                                  onTap: _pickDate,
+                                  validator: (v) => v == null || v.isEmpty
+                                      ? 'Required'
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: _buildLabel(
+                                'Gender',
+                                isRequired: true,
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: _gender,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: AppColors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.divider,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.divider,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.primary,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 20.w,
+                                      vertical: 18.h,
+                                    ),
+                                  ),
+                                  items: _genders
+                                      .map(
+                                        (g) => DropdownMenuItem(
+                                          value: g,
+                                          child: Text(
+                                            g[0].toUpperCase() + g.substring(1),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (v) {
+                                    if (v != null) {
+                                      setState(() => _gender = v);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16.h),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLabel(
+                                'Blood Group',
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: _bloodGroup,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: AppColors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.divider,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.divider,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.primary,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 20.w,
+                                      vertical: 18.h,
+                                    ),
+                                  ),
+                                  items: _bloodGroups
+                                      .map(
+                                        (bg) => DropdownMenuItem(
+                                          value: bg,
+                                          child: Text(bg),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (v) {
+                                    if (v != null) {
+                                      setState(() => _bloodGroup = v);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: _buildLabel(
+                                'Phone',
+                                isRequired: true,
+                                child: AppTextField(
+                                  controller: _phoneController,
+                                  hint: 'Enter phone number',
+                                  keyboardType: TextInputType.phone,
+                                  validator: (v) =>
+                                      v == null || v.trim().isEmpty
+                                      ? 'Required'
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16.h),
+                        _buildLabel(
+                          'Address',
+                          child: AppTextField(
+                            controller: _addressController,
+                            hint: 'Enter address (optional)',
+                          ),
+                        ),
+                      ],
                     ),
-                    hint: 'Tap to select date',
-                    isReadOnly: true,
-                    onTap: _pickDate,
-                    validator: (v) => v == null || v.isEmpty ? 'Date is required' : null,
                   ),
                   SizedBox(height: 16.h),
-                  Text('Gender', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  DropdownButtonFormField<String>(
-                    value: _gender,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Emergency Contact',
+                          style: AppTextStyles.titleMedium,
+                        ),
+                        SizedBox(height: 20.h),
+                        Column(
+                          children: [
+                            _buildLabel(
+                              'Contact Name',
+                              child: AppTextField(
+                                controller: _emergencyNameController,
+                                hint: 'Emergency contact name',
+                              ),
+                            ),
+                            SizedBox(height: 12.h),
+                            _buildLabel(
+                              'Contact Phone',
+                              child: AppTextField(
+                                controller: _emergencyPhoneController,
+                                hint: 'Emergency contact phone',
+                                keyboardType: TextInputType.phone,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    items: _genders.map((g) => DropdownMenuItem(
-                      value: g,
-                      child: Text(g[0].toUpperCase() + g.substring(1)),
-                    )).toList(),
-                    onChanged: (v) {
-                      if (v != null) setState(() => _gender = v);
-                    },
                   ),
                   SizedBox(height: 16.h),
-                  Text('Blood Group', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  DropdownButtonFormField<String>(
-                    value: _bloodGroup,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Medical Information',
+                          style: AppTextStyles.titleMedium,
+                        ),
+                        SizedBox(height: 20.h),
+                        _buildLabel(
+                          'Allergies',
+                          child: TagInputField(
+                            tags: _allergies,
+                            onTagsChanged: (tags) =>
+                                setState(() => _allergies = tags),
+                            hint: 'Type an allergy and press Add',
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        _buildLabel(
+                          'Chronic Conditions',
+                          child: TagInputField(
+                            tags: _chronicConditions,
+                            onTagsChanged: (tags) =>
+                                setState(() => _chronicConditions = tags),
+                            hint: 'Type a condition and press Add',
+                          ),
+                        ),
+                      ],
                     ),
-                    items: _bloodGroups.map((bg) => DropdownMenuItem(
-                      value: bg,
-                      child: Text(bg),
-                    )).toList(),
-                    onChanged: (v) {
-                      if (v != null) setState(() => _bloodGroup = v);
-                    },
                   ),
-                  SizedBox(height: 16.h),
-                  Text('Phone', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  AppTextField(
-                    controller: _phoneController,
-                    hint: 'Enter phone number',
-                    keyboardType: TextInputType.phone,
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Phone is required' : null,
-                  ),
-                  SizedBox(height: 16.h),
-                  Text('Address', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  AppTextField(
-                    controller: _addressController,
-                    hint: 'Enter address (optional)',
-                  ),
-                  SizedBox(height: 16.h),
-                  Text('Emergency Contact Name', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  AppTextField(
-                    controller: _emergencyNameController,
-                    hint: 'Emergency contact name (optional)',
-                  ),
-                  SizedBox(height: 16.h),
-                  Text('Emergency Contact Phone', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  AppTextField(
-                    controller: _emergencyPhoneController,
-                    hint: 'Emergency contact phone (optional)',
-                    keyboardType: TextInputType.phone,
-                  ),
-                  SizedBox(height: 16.h),
-                  Text('Allergies', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  AppTextField(
-                    controller: _allergiesController,
-                    hint: 'List allergies (optional)',
-                    maxLines: 2,
-                  ),
-                  SizedBox(height: 16.h),
-                  Text('Chronic Conditions', style: AppTextStyles.titleSmall),
-                  SizedBox(height: 8.h),
-                  AppTextField(
-                    controller: _chronicConditionsController,
-                    hint: 'List chronic conditions (optional)',
-                    maxLines: 2,
-                  ),
-                  SizedBox(height: 32.h),
+                  SizedBox(height: 24.h),
                   AppButton(
                     label: 'Register Patient',
                     onPressed: state is PatientLoading ? null : _onCreate,
@@ -230,6 +388,33 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildLabel(
+    String text, {
+    bool isRequired = false,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(text, style: AppTextStyles.titleSmall),
+            if (isRequired)
+              Text(
+                ' *',
+                style: AppTextStyles.titleSmall.copyWith(
+                  color: AppColors.error,
+                ),
+              ),
+            if (!isRequired) Text(' (optional)', style: AppTextStyles.caption),
+          ],
+        ),
+        SizedBox(height: 8.h),
+        child,
+      ],
     );
   }
 }
