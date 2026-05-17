@@ -74,6 +74,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           }
           if (state is PatientDetailLoaded) {
             final patient = state.patient;
+
             return NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
@@ -122,19 +123,19 @@ class _PatientDetailPageState extends State<PatientDetailPage>
   Widget _buildHeader(patient) {
     return Container(
       decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-      padding: EdgeInsets.only(top: 60.h, bottom: 16.h),
+      padding: EdgeInsets.only(top: 10.h, bottom: 13.h),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           AppAvatar(name: patient.fullName, size: AvatarSize.xlarge),
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           Text(
             patient.fullName,
             style: AppTextStyles.headlineSmall.copyWith(color: AppColors.white),
           ),
           SizedBox(height: 4.h),
           Text(
-            '${patient.gender} \u2022 ${_calculateAge(patient.dob)} yrs',
+            '${patient.gender} \u2022 ${patient.dob != null ? _calculateAge(patient.dob!) : 'N/A'} yrs',
             style: AppTextStyles.bodyMedium.copyWith(
               color: Colors.white.withValues(alpha: 0.7),
             ),
@@ -147,7 +148,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 spacing: 6.w,
                 runSpacing: 4.h,
                 children: patient.chronicConditions
-                    .map(
+                    .map<Widget>(
                       (c) => Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 10.w,
@@ -190,16 +191,17 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 ),
                 _divider(),
                 _infoRow('Gender', patient.gender),
-                _infoRow('Date of Birth', _formatDate(patient.dob)),
+                _infoRow(
+                  'Date of Birth',
+                  patient.dob != null ? _formatDate(patient.dob!) : 'N/A',
+                ),
                 _infoRow('Blood Group', patient.bloodGroup ?? 'N/A'),
                 _infoRow('Genotype', patient.genotype ?? 'N/A'),
                 _infoRow('Phone', patient.phone ?? 'N/A'),
-                if (patient.address != null)
-                  _infoRow('Address', patient.address!),
-                if (patient.state != null) _infoRow('State', patient.state!),
-                if (patient.city != null) _infoRow('City', patient.city!),
-                if (patient.occupation != null)
-                  _infoRow('Occupation', patient.occupation!),
+                _infoRow('Address', patient.address ?? 'N/A'),
+                _infoRow('State', patient.state ?? 'N/A'),
+                _infoRow('City', patient.city ?? 'N/A'),
+                _infoRow('Occupation', patient.occupation ?? 'N/A'),
               ],
             ),
           ),
@@ -259,10 +261,8 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                     ),
                   ),
                   _divider(),
-                  if (patient.emergencyContactName != null)
-                    _infoRow('Name', patient.emergencyContactName!),
-                  if (patient.emergencyContactPhone != null)
-                    _infoRow('Phone', patient.emergencyContactPhone!),
+                  _infoRow('Name', patient.emergencyContactName ?? 'N/A'),
+                  _infoRow('Phone', patient.emergencyContactPhone ?? 'N/A'),
                 ],
               ),
             ),
@@ -456,7 +456,9 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 if (a.startDate == null && b.startDate == null) return 0;
                 if (a.startDate == null) return 1;
                 if (b.startDate == null) return -1;
-                return b.startDate!.compareTo(a.startDate!);
+                return (b.startDate ?? DateTime(0)).compareTo(
+                  a.startDate ?? DateTime(0),
+                );
               });
             return ListView.builder(
               padding: EdgeInsets.all(20.w),
@@ -533,15 +535,11 @@ class _PatientDetailPageState extends State<PatientDetailPage>
   List<Widget> _buildMedDates(Medication med) {
     final rows = <Widget>[];
     rows.add(_medInfoRow('Name', med.name));
-    if (med.dosage != null) rows.add(_medInfoRow('Dosage', med.dosage!));
-    if (med.frequency != null)
-      rows.add(_medInfoRow('Frequency', med.frequency!));
-    if (med.startDate != null)
-      rows.add(_medInfoRow('Start', _formatDate(med.startDate!)));
-    if (med.endDate != null)
-      rows.add(_medInfoRow('End', _formatDate(med.endDate!)));
-    if (med.prescribedBy != null)
-      rows.add(_medInfoRow('Prescribed by', med.prescribedBy!));
+    rows.add(_medInfoRow('Dosage', med.dosage ?? 'N/A'));
+    rows.add(_medInfoRow('Frequency', med.frequency ?? 'N/A'));
+    rows.add(_medInfoRow('Start', _formatDateOrNa(med.startDate)));
+    rows.add(_medInfoRow('End', _formatDateOrNa(med.endDate)));
+    rows.add(_medInfoRow('Prescribed by', med.prescribedBy ?? 'N/A'));
     return rows;
   }
 
@@ -624,6 +622,11 @@ class _PatientDetailPageState extends State<PatientDetailPage>
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
+
+  String _formatDateOrNa(DateTime? date) {
+    if (date == null) return 'N/A';
+    return _formatDate(date);
+  }
 }
 
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
@@ -641,10 +644,10 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 48.h;
+  double get maxExtent => tabBar.preferredSize.height; // ✅ uses actual TabBar height
 
   @override
-  double get minExtent => 48.h;
+  double get minExtent => tabBar.preferredSize.height; // ✅ same
 
   @override
   bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
