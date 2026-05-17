@@ -20,27 +20,27 @@ class MedicationModel extends Medication {
 
   factory MedicationModel.fromJson(Map<String, dynamic> json) {
     return MedicationModel(
-      id: json['id'] as String,
+      id: json['visit_id'] as String? ?? '',
       patientId: json['patient_id'] as String? ?? '',
       patientName: json['patient_name'] as String?,
-      name: json['name'] as String,
-      dosage: json['dosage'] as String?,
+      name: json['drug_name'] as String? ?? '',
+      dosage: json['dose'] as String?,
       frequency: json['frequency'] as String?,
       route: json['route'] as String?,
-      startDate: json['start_date'] != null
-          ? DateTime.parse(json['start_date'] as String)
+      startDate: json['date_dispensed'] != null
+          ? DateTime.tryParse(json['date_dispensed'] as String)
           : null,
-      endDate: json['end_date'] != null
-          ? DateTime.parse(json['end_date'] as String)
+      endDate: json['refill_date'] != null
+          ? DateTime.tryParse(json['refill_date'] as String)
           : null,
       prescribedBy: json['prescribed_by'] as String?,
       notes: json['notes'] as String?,
       isActive: json['is_active'] as bool? ?? true,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'] as String)
+      createdAt: json['visit_date'] != null
+          ? DateTime.tryParse(json['visit_date'] as String)
           : null,
       updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
+          ? DateTime.tryParse(json['updated_at'] as String)
           : null,
     );
   }
