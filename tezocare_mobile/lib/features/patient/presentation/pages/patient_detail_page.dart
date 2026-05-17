@@ -43,8 +43,8 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     context.read<PatientBloc>().add(
-          GetPatientDetailEvent(id: widget.patientId),
-        );
+      GetPatientDetailEvent(id: widget.patientId),
+    );
   }
 
   @override
@@ -68,8 +68,8 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               message: state.message,
               actionLabel: 'Retry',
               onAction: () => context.read<PatientBloc>().add(
-                    GetPatientDetailEvent(id: widget.patientId),
-                  ),
+                GetPatientDetailEvent(id: widget.patientId),
+              ),
             );
           }
           if (state is PatientDetailLoaded) {
@@ -121,23 +121,16 @@ class _PatientDetailPageState extends State<PatientDetailPage>
 
   Widget _buildHeader(patient) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.primaryGradient,
-      ),
+      decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
       padding: EdgeInsets.only(top: 60.h, bottom: 16.h),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          AppAvatar(
-            name: patient.fullName,
-            size: AvatarSize.xlarge,
-          ),
+          AppAvatar(name: patient.fullName, size: AvatarSize.xlarge),
           SizedBox(height: 12.h),
           Text(
             patient.fullName,
-            style: AppTextStyles.headlineSmall.copyWith(
-              color: AppColors.white,
-            ),
+            style: AppTextStyles.headlineSmall.copyWith(color: AppColors.white),
           ),
           SizedBox(height: 4.h),
           Text(
@@ -154,22 +147,24 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 spacing: 6.w,
                 runSpacing: 4.h,
                 children: patient.chronicConditions
-                    .map((c) => Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 3.h,
+                    .map(
+                      (c) => Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                        child: Text(
+                          c,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.white,
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20.r),
-                          ),
-                          child: Text(
-                            c,
-                            style: AppTextStyles.caption.copyWith(
-                              color: AppColors.white,
-                            ),
-                          ),
-                        ))
+                        ),
+                      ),
+                    )
                     .toList(),
               ),
             ),
@@ -191,10 +186,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               children: [
                 Padding(
                   padding: EdgeInsets.all(16.w),
-                  child: Text(
-                    'Demographics',
-                    style: AppTextStyles.titleLarge,
-                  ),
+                  child: Text('Demographics', style: AppTextStyles.titleLarge),
                 ),
                 _divider(),
                 _infoRow('Gender', patient.gender),
@@ -204,10 +196,8 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 _infoRow('Phone', patient.phone ?? 'N/A'),
                 if (patient.address != null)
                   _infoRow('Address', patient.address!),
-                if (patient.state != null)
-                  _infoRow('State', patient.state!),
-                if (patient.city != null)
-                  _infoRow('City', patient.city!),
+                if (patient.state != null) _infoRow('State', patient.state!),
+                if (patient.city != null) _infoRow('City', patient.city!),
                 if (patient.occupation != null)
                   _infoRow('Occupation', patient.occupation!),
               ],
@@ -221,10 +211,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 children: [
                   Padding(
                     padding: EdgeInsets.all(16.w),
-                    child: Text(
-                      'Allergies',
-                      style: AppTextStyles.titleLarge,
-                    ),
+                    child: Text('Allergies', style: AppTextStyles.titleLarge),
                   ),
                   _divider(),
                   Padding(
@@ -233,22 +220,24 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                       spacing: 8.w,
                       runSpacing: 8.h,
                       children: patient.allergies
-                          .map((a) => Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12.w,
-                                  vertical: 6.h,
+                          .map<Widget>(
+                            (a) => Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 6.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.dangerLight,
+                                borderRadius: BorderRadius.circular(20.r),
+                              ),
+                              child: Text(
+                                a,
+                                style: AppTextStyles.labelMedium.copyWith(
+                                  color: AppColors.danger,
                                 ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.dangerLight,
-                                  borderRadius: BorderRadius.circular(20.r),
-                                ),
-                                child: Text(
-                                  a,
-                                  style: AppTextStyles.labelMedium.copyWith(
-                                    color: AppColors.danger,
-                                  ),
-                                ),
-                              ))
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ),
@@ -324,9 +313,9 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                     title: 'Failed to load visits',
                     message: state.message,
                     actionLabel: 'Retry',
-                    onAction: () => context
-                        .read<VisitBloc>()
-                        .add(GetPatientVisitsEvent(patientId: widget.patientId)),
+                    onAction: () => context.read<VisitBloc>().add(
+                      GetPatientVisitsEvent(patientId: widget.patientId),
+                    ),
                   );
                 }
                 if (state is VisitsLoaded) {
@@ -448,9 +437,9 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               title: 'Failed to load medications',
               message: state.message,
               actionLabel: 'Retry',
-              onAction: () => context
-                  .read<MedicationBloc>()
-                  .add(GetPatientMedicationsEvent(patientId: widget.patientId)),
+              onAction: () => context.read<MedicationBloc>().add(
+                GetPatientMedicationsEvent(patientId: widget.patientId),
+              ),
             );
           }
           if (state is MedicationsLoaded) {
@@ -481,7 +470,10 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 12.h,
+                          ),
                           child: Row(
                             children: [
                               Container(
@@ -542,10 +534,14 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     final rows = <Widget>[];
     rows.add(_medInfoRow('Name', med.name));
     if (med.dosage != null) rows.add(_medInfoRow('Dosage', med.dosage!));
-    if (med.frequency != null) rows.add(_medInfoRow('Frequency', med.frequency!));
-    if (med.startDate != null) rows.add(_medInfoRow('Start', _formatDate(med.startDate!)));
-    if (med.endDate != null) rows.add(_medInfoRow('End', _formatDate(med.endDate!)));
-    if (med.prescribedBy != null) rows.add(_medInfoRow('Prescribed by', med.prescribedBy!));
+    if (med.frequency != null)
+      rows.add(_medInfoRow('Frequency', med.frequency!));
+    if (med.startDate != null)
+      rows.add(_medInfoRow('Start', _formatDate(med.startDate!)));
+    if (med.endDate != null)
+      rows.add(_medInfoRow('End', _formatDate(med.endDate!)));
+    if (med.prescribedBy != null)
+      rows.add(_medInfoRow('Prescribed by', med.prescribedBy!));
     return rows;
   }
 
@@ -574,9 +570,12 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         children: [
           Text(label, style: AppTextStyles.caption),
           SizedBox(width: 4.w),
-          Text(value, style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.textPrimary,
-          )),
+          Text(
+            value,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
@@ -615,7 +614,8 @@ class _PatientDetailPageState extends State<PatientDetailPage>
   int _calculateAge(DateTime dob) {
     final now = DateTime.now();
     int age = now.year - dob.year;
-    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
       age--;
     }
     return age;
@@ -633,11 +633,11 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: AppColors.white,
-      child: tabBar,
-    );
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(color: AppColors.white, child: tabBar);
   }
 
   @override

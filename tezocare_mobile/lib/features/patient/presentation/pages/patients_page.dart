@@ -53,13 +53,11 @@ class _PatientsPageState extends State<PatientsPage> {
               hint: 'Search patients...',
               onChanged: (query) {
                 if (query.length >= 2) {
-                  context
-                      .read<PatientBloc>()
-                      .add(SearchPatientsEvent(query: query));
+                  context.read<PatientBloc>().add(
+                    SearchPatientsEvent(query: query),
+                  );
                 } else if (query.isEmpty) {
-                  context
-                      .read<PatientBloc>()
-                      .add(const GetPatientsEvent());
+                  context.read<PatientBloc>().add(const GetPatientsEvent());
                 }
               },
             ),
@@ -75,9 +73,9 @@ class _PatientsPageState extends State<PatientsPage> {
                     onTap: () {
                       setState(() => _selectedFilter = filter);
                       context.read<PatientBloc>().add(
-                        filter == 'All'
-                            ? const GetPatientsEvent()
-                            : SearchPatientsEvent(query: filter),
+                        GetPatientsEvent(
+                          status: filter == 'All' ? null : filter.toLowerCase(),
+                        ),
                       );
                     },
                     child: Container(
@@ -122,8 +120,9 @@ class _PatientsPageState extends State<PatientsPage> {
                     title: 'Something went wrong',
                     message: state.message,
                     actionLabel: 'Retry',
-                    onAction: () =>
-                        context.read<PatientBloc>().add(const GetPatientsEvent()),
+                    onAction: () => context.read<PatientBloc>().add(
+                      const GetPatientsEvent(),
+                    ),
                   );
                 }
                 if (state is PatientsLoaded) {
@@ -134,8 +133,9 @@ class _PatientsPageState extends State<PatientsPage> {
                       message: _searchController.text.isNotEmpty
                           ? 'No patients match your search'
                           : 'Start by registering a new patient',
-                      actionLabel:
-                          _searchController.text.isNotEmpty ? null : 'Add Patient',
+                      actionLabel: _searchController.text.isNotEmpty
+                          ? null
+                          : 'Add Patient',
                       onAction: _searchController.text.isNotEmpty
                           ? null
                           : () => context.push(RouteNames.createPatient),
@@ -219,7 +219,8 @@ class _PatientsPageState extends State<PatientsPage> {
   int _calculateAge(DateTime dob) {
     final now = DateTime.now();
     int age = now.year - dob.year;
-    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
       age--;
     }
     return age;
