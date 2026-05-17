@@ -46,8 +46,10 @@ import 'route_names.dart';
 
 class AppRouter {
   final FlutterSecureStorage secureStorage;
+  static final ValueNotifier<int> authRefreshNotifier = ValueNotifier<int>(0);
 
   late final GoRouter router = GoRouter(
+    refreshListenable: authRefreshNotifier,
     initialLocation: RouteNames.splash,
     redirect: _redirectLogic,
     errorBuilder: (context, state) => const NotFoundPage(),

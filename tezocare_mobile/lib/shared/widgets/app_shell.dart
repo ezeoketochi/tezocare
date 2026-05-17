@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../config/routes/app_router.dart';
+import '../../config/routes/route_names.dart';
 import '../../config/themes/app_colors.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
@@ -22,36 +24,48 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
-    final staffName = authState is AuthAuthenticated ? authState.staff.name : 'Staff';
+    final staffName = authState is AuthAuthenticated
+        ? authState.staff.name
+        : 'Staff';
 
     return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: Container(
-        height: 64.h,
-        decoration: BoxDecoration(
-          color: AppColors.dark,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20.r),
-            topRight: Radius.circular(20.r),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 12,
-              offset: const Offset(0, -4),
+      body: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (previous, current) => current is AuthUnauthenticated,
+        listener: (context, state) {
+          AppRouter.authRefreshNotifier.value++;
+          context.go(RouteNames.login);
+        },
+        child: navigationShell,
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          height: 64.h,
+          decoration: BoxDecoration(
+            color: AppColors.dark,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(20.r),
+              bottomRight: Radius.circular(20.r),
             ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_tabs.length, (index) {
-                final isActive = index == navigationShell.currentIndex;
-                return _buildTabItem(index, isActive, staffName);
-              }),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 12,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(_tabs.length, (index) {
+                  final isActive = index == navigationShell.currentIndex;
+                  return _buildTabItem(index, isActive, staffName);
+                }),
+              ),
             ),
           ),
         ),
@@ -77,10 +91,7 @@ class AppShell extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (index == 3)
-              AppAvatar(
-                name: staffName,
-                size: AvatarSize.small,
-              )
+              AppAvatar(name: staffName, size: AvatarSize.small)
             else
               Container(
                 width: 40.w,

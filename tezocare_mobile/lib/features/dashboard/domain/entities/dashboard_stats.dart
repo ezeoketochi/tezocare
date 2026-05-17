@@ -4,7 +4,7 @@ class DashboardStats extends Equatable {
   final int totalPatients;
   final int visitsToday;
   final int followUpsPending;
-  final int refillsDueSoon;
+  final List<dynamic> refillsDueSoon;
   final List<dynamic> recentPatients;
   final List<dynamic> upcomingRefills;
 
@@ -12,18 +12,18 @@ class DashboardStats extends Equatable {
     required this.totalPatients,
     required this.visitsToday,
     required this.followUpsPending,
-    required this.refillsDueSoon,
+    this.refillsDueSoon = const [],
     this.recentPatients = const [],
     this.upcomingRefills = const [],
   });
 
   @override
   List<Object> get props => [
-        totalPatients,
-        visitsToday,
-        followUpsPending,
-        refillsDueSoon,
-        recentPatients,
-        upcomingRefills,
-      ];
+    totalPatients,
+    visitsToday,
+    followUpsPending,
+    refillsDueSoon,
+    recentPatients,
+    upcomingRefills,
+  ];
 }

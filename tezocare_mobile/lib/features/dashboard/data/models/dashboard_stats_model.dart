@@ -15,7 +15,9 @@ class DashboardStatsModel extends DashboardStats {
       totalPatients: json['total_patients'] as int? ?? 0,
       visitsToday: json['visits_today'] as int? ?? 0,
       followUpsPending: json['follow_ups_pending'] as int? ?? 0,
-      refillsDueSoon: json['refills_due_soon'] as int? ?? 0,
+      refillsDueSoon: json['refills_due_soon'] != null
+          ? (json['refills_due_soon'] as List<dynamic>)
+          : const [],
       recentPatients: json['recent_patients'] != null
           ? (json['recent_patients'] as List<dynamic>)
           : const [],

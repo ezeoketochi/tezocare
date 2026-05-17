@@ -137,11 +137,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildLoadingState() {
     return Padding(
       padding: EdgeInsets.all(20.w),
-      child: Column(
-        children: [
-          AppLoading.shimmerList(count: 4),
-        ],
-      ),
+      child: Column(children: [AppLoading.shimmerList(count: 4)]),
     );
   }
 
@@ -174,7 +170,7 @@ class _DashboardPageState extends State<DashboardPage> {
       stats.totalPatients.toString(),
       stats.visitsToday.toString(),
       stats.followUpsPending.toString(),
-      stats.refillsDueSoon.toString(),
+      stats.refillsDueSoon.length.toString(),
     ];
 
     return Column(
