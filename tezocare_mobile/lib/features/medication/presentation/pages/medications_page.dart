@@ -36,7 +36,6 @@ class _MedicationsPageState extends State<MedicationsPage> {
                 Expanded(
                   child: TextField(
                     controller: _patientIdController,
-                    keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       hintText: 'Enter Patient ID',
                       labelText: 'Patient ID',
@@ -49,8 +48,7 @@ class _MedicationsPageState extends State<MedicationsPage> {
                     if (_patientIdController.text.isNotEmpty) {
                       context.read<MedicationBloc>().add(
                             GetPatientMedicationsEvent(
-                              patientId:
-                                  int.parse(_patientIdController.text.trim()),
+                              patientId: _patientIdController.text.trim(),
                             ),
                           );
                     }

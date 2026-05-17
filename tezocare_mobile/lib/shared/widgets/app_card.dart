@@ -1,10 +1,8 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../config/themes/app_colors.dart';
 
-enum AppCardVariant { light, dark, glass }
+enum AppCardVariant { light, dark }
 
 class AppCard extends StatelessWidget {
   final AppCardVariant variant;
@@ -26,7 +24,7 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ?? 20.r;
+    final radius = borderRadius ?? 16.r;
     final effectivePadding = padding ?? EdgeInsets.all(16.w);
 
     Widget card = Container(
@@ -35,21 +33,13 @@ class AppCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: _backgroundColor,
         borderRadius: BorderRadius.circular(radius),
-        border: variant == AppCardVariant.glass
-            ? Border.all(color: AppColors.primary.withValues(alpha: 0.2))
-            : null,
-        boxShadow: variant == AppCardVariant.light
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
-        gradient: variant == AppCardVariant.dark
-            ? AppColors.darkCardGradient
-            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: onTap != null
           ? Material(
@@ -67,16 +57,6 @@ class AppCard extends StatelessWidget {
           : child,
     );
 
-    if (variant == AppCardVariant.glass) {
-      card = ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: BackdropFilter(
-          filter: _blur,
-          child: card,
-        ),
-      );
-    }
-
     return card;
   }
 
@@ -85,11 +65,7 @@ class AppCard extends StatelessWidget {
       case AppCardVariant.light:
         return AppColors.white;
       case AppCardVariant.dark:
-        return Colors.transparent;
-      case AppCardVariant.glass:
-        return AppColors.white.withValues(alpha: 0.8);
+        return AppColors.dark;
     }
   }
-
-  static final _blur = ImageFilter.blur(sigmaX: 10, sigmaY: 10);
 }

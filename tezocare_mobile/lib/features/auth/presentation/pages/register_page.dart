@@ -66,7 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   height: 260.h,
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    gradient: AppColors.splashGradient,
+                    gradient: AppColors.primaryGradient,
                   ),
                   child: Stack(
                     children: [

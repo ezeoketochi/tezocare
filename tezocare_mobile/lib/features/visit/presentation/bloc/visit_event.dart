@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/visit.dart';
-import '../../domain/entities/vitals.dart';
 
 abstract class VisitEvent extends Equatable {
   const VisitEvent();
@@ -11,16 +10,15 @@ abstract class VisitEvent extends Equatable {
 
 class CreateVisitEvent extends VisitEvent {
   final Visit visit;
-  final Vitals? vitals;
 
-  const CreateVisitEvent({required this.visit, this.vitals});
+  const CreateVisitEvent({required this.visit});
 
   @override
-  List<Object?> get props => [visit, vitals];
+  List<Object?> get props => [visit];
 }
 
 class GetPatientVisitsEvent extends VisitEvent {
-  final int patientId;
+  final String patientId;
 
   const GetPatientVisitsEvent({required this.patientId});
 

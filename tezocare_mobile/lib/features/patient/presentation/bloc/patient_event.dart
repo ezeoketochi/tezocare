@@ -10,11 +10,13 @@ abstract class PatientEvent extends Equatable {
 
 class GetPatientsEvent extends PatientEvent {
   final int page;
+  final String? search;
+  final String? status;
 
-  const GetPatientsEvent({this.page = 1});
+  const GetPatientsEvent({this.page = 1, this.search, this.status});
 
   @override
-  List<Object> get props => [page];
+  List<Object> get props => [page, search ?? '', status ?? ''];
 }
 
 class GetPatientDetailEvent extends PatientEvent {

@@ -46,7 +46,7 @@ class _SplashPageState extends State<SplashPage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(gradient: AppColors.splashGradient),
+        decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         child: SafeArea(
           child: Center(
             child: Column(
@@ -62,7 +62,7 @@ class _SplashPageState extends State<SplashPage> {
                   child: Icon(
                     Icons.local_pharmacy_rounded,
                     size: 48.sp,
-                    color: AppColors.accentLight,
+                    color: AppColors.primaryLight,
                   ),
                 )
                     .animate()
@@ -92,7 +92,7 @@ class _SplashPageState extends State<SplashPage> {
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.accent.withValues(alpha: 0.8),
+                      AppColors.primary.withValues(alpha: 0.8),
                     ),
                   ),
                 ).animate().fadeIn(duration: 400.ms, delay: 600.ms),

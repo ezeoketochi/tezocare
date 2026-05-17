@@ -57,7 +57,7 @@ class _AppTextFieldState extends State<AppTextField> {
           onTap: widget.onTap,
           onChanged: widget.onChanged,
           style: GoogleFonts.inter(
-            fontSize: 15.sp,
+            fontSize: 14.sp,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
@@ -71,54 +71,61 @@ class _AppTextFieldState extends State<AppTextField> {
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
                       size: 20.sp,
-                      color: AppColors.textTertiary,
+                      color: AppColors.textSecondary,
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   )
                 : widget.suffixIcon,
             filled: true,
             fillColor: AppColors.white,
+            isDense: true,
             contentPadding: EdgeInsets.symmetric(
-              horizontal: 20.w,
-              vertical: 18.h,
+              horizontal: 14.w,
+              vertical: 10.h,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.r),
-              borderSide: const BorderSide(color: AppColors.divider, width: 1.5),
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: const BorderSide(
+                color: AppColors.border,
+                width: 1.5,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.r),
-              borderSide: const BorderSide(color: AppColors.divider, width: 1.5),
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: const BorderSide(
+                color: AppColors.border,
+                width: 1.5,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.r),
+              borderRadius: BorderRadius.circular(10.r),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.r),
-              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16.r),
-              borderSide: const BorderSide(color: AppColors.error, width: 2),
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: const BorderSide(color: AppColors.danger, width: 2),
             ),
-            hintStyle: AppTextStyles.bodyMedium,
-            labelStyle: AppTextStyles.bodyMedium,
-            floatingLabelStyle: AppTextStyles.bodySmall.copyWith(
+            hintStyle: AppTextStyles.bodySmall,
+            labelStyle: AppTextStyles.bodySmall,
+            floatingLabelStyle: AppTextStyles.caption.copyWith(
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
             ),
-            errorStyle: AppTextStyles.caption.copyWith(color: AppColors.error),
+            errorStyle: AppTextStyles.caption.copyWith(color: AppColors.danger),
           ),
           validator: widget.validator,
         ),
         if (widget.errorText != null) ...[
-          SizedBox(height: 6.h),
+          SizedBox(height: 4.h),
           Padding(
             padding: EdgeInsets.only(left: 4.w),
             child: Text(
               widget.errorText!,
-              style: AppTextStyles.caption.copyWith(color: AppColors.error),
+              style: AppTextStyles.caption.copyWith(color: AppColors.danger),
             ),
           ),
         ],

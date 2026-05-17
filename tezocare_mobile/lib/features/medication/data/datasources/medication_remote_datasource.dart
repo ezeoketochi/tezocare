@@ -6,7 +6,7 @@ import '../models/medication_model.dart';
 
 abstract class MedicationRemoteDataSource {
   Future<MedicationModel> addMedication(MedicationModel medication);
-  Future<List<MedicationModel>> getPatientMedications(int patientId);
+  Future<List<MedicationModel>> getPatientMedications(String patientId);
   Future<MedicationModel> updateMedication(MedicationModel medication);
   Future<void> deactivateMedication(int id);
 }
@@ -20,7 +20,7 @@ class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
   Future<MedicationModel> addMedication(MedicationModel medication) async {
     try {
       final response = await dioClient.dio.post(
-        ApiConstants.medications,
+        '${ApiConstants.patients}/${medication.patientId}/medications',
         data: medication.toJson(),
       );
       return MedicationModel.fromJson(
@@ -32,10 +32,10 @@ class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
   }
 
   @override
-  Future<List<MedicationModel>> getPatientMedications(int patientId) async {
+  Future<List<MedicationModel>> getPatientMedications(String patientId) async {
     try {
       final response = await dioClient.dio.get(
-        '${ApiConstants.patients}/$patientId${ApiConstants.medications}',
+        '${ApiConstants.patients}/$patientId/medications',
       );
       final dataList = response.data['data'] as List<dynamic>;
       return dataList
@@ -54,7 +54,7 @@ class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
   Future<MedicationModel> updateMedication(MedicationModel medication) async {
     try {
       final response = await dioClient.dio.put(
-        '${ApiConstants.medications}/${medication.id}',
+        '${ApiConstants.patients}/${medication.patientId}/medications/${medication.id}',
         data: medication.toJson(),
       );
       return MedicationModel.fromJson(
@@ -68,7 +68,9 @@ class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
   @override
   Future<void> deactivateMedication(int id) async {
     try {
-      await dioClient.dio.delete('${ApiConstants.medications}/$id');
+      await dioClient.dio.delete(
+        '${ApiConstants.patients}/_/medications/$id',
+      );
     } on DioException catch (e) {
       throw _mapDioException(
         e,

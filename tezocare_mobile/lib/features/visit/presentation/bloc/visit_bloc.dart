@@ -27,7 +27,7 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
   ) async {
     emit(const VisitLoading());
     final result = await createVisitUseCase(
-      CreateVisitParams(visit: event.visit, vitals: event.vitals),
+      CreateVisitParams(visit: event.visit),
     );
     result.fold(
       (failure) => emit(VisitError(message: _failureMessage(failure))),

@@ -58,7 +58,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   height: 280.h,
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    gradient: AppColors.splashGradient,
+                    gradient: AppColors.primaryGradient,
                   ),
                   child: Stack(
                     children: [

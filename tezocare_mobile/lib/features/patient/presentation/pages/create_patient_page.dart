@@ -29,13 +29,18 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
   final _addressController = TextEditingController();
   final _emergencyNameController = TextEditingController();
   final _emergencyPhoneController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _occupationController = TextEditingController();
   DateTime _dob = DateTime(2000, 1, 1);
   String _gender = 'male';
   String _bloodGroup = 'A+';
+  String _genotype = 'AA';
   List<String> _allergies = [];
   List<String> _chronicConditions = [];
 
   final _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  final _genotypes = ['AA', 'AS', 'AC', 'SS', 'SC', 'CC'];
   final _genders = ['male', 'female', 'other'];
 
   @override
@@ -46,6 +51,9 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
     _addressController.dispose();
     _emergencyNameController.dispose();
     _emergencyPhoneController.dispose();
+    _stateController.dispose();
+    _cityController.dispose();
+    _occupationController.dispose();
     super.dispose();
   }
 
@@ -63,25 +71,33 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
     if (_formKey.currentState!.validate()) {
       final patient = PatientModel(
         id: '',
-        fullName:
-            '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
-        dob: _dob,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        dateOfBirth: _dob,
         gender: _gender,
         bloodGroup: _bloodGroup,
+        genotype: _genotype,
         phone: _phoneController.text.trim(),
         address: _addressController.text.trim().isEmpty
             ? null
             : _addressController.text.trim(),
+        state: _stateController.text.trim().isEmpty
+            ? null
+            : _stateController.text.trim(),
+        city: _cityController.text.trim().isEmpty
+            ? null
+            : _cityController.text.trim(),
+        occupation: _occupationController.text.trim().isEmpty
+            ? null
+            : _occupationController.text.trim(),
         emergencyContactName: _emergencyNameController.text.trim().isEmpty
             ? null
             : _emergencyNameController.text.trim(),
         emergencyContactPhone: _emergencyPhoneController.text.trim().isEmpty
             ? null
             : _emergencyPhoneController.text.trim(),
-        allergies: _allergies.isNotEmpty ? _allergies.join(', ') : null,
-        chronicConditions: _chronicConditions.isNotEmpty
-            ? _chronicConditions.join(', ')
-            : null,
+        allergies: _allergies,
+        chronicConditions: _chronicConditions,
         isActive: true,
       );
       context.read<PatientBloc>().add(CreatePatientEvent(patient: patient));
@@ -177,7 +193,7 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
                                 'Gender',
                                 isRequired: true,
                                 child: DropdownButtonFormField<String>(
-                                  initialValue: _gender,
+                                  value: _gender,
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: AppColors.white,
@@ -204,7 +220,7 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
                                     ),
                                     contentPadding: EdgeInsets.symmetric(
                                       horizontal: 20.w,
-                                      vertical: 18.h,
+                                      vertical: 10.h,
                                     ),
                                   ),
                                   items: _genders
@@ -234,7 +250,7 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
                               child: _buildLabel(
                                 'Blood Group',
                                 child: DropdownButtonFormField<String>(
-                                  initialValue: _bloodGroup,
+                                  value: _bloodGroup,
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: AppColors.white,
@@ -261,7 +277,7 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
                                     ),
                                     contentPadding: EdgeInsets.symmetric(
                                       horizontal: 20.w,
-                                      vertical: 18.h,
+                                      vertical: 10.h,
                                     ),
                                   ),
                                   items: _bloodGroups
@@ -283,16 +299,51 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
                             SizedBox(width: 12.w),
                             Expanded(
                               child: _buildLabel(
-                                'Phone',
-                                isRequired: true,
-                                child: AppTextField(
-                                  controller: _phoneController,
-                                  hint: 'Enter phone number',
-                                  keyboardType: TextInputType.phone,
-                                  validator: (v) =>
-                                      v == null || v.trim().isEmpty
-                                      ? 'Required'
-                                      : null,
+                                'Genotype',
+                                child: DropdownButtonFormField<String>(
+                                  value: _genotype,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: AppColors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.divider,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.divider,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16.r),
+                                      borderSide: const BorderSide(
+                                        color: AppColors.primary,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 20.w,
+                                      vertical: 10.h,
+                                    ),
+                                  ),
+                                  items: _genotypes
+                                      .map(
+                                        (g) => DropdownMenuItem(
+                                          value: g,
+                                          child: Text(g),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (v) {
+                                    if (v != null) {
+                                      setState(() => _genotype = v);
+                                    }
+                                  },
                                 ),
                               ),
                             ),
@@ -300,10 +351,56 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
                         ),
                         SizedBox(height: 16.h),
                         _buildLabel(
+                          'Phone',
+                          isRequired: true,
+                          child: AppTextField(
+                            controller: _phoneController,
+                            hint: 'Enter phone number',
+                            keyboardType: TextInputType.phone,
+                            validator: (v) =>
+                                v == null || v.trim().isEmpty
+                                ? 'Required'
+                                : null,
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        _buildLabel(
                           'Address',
                           child: AppTextField(
                             controller: _addressController,
                             hint: 'Enter address (optional)',
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildLabel(
+                                'State',
+                                child: AppTextField(
+                                  controller: _stateController,
+                                  hint: 'State (optional)',
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: _buildLabel(
+                                'City',
+                                child: AppTextField(
+                                  controller: _cityController,
+                                  hint: 'City (optional)',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12.h),
+                        _buildLabel(
+                          'Occupation',
+                          child: AppTextField(
+                            controller: _occupationController,
+                            hint: 'Occupation (optional)',
                           ),
                         ),
                       ],
@@ -406,7 +503,7 @@ class _CreatePatientPageState extends State<CreatePatientPage> {
               Text(
                 ' *',
                 style: AppTextStyles.titleSmall.copyWith(
-                  color: AppColors.error,
+                  color: AppColors.danger,
                 ),
               ),
             if (!isRequired) Text(' (optional)', style: AppTextStyles.caption),

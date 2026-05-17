@@ -3,11 +3,9 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/error/repository_helper.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/visit.dart';
-import '../../domain/entities/vitals.dart';
 import '../../domain/repositories/visit_repository.dart';
 import '../datasources/visit_remote_datasource.dart';
 import '../models/visit_model.dart';
-import '../models/vitals_model.dart';
 
 class VisitRepositoryImpl implements VisitRepository {
   final VisitRemoteDataSource remoteDataSource;
@@ -19,10 +17,7 @@ class VisitRepositoryImpl implements VisitRepository {
   });
 
   @override
-  Future<Either<Failure, Visit>> createVisit({
-    required Visit visit,
-    Vitals? vitals,
-  }) async {
+  Future<Either<Failure, Visit>> createVisit(Visit visit) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
@@ -33,34 +28,22 @@ class VisitRepositoryImpl implements VisitRepository {
         patientName: visit.patientName,
         staffId: visit.staffId,
         staffName: visit.staffName,
+        visitNumber: visit.visitNumber,
         visitDate: visit.visitDate,
-        reason: visit.reason,
-        diagnosis: visit.diagnosis,
-        treatment: visit.treatment,
-        notes: visit.notes,
         status: visit.status,
+        chiefComplaints: visit.chiefComplaints,
+        medicationHistory: visit.medicationHistory,
+        vitals: visit.vitals,
+        testResults: visit.testResults,
+        clinicalAssessment: visit.clinicalAssessment,
+        medicationsDispensed: visit.medicationsDispensed,
+        counsellingAdvice: visit.counsellingAdvice,
+        followUp: visit.followUp,
+        referral: visit.referral,
         createdAt: visit.createdAt,
         updatedAt: visit.updatedAt,
       );
-      final vitalsModel = vitals != null
-          ? VitalsModel(
-              id: vitals.id,
-              visitId: vitals.visitId,
-              temperature: vitals.temperature,
-              heartRate: vitals.heartRate,
-              respiratoryRate: vitals.respiratoryRate,
-              weight: vitals.weight,
-              mucousMembranes: vitals.mucousMembranes,
-              capillaryRefillTime: vitals.capillaryRefillTime,
-              hydrationStatus: vitals.hydrationStatus,
-              otherFindings: vitals.otherFindings,
-              recordedAt: vitals.recordedAt,
-            )
-          : null;
-      final result = await remoteDataSource.createVisit(
-        visit: visitModel,
-        vitals: vitalsModel,
-      );
+      final result = await remoteDataSource.createVisit(visitModel);
       return Right(result);
     } catch (e) {
       return handleException(e);
@@ -68,7 +51,7 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
-  Future<Either<Failure, List<Visit>>> getPatientVisits(int patientId) async {
+  Future<Either<Failure, List<Visit>>> getPatientVisits(String patientId) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
@@ -87,6 +70,45 @@ class VisitRepositoryImpl implements VisitRepository {
     }
     try {
       final result = await remoteDataSource.getVisitDetail(id);
+      return Right(result);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, Visit>> completeVisit(int id) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      final result = await remoteDataSource.completeVisit(id);
+      return Right(result);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, Visit>> referVisit(int id, {required String destination, required String reason}) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      final result = await remoteDataSource.referVisit(id, destination: destination, reason: reason);
+      return Right(result);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, Visit>> markFollowUpDone(int id) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      final result = await remoteDataSource.markFollowUpDone(id);
       return Right(result);
     } catch (e) {
       return handleException(e);

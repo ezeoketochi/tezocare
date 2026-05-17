@@ -19,7 +19,7 @@ class GetPatientMedicationsUseCase
 }
 
 class GetPatientMedicationsParams {
-  final int patientId;
+  final String patientId;
 
   const GetPatientMedicationsParams({required this.patientId});
 }

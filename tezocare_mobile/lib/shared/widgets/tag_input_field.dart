@@ -74,49 +74,51 @@ class _TagInputFieldState extends State<TagInputField> {
               child: TextFormField(
                 controller: _controller,
                 style: GoogleFonts.inter(
-                  fontSize: 15.sp,
+                  fontSize: 14.sp,
                   color: AppColors.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: widget.hint,
                   filled: true,
                   fillColor: AppColors.white,
+                  isDense: true,
                   contentPadding: EdgeInsets.symmetric(
-                    horizontal: 20.w,
-                    vertical: 18.h,
+                    horizontal: 14.w,
+                    vertical: 10.h,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.r),
+                    borderRadius: BorderRadius.circular(10.r),
                     borderSide: const BorderSide(
-                      color: AppColors.divider,
+                      color: AppColors.border,
                       width: 1.5,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.r),
+                    borderRadius: BorderRadius.circular(10.r),
                     borderSide: const BorderSide(
-                      color: AppColors.divider,
+                      color: AppColors.border,
                       width: 1.5,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.r),
+                    borderRadius: BorderRadius.circular(10.r),
                     borderSide: const BorderSide(
                       color: AppColors.primary,
                       width: 2,
                     ),
                   ),
-                  hintStyle: AppTextStyles.bodyMedium,
+                  hintStyle: AppTextStyles.bodySmall,
                 ),
                 onFieldSubmitted: (_) => _addTag(),
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 8.w),
             AppButton(
               label: 'Add',
               onPressed: _addTag,
-              width: 90.w,
-              height: 56.h,
+              width: 64.w,
+              height: 40.h,
+              variant: AppButtonVariant.primary,
             ),
           ],
         ),
@@ -128,11 +130,11 @@ class _TagInputFieldState extends State<TagInputField> {
             children: _tags.map((tag) {
               return Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: 12.w,
-                  vertical: 8.h,
+                  horizontal: 10.w,
+                  vertical: 6.h,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryPale,
+                  color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(20.r),
                 ),
                 child: Row(
@@ -141,17 +143,17 @@ class _TagInputFieldState extends State<TagInputField> {
                     Text(
                       tag,
                       style: GoogleFonts.inter(
-                        fontSize: 13.sp,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
                         color: AppColors.primary,
                       ),
                     ),
-                    SizedBox(width: 4.w),
+                    SizedBox(width: 2.w),
                     GestureDetector(
                       onTap: () => _removeTag(tag),
                       child: Icon(
                         Icons.close,
-                        size: 16.sp,
+                        size: 14.sp,
                         color: AppColors.primary,
                       ),
                     ),

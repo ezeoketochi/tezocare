@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/services/app_toast.dart';
+import '../../../../shared/widgets/app_button.dart';
 import '../../data/models/medication_model.dart';
 import '../bloc/medication_bloc.dart';
 import '../bloc/medication_event.dart';
@@ -18,7 +20,6 @@ class AddMedicationPage extends StatefulWidget {
 
 class _AddMedicationPageState extends State<AddMedicationPage> {
   final _formKey = GlobalKey<FormState>();
-  final _patientIdController = TextEditingController();
   final _nameController = TextEditingController();
   final _dosageController = TextEditingController();
   final _frequencyController = TextEditingController();
@@ -28,7 +29,6 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
 
   @override
   void dispose() {
-    _patientIdController.dispose();
     _nameController.dispose();
     _dosageController.dispose();
     _frequencyController.dispose();
@@ -40,9 +40,10 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
 
   void _onAdd() {
     if (_formKey.currentState!.validate()) {
+      final patientId = widget.patientId ?? '';
       final medication = MedicationModel(
         id: 0,
-        patientId: int.parse(_patientIdController.text.trim()),
+        patientId: patientId,
         name: _nameController.text.trim(),
         dosage: _dosageController.text.trim().isEmpty
             ? null
@@ -75,31 +76,18 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
         listener: (context, state) {
           if (state is MedicationAdded) {
             AppToast.success(context, title: 'Medication added successfully');
-            context.pop();
+            if (context.mounted) context.pop();
           } else if (state is MedicationError) {
             AppToast.error(context, title: state.message);
           }
         },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16.w),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
-                  controller: _patientIdController,
-                  keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: 'Patient ID *'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Patient ID is required';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
                 TextFormField(
                   controller: _nameController,
                   decoration:
@@ -111,57 +99,47 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 TextFormField(
                   controller: _dosageController,
                   decoration: const InputDecoration(labelText: 'Dosage'),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 TextFormField(
                   controller: _frequencyController,
                   decoration: const InputDecoration(labelText: 'Frequency'),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 TextFormField(
                   controller: _routeController,
                   decoration:
                       const InputDecoration(labelText: 'Administration Route'),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 TextFormField(
                   controller: _prescribedByController,
                   decoration:
                       const InputDecoration(labelText: 'Prescribed By'),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 TextFormField(
                   controller: _notesController,
                   maxLines: 3,
                   decoration: const InputDecoration(labelText: 'Notes'),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32.h),
                 BlocBuilder<MedicationBloc, MedicationState>(
                   builder: (context, state) {
-                    return SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed:
-                            state is MedicationLoading ? null : _onAdd,
-                        child: state is MedicationLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Add Medication'),
-                      ),
+                    return AppButton(
+                      label: 'Add Medication',
+                      onPressed:
+                          state is MedicationLoading ? null : _onAdd,
+                      isLoading: state is MedicationLoading,
+                      isDisabled: state is MedicationLoading,
                     );
                   },
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16.h),
               ],
             ),
           ),

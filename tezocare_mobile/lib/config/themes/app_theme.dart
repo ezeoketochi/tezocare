@@ -15,10 +15,10 @@ class AppTheme {
       brightness: Brightness.light,
       primary: AppColors.primary,
       onPrimary: AppColors.white,
-      secondary: AppColors.accent,
+      secondary: AppColors.primary,
       onSecondary: AppColors.white,
       surface: AppColors.surface,
-      error: AppColors.error,
+      error: AppColors.danger,
     ),
     scaffoldBackgroundColor: AppColors.background,
     textTheme: GoogleFonts.poppinsTextTheme(),
@@ -55,9 +55,9 @@ class AppTheme {
         ),
         padding: EdgeInsets.symmetric(
           horizontal: 24.w,
-          vertical: 16.h,
+          vertical: 12.h,
         ),
-        minimumSize: Size(double.infinity, 56.h),
+        minimumSize: Size(double.infinity, 48.h),
         textStyle: AppTextStyles.labelLarge,
       ),
     ),
@@ -74,9 +74,9 @@ class AppTheme {
         ),
         padding: EdgeInsets.symmetric(
           horizontal: 24.w,
-          vertical: 16.h,
+          vertical: 12.h,
         ),
-        minimumSize: Size(double.infinity, 56.h),
+        minimumSize: Size(double.infinity, 48.h),
       ),
     ),
 
@@ -84,8 +84,8 @@ class AppTheme {
       filled: true,
       fillColor: AppColors.white,
       contentPadding: EdgeInsets.symmetric(
-        horizontal: 20.w,
-        vertical: 18.h,
+        horizontal: 16.w,
+        vertical: 12.h,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16.r),
@@ -111,33 +111,33 @@ class AppTheme {
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16.r),
         borderSide: const BorderSide(
-          color: AppColors.error,
+          color: AppColors.danger,
           width: 1.5,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16.r),
         borderSide: const BorderSide(
-          color: AppColors.error,
+          color: AppColors.danger,
           width: 2,
         ),
       ),
-      hintStyle: AppTextStyles.bodyMedium,
-      labelStyle: AppTextStyles.bodyMedium,
-      floatingLabelStyle: AppTextStyles.bodySmall.copyWith(
+      hintStyle: AppTextStyles.bodySmall,
+      labelStyle: AppTextStyles.bodySmall,
+      floatingLabelStyle: AppTextStyles.caption.copyWith(
         color: AppColors.primary,
         fontWeight: FontWeight.w600,
       ),
       prefixIconColor: AppColors.primary,
-      suffixIconColor: AppColors.textTertiary,
+      suffixIconColor: AppColors.textHint,
       errorStyle: AppTextStyles.caption.copyWith(
-        color: AppColors.error,
+        color: AppColors.danger,
       ),
     ),
 
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.background,
-      selectedColor: AppColors.primaryPale,
+      selectedColor: AppColors.primaryLight,
       labelStyle: AppTextStyles.labelMedium,
       side: BorderSide.none,
       shape: RoundedRectangleBorder(
@@ -158,7 +158,7 @@ class AppTheme {
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: AppColors.white,
       selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textTertiary,
+      unselectedItemColor: AppColors.textHint,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
       selectedLabelStyle: AppTextStyles.caption.copyWith(

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/dashboard_stats.dart';
-import '../../domain/entities/refill.dart';
 
 abstract class DashboardState extends Equatable {
   const DashboardState();
@@ -19,15 +18,13 @@ class DashboardLoading extends DashboardState {
 
 class DashboardLoaded extends DashboardState {
   final DashboardStats stats;
-  final List<Refill> refillsDue;
 
   const DashboardLoaded({
     required this.stats,
-    required this.refillsDue,
   });
 
   @override
-  List<Object> get props => [stats, refillsDue];
+  List<Object> get props => [stats];
 }
 
 class DashboardError extends DashboardState {

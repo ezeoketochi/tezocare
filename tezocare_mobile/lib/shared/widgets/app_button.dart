@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
 
-enum AppButtonVariant { primary, secondary, ghost, danger }
+enum AppButtonVariant { primary, outline, destructive }
 
 class AppButton extends StatefulWidget {
   final AppButtonVariant variant;
@@ -33,137 +33,83 @@ class AppButton extends StatefulWidget {
   State<AppButton> createState() => _AppButtonState();
 }
 
-class _AppButtonState extends State<AppButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 100),
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+class _AppButtonState extends State<AppButton> {
   bool get _isActive => widget.onPressed != null && !widget.isDisabled;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _scaleAnimation,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: child,
-        );
-      },
-      child: GestureDetector(
-        onTapDown: _isActive ? (_) => _onPressStart() : null,
-        onTapUp: _isActive ? (_) => _onPressEnd() : null,
-        onTapCancel: _isActive ? _onPressEnd : null,
-        onTap: _isActive ? widget.onPressed : null,
-        child: Opacity(
-          opacity: widget.isDisabled ? 0.5 : 1.0,
-          child: _buildButton(),
-        ),
+    final height = widget.height ?? 48.h;
+    final width = widget.width ?? double.infinity;
+
+    return GestureDetector(
+      onTap: _isActive ? widget.onPressed : null,
+      child: Opacity(
+        opacity: widget.isDisabled ? 1.0 : 1.0,
+        child: _buildButton(height, width),
       ),
     );
   }
 
-  void _onPressStart() {
-    _controller.forward();
-  }
-
-  void _onPressEnd() {
-    _controller.reverse();
-  }
-
-  Widget _buildButton() {
-    final buttonHeight = widget.height ?? 56.h;
-    final buttonWidth = widget.width ?? double.infinity;
-
+  Widget _buildButton(double height, double width) {
     switch (widget.variant) {
       case AppButtonVariant.primary:
-        return _buildGradientButton(buttonHeight, buttonWidth);
-      case AppButtonVariant.secondary:
-        return _buildOutlinedButton(buttonHeight, buttonWidth);
-      case AppButtonVariant.ghost:
-        return _buildGhostButton(buttonHeight, buttonWidth);
-      case AppButtonVariant.danger:
-        return _buildDangerButton(buttonHeight, buttonWidth);
+        return _buildPrimaryButton(height, width);
+      case AppButtonVariant.outline:
+        return _buildOutlineButton(height, width);
+      case AppButtonVariant.destructive:
+        return _buildDestructiveButton(height, width);
     }
   }
 
-  Widget _buildGradientButton(double height, double width) {
+  Widget _buildPrimaryButton(double height, double width) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: widget.isDisabled ? const Color(0xFFC7C8FE) : AppColors.primary,
+        borderRadius: BorderRadius.circular(12.r),
       ),
-      child: _buildButtonContent(isWhiteText: true),
+      child: _buildButtonContent(textColor: AppColors.white),
     );
   }
 
-  Widget _buildOutlinedButton(double height, double width) {
+  Widget _buildOutlineButton(double height, double width) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColors.primary, width: 1.5),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: widget.isDisabled ? const Color(0xFFC7C8FE) : AppColors.primary,
+          width: 1.5,
+        ),
       ),
-      child: _buildButtonContent(isWhiteText: false, textColor: AppColors.primary),
+      child: _buildButtonContent(
+        textColor: widget.isDisabled ? const Color(0xFFC7C8FE) : AppColors.primary,
+      ),
     );
   }
 
-  Widget _buildGhostButton(double height, double width) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: _buildButtonContent(isWhiteText: false, textColor: AppColors.primary),
-    );
-  }
-
-  Widget _buildDangerButton(double height, double width) {
+  Widget _buildDestructiveButton(double height, double width) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        gradient: AppColors.coralGradient,
-        borderRadius: BorderRadius.circular(16.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.coral.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: widget.isDisabled ? const Color(0xFFC7C8FE) : AppColors.danger,
+          width: 1.5,
+        ),
       ),
-      child: _buildButtonContent(isWhiteText: true),
+      child: _buildButtonContent(
+        textColor: widget.isDisabled ? const Color(0xFFC7C8FE) : AppColors.danger,
+      ),
     );
   }
 
-  Widget _buildButtonContent({required bool isWhiteText, Color? textColor}) {
+  Widget _buildButtonContent({required Color textColor}) {
     return Center(
       child: widget.isLoading
           ? SizedBox(
@@ -171,26 +117,23 @@ class _AppButtonState extends State<AppButton>
               height: 20.w,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isWhiteText ? AppColors.white : AppColors.primary,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(textColor),
               ),
             )
           : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                  if (widget.prefixIcon != null) ...[
-                    widget.prefixIcon!,
-                    const SizedBox(width: 8),
-                  ],
+                if (widget.prefixIcon != null) ...[
+                  widget.prefixIcon!,
+                  const SizedBox(width: 8),
+                ],
                 widget.child ??
                     Text(
                       widget.label ?? '',
                       style: GoogleFonts.poppins(
                         fontSize: 15.sp,
                         fontWeight: FontWeight.w600,
-                        color: textColor ?? (isWhiteText ? AppColors.white : AppColors.primary),
-                        letterSpacing: 0.3,
+                        color: textColor,
                       ),
                     ),
               ],

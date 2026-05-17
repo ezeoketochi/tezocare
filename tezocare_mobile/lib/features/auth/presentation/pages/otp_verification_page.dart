@@ -62,7 +62,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                   height: 280.h,
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    gradient: AppColors.splashGradient,
+                    gradient: AppColors.primaryGradient,
                   ),
                   child: Stack(
                     children: [
@@ -216,7 +216,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                               child: Text(
                                 'Back to Sign In',
                                 style: AppTextStyles.caption.copyWith(
-                                  color: AppColors.textTertiary,
+                                  color: AppColors.textHint,
                                 ),
                               ),
                             ),

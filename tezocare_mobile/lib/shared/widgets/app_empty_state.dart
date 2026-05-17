@@ -73,7 +73,7 @@ class _AppEmptyStateState extends State<AppEmptyState>
                   width: 80.w,
                   height: 80.w,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryPale,
+                    color: AppColors.primaryLight,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

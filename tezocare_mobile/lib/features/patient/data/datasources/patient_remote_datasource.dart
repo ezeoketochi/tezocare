@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
@@ -7,7 +6,7 @@ import '../models/patient_model.dart';
 
 abstract class PatientRemoteDataSource {
   Future<PatientModel> createPatient(PatientModel patient);
-  Future<List<PatientModel>> getPatients({int page = 1});
+  Future<List<PatientModel>> getPatients({int page = 1, String? search, String? status});
   Future<PatientModel> getPatientDetail(String id);
   Future<List<PatientModel>> searchPatients(String query);
   Future<PatientModel> updatePatient(PatientModel patient);
@@ -25,8 +24,6 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
         ApiConstants.patients,
         data: patient.toJson(),
       );
-      // debugPrint(ApiConstants.patients);
-      debugPrint(response.data);
       return PatientModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
       );
@@ -36,11 +33,14 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
   }
 
   @override
-  Future<List<PatientModel>> getPatients({int page = 1}) async {
+  Future<List<PatientModel>> getPatients({int page = 1, String? search, String? status}) async {
     try {
+      final params = <String, dynamic>{'page': page};
+      if (search != null && search.isNotEmpty) params['search'] = search;
+      if (status != null && status.isNotEmpty) params['status'] = status;
       final response = await dioClient.dio.get(
         ApiConstants.patients,
-        queryParameters: {'page': page},
+        queryParameters: params,
       );
       final dataList = response.data['data'] as List<dynamic>;
       return dataList

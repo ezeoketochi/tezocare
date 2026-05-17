@@ -2,28 +2,28 @@ import 'package:equatable/equatable.dart';
 
 class DashboardStats extends Equatable {
   final int totalPatients;
-  final int activeVisits;
-  final int todayAppointments;
-  final int pendingRefills;
-  final int totalStaff;
-  final int medicationsActive;
+  final int visitsToday;
+  final int followUpsPending;
+  final int refillsDueSoon;
+  final List<dynamic> recentPatients;
+  final List<dynamic> upcomingRefills;
 
   const DashboardStats({
     required this.totalPatients,
-    required this.activeVisits,
-    required this.todayAppointments,
-    required this.pendingRefills,
-    required this.totalStaff,
-    required this.medicationsActive,
+    required this.visitsToday,
+    required this.followUpsPending,
+    required this.refillsDueSoon,
+    this.recentPatients = const [],
+    this.upcomingRefills = const [],
   });
 
   @override
   List<Object> get props => [
         totalPatients,
-        activeVisits,
-        todayAppointments,
-        pendingRefills,
-        totalStaff,
-        medicationsActive,
+        visitsToday,
+        followUpsPending,
+        refillsDueSoon,
+        recentPatients,
+        upcomingRefills,
       ];
 }

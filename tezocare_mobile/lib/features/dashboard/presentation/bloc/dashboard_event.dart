@@ -10,7 +10,3 @@ abstract class DashboardEvent extends Equatable {
 class GetDashboardStatsEvent extends DashboardEvent {
   const GetDashboardStatsEvent();
 }
-
-class GetRefillsDueEvent extends DashboardEvent {
-  const GetRefillsDueEvent();
-}

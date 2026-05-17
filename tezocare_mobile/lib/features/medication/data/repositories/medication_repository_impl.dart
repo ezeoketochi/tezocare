@@ -49,7 +49,7 @@ class MedicationRepositoryImpl implements MedicationRepository {
 
   @override
   Future<Either<Failure, List<Medication>>> getPatientMedications(
-    int patientId,
+    String patientId,
   ) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));

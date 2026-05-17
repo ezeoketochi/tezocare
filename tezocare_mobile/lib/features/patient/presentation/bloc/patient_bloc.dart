@@ -35,7 +35,7 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
   ) async {
     emit(const PatientLoading());
     final result = await getPatientsUseCase(
-      GetPatientsParams(page: event.page),
+      GetPatientsParams(page: event.page, search: event.search, status: event.status),
     );
     result.fold(
       (failure) => emit(PatientError(message: _failureMessage(failure))),

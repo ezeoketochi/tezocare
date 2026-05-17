@@ -192,127 +192,134 @@ class DioClient {
     return parsed['message'] as String;
   }
 
+  Future<void> _handleHttpError({
+    required DioException error,
+    required ErrorInterceptorHandler handler,
+  }) async {
+    final response = error.response;
+    if (response == null) {
+      handler.next(error);
+      return;
+    }
+
+    final parsed = _parseErrorResponse(response);
+    final message = _getReadableMessage(parsed);
+    final statusCode = response.statusCode!;
+    final errors = parsed['errors'] as Map<String, dynamic>;
+    final reqPath = response.requestOptions.path;
+
+    switch (statusCode) {
+      case 401:
+        if (reqPath.contains('/auth/login') ||
+            reqPath.contains('/auth/register')) {
+          return handler.reject(
+            DioException(
+              requestOptions: error.requestOptions,
+              response: response,
+              type: DioExceptionType.badResponse,
+              error: UnauthorizedException(message: message),
+            ),
+          );
+        }
+        final refreshed = await _attemptTokenRefresh(
+          response.requestOptions,
+        );
+        if (refreshed != null) {
+          return handler.resolve(refreshed);
+        }
+        await _clearTokens();
+        return handler.reject(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: UnauthorizedException(message: message),
+          ),
+        );
+      case 400:
+        return handler.reject(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: ServerException(message: message, statusCode: 400),
+          ),
+        );
+      case 403:
+        return handler.reject(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: PermissionException(message: message),
+          ),
+        );
+      case 404:
+        return handler.reject(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: NotFoundException(message: message),
+          ),
+        );
+      case 409:
+        return handler.reject(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: ConflictException(
+              message: message,
+              field: errors.keys.isNotEmpty ? errors.keys.first : null,
+            ),
+          ),
+        );
+      case 422:
+        return handler.reject(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: ValidationException(message: message, errors: errors),
+          ),
+        );
+      case 500:
+      case 502:
+      case 503:
+        return handler.reject(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: ServerException(
+              message: 'Server error. Please try again later.',
+              statusCode: statusCode,
+            ),
+          ),
+        );
+      default:
+        return handler.reject(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            error: ServerException(
+              message: message,
+              statusCode: statusCode,
+            ),
+          ),
+        );
+    }
+  }
+
   InterceptorsWrapper _errorInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) {
         handler.next(options);
       },
-      onResponse: (response, handler) async {
-        if (response.statusCode != null &&
-            response.statusCode! >= 200 &&
-            response.statusCode! < 300) {
-          handler.next(response);
-          return;
-        }
-
-        final parsed = _parseErrorResponse(response);
-        final message = _getReadableMessage(parsed);
-        final statusCode = response.statusCode!;
-        final errors = parsed['errors'] as Map<String, dynamic>;
-
-        switch (statusCode) {
-          case 400:
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                type: DioExceptionType.badResponse,
-                error: ServerException(message: message, statusCode: 400),
-              ),
-            );
-          case 401:
-            if (response.requestOptions.path.contains('/auth/login') ||
-                response.requestOptions.path.contains('/auth/register')) {
-              return handler.reject(
-                DioException(
-                  requestOptions: response.requestOptions,
-                  response: response,
-                  type: DioExceptionType.badResponse,
-                  error: UnauthorizedException(message: message),
-                ),
-              );
-            }
-            final refreshed = await _attemptTokenRefresh(
-              response.requestOptions,
-            );
-            if (refreshed != null) {
-              return handler.resolve(refreshed);
-            }
-            await _clearTokens();
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                type: DioExceptionType.badResponse,
-                error: UnauthorizedException(message: message),
-              ),
-            );
-          case 403:
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                type: DioExceptionType.badResponse,
-                error: PermissionException(message: message),
-              ),
-            );
-          case 404:
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                type: DioExceptionType.badResponse,
-                error: NotFoundException(message: message),
-              ),
-            );
-          case 409:
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                type: DioExceptionType.badResponse,
-                error: ConflictException(
-                  message: message,
-                  field: errors.keys.isNotEmpty ? errors.keys.first : null,
-                ),
-              ),
-            );
-          case 422:
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                type: DioExceptionType.badResponse,
-                error: ValidationException(message: message, errors: errors),
-              ),
-            );
-          case 500:
-          case 502:
-          case 503:
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                type: DioExceptionType.badResponse,
-                error: ServerException(
-                  message: 'Server error. Please try again later.',
-                  statusCode: statusCode,
-                ),
-              ),
-            );
-          default:
-            return handler.reject(
-              DioException(
-                requestOptions: response.requestOptions,
-                response: response,
-                type: DioExceptionType.badResponse,
-                error: ServerException(
-                  message: message,
-                  statusCode: statusCode,
-                ),
-              ),
-            );
-        }
+      onResponse: (response, handler) {
+        handler.next(response);
       },
       onError: (error, handler) async {
         if (error.type == DioExceptionType.connectionError ||
@@ -337,6 +344,14 @@ class DioClient {
                 message: 'Connection timed out. Please try again.',
               ),
             ),
+          );
+        }
+
+        if (error.type == DioExceptionType.badResponse &&
+            error.response != null) {
+          return _handleHttpError(
+            error: error,
+            handler: handler,
           );
         }
 

@@ -18,7 +18,7 @@ class AddMedicationEvent extends MedicationEvent {
 }
 
 class GetPatientMedicationsEvent extends MedicationEvent {
-  final int patientId;
+  final String patientId;
 
   const GetPatientMedicationsEvent({required this.patientId});
 

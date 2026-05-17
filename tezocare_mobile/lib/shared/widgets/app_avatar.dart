@@ -6,13 +6,11 @@ enum AvatarSize { small, medium, large, xlarge }
 
 class AppAvatar extends StatelessWidget {
   final String name;
-  final String? imageUrl;
   final AvatarSize size;
 
   const AppAvatar({
     super.key,
     required this.name,
-    this.imageUrl,
     this.size = AvatarSize.medium,
   });
 
@@ -20,43 +18,22 @@ class AppAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final diameter = _diameter;
     final initials = _getInitials(name);
-    final colorIndex = name.hashCode.abs() % AppColors.avatarGradients.length;
-    final gradientColor = AppColors.avatarGradients[colorIndex];
 
     return Container(
       width: diameter,
       height: diameter,
       decoration: BoxDecoration(
+        color: AppColors.primary,
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            gradientColor,
-            Color.lerp(gradientColor, Colors.white, 0.3)!,
-          ],
-        ),
       ),
-      child: ClipOval(
-        child: imageUrl != null
-            ? Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _buildInitials(initials),
-              )
-            : _buildInitials(initials),
-      ),
-    );
-  }
-
-  Widget _buildInitials(String initials) {
-    return Center(
-      child: Text(
-        initials,
-        style: TextStyle(
-          fontSize: _fontSize,
-          fontWeight: FontWeight.w600,
-          color: AppColors.white,
+      child: Center(
+        child: Text(
+          initials,
+          style: TextStyle(
+            fontSize: _fontSize,
+            fontWeight: FontWeight.w600,
+            color: AppColors.white,
+          ),
         ),
       ),
     );

@@ -23,7 +23,6 @@ import 'features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import 'features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'features/dashboard/domain/usecases/get_dashboard_stats_usecase.dart';
-import 'features/dashboard/domain/usecases/get_refills_due_usecase.dart';
 import 'features/medication/data/datasources/medication_remote_datasource.dart';
 import 'features/medication/data/repositories/medication_repository_impl.dart';
 import 'features/medication/domain/repositories/medication_repository.dart';
@@ -171,5 +170,4 @@ void _initDashboard() {
     () => DashboardRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
   );
   sl.registerFactory(() => GetDashboardStatsUseCase(repository: sl()));
-  sl.registerFactory(() => GetRefillsDueUseCase(repository: sl()));
 }

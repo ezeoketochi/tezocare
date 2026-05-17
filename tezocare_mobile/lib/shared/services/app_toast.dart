@@ -70,8 +70,8 @@ class AppToast {
       title: title,
       description: description,
       type: ToastificationType.error,
-      primaryColor: AppColors.error,
-      backgroundColor: AppColors.errorLight,
+      primaryColor: AppColors.danger,
+      backgroundColor: AppColors.dangerLight,
       icon: Icons.error_rounded,
     );
   }

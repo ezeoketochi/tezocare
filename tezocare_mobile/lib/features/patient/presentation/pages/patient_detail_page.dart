@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
-import '../../../../shared/widgets/app_badge.dart';
+import '../../../../injection_container.dart' as inj;
+import '../../../../shared/widgets/status_chip.dart';
+import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_loading.dart';
-import '../../../../shared/widgets/app_section_header.dart';
+import '../../../../shared/widgets/app_avatar.dart';
+import '../../../medication/domain/entities/medication.dart';
+import '../../../medication/presentation/bloc/medication_bloc.dart';
+import '../../../medication/presentation/bloc/medication_event.dart';
+import '../../../medication/presentation/bloc/medication_state.dart';
+import '../../../visit/domain/usecases/create_visit_usecase.dart';
+import '../../../visit/domain/usecases/get_patient_visits_usecase.dart';
+import '../../../visit/domain/usecases/get_visit_detail_usecase.dart';
+import '../../../visit/presentation/bloc/visit_bloc.dart';
+import '../../../visit/presentation/bloc/visit_event.dart';
+import '../../../visit/presentation/bloc/visit_state.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
 import '../bloc/patient_state.dart';
@@ -21,13 +34,23 @@ class PatientDetailPage extends StatefulWidget {
   State<PatientDetailPage> createState() => _PatientDetailPageState();
 }
 
-class _PatientDetailPageState extends State<PatientDetailPage> {
+class _PatientDetailPageState extends State<PatientDetailPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     context.read<PatientBloc>().add(
           GetPatientDetailEvent(id: widget.patientId),
         );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,31 +74,41 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
           }
           if (state is PatientDetailLoaded) {
             final patient = state.patient;
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  _buildHeader(patient),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoSection(patient),
-                        SizedBox(height: 16.h),
-                        _buildContactSection(patient),
-                        if (patient.allergies != null ||
-                            patient.chronicConditions != null) ...[
-                          SizedBox(height: 16.h),
-                          _buildMedicalSection(patient),
-                        ],
-                        SizedBox(height: 16.h),
-                        _buildMedicationsSection(patient),
-                        SizedBox(height: 16.h),
-                        _buildVitalsSection(patient),
-                        SizedBox(height: 32.h),
-                      ],
+            return NestedScrollView(
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverAppBar(
+                    expandedHeight: 200.h,
+                    pinned: true,
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: _buildHeader(patient),
                     ),
                   ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _TabBarDelegate(
+                      TabBar(
+                        controller: _tabController,
+                        indicatorColor: AppColors.primary,
+                        labelColor: AppColors.primary,
+                        unselectedLabelColor: AppColors.textSecondary,
+                        labelStyle: AppTextStyles.titleSmall,
+                        tabs: const [
+                          Tab(text: 'Overview'),
+                          Tab(text: 'Visits'),
+                          Tab(text: 'Medications'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ];
+              },
+              body: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildOverviewTab(patient),
+                  _buildVisitsTab(),
+                  _buildMedicationsTab(),
                 ],
               ),
             );
@@ -87,351 +120,433 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
   }
 
   Widget _buildHeader(patient) {
-    final initials = patient.fullName.isNotEmpty
-        ? patient.fullName.split(' ').map((n) => n[0]).take(2).join()
-        : '?';
     return Container(
-      width: double.infinity,
       decoration: const BoxDecoration(
-        gradient: AppColors.splashGradient,
+        gradient: AppColors.primaryGradient,
       ),
-      padding: EdgeInsets.only(top: 60.h, bottom: 32.h),
+      padding: EdgeInsets.only(top: 60.h, bottom: 16.h),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          CircleAvatar(
-            radius: 40.r,
-            backgroundColor: AppColors.white,
-            child: Text(
-              initials.toUpperCase(),
-              style: AppTextStyles.headlineLarge.copyWith(
-                color: AppColors.primary,
-              ),
-            ),
+          AppAvatar(
+            name: patient.fullName,
+            size: AvatarSize.xlarge,
           ),
           SizedBox(height: 12.h),
           Text(
             patient.fullName,
-            style: AppTextStyles.headlineMedium.copyWith(
+            style: AppTextStyles.headlineSmall.copyWith(
               color: AppColors.white,
             ),
           ),
           SizedBox(height: 4.h),
           Text(
-            '${patient.gender} \u2022 ${_formatDate(patient.dob)}',
+            '${patient.gender} \u2022 ${_calculateAge(patient.dob)} yrs',
             style: AppTextStyles.bodyMedium.copyWith(
               color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
-          SizedBox(height: 4.h),
-          Text(
-            patient.phone,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: Colors.white.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoSection(patient) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppSectionHeader(title: 'Personal Information'),
-          SizedBox(height: 8.h),
-          _infoRow('Gender', patient.gender),
-          _infoRow('Date of Birth', _formatDate(patient.dob)),
-          _infoRow('Blood Group', patient.bloodGroup ?? 'N/A'),
-          _infoRow(
-            'Registered',
-            patient.createdAt != null
-                ? _formatDate(patient.createdAt!)
-                : 'N/A',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContactSection(patient) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppSectionHeader(title: 'Contact & Emergency'),
-          SizedBox(height: 8.h),
-          _infoRow('Phone', patient.phone),
-          if (patient.address != null)
-            _infoRow('Address', patient.address!),
-          if (patient.emergencyContactName != null)
-            _infoRow('Emergency Contact', patient.emergencyContactName!),
-          if (patient.emergencyContactPhone != null)
-            _infoRow('Emergency Phone', patient.emergencyContactPhone!),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMedicalSection(patient) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppSectionHeader(title: 'Medical Information'),
-          SizedBox(height: 8.h),
-          if (patient.allergies != null && patient.allergies!.isNotEmpty)
-            _infoRow('Allergies', patient.allergies!),
-          if (patient.chronicConditions != null &&
-              patient.chronicConditions!.isNotEmpty)
-            _infoRow('Chronic Conditions', patient.chronicConditions!),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMedicationsSection(patient) {
-    if (patient.medications.isEmpty && patient.nextRefill == null) {
-      return AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppSectionHeader(title: 'Medications'),
+          if (patient.chronicConditions.isNotEmpty) ...[
             SizedBox(height: 8.h),
             Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Text(
-                'No medications recorded',
-                style: AppTextStyles.bodyMedium,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppSectionHeader(
-            title: 'Medications',
-            actionLabel: patient.medications.isNotEmpty ? '${patient.medications.length} total' : null,
-          ),
-          if (patient.nextRefill != null) ...[
-            SizedBox(height: 4.h),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Container(
-                padding: EdgeInsets.all(12.w),
-                decoration: BoxDecoration(
-                  color: AppColors.accentPale,
-                  borderRadius: BorderRadius.circular(12.r),
-                  border: Border.all(color: AppColors.accentLight),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.refresh_rounded,
-                      size: 20.sp,
-                      color: AppColors.accent,
-                    ),
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Next Refill Due',
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Wrap(
+                spacing: 6.w,
+                runSpacing: 4.h,
+                children: patient.chronicConditions
+                    .map((c) => Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 3.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20.r),
+                          ),
+                          child: Text(
+                            c,
                             style: AppTextStyles.caption.copyWith(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.w600,
+                              color: AppColors.white,
                             ),
                           ),
-                          Text(
-                            '${patient.nextRefill!.drugName} - ${_formatDate(patient.nextRefill!.nextRefillDate)}',
-                            style: AppTextStyles.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                        ))
+                    .toList(),
               ),
             ),
           ],
-          SizedBox(height: 8.h),
-          ...patient.medications.map((med) => Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverviewTab(patient) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(20.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppCard(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 40.w,
-                      height: 40.w,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryPale,
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      child: Icon(
-                        Icons.medication_outlined,
-                        size: 20.sp,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            med.drugName,
-                            style: AppTextStyles.titleMedium,
-                          ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            '${med.dosage} \u2022 ${med.frequency}',
-                            style: AppTextStyles.bodySmall,
-                          ),
-                          if (med.nextRefillDate != null) ...[
-                            SizedBox(height: 2.h),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.calendar_today_outlined,
-                                  size: 12.sp,
-                                  color: AppColors.textTertiary,
-                                ),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  'Refill: ${_formatDate(med.nextRefillDate!)}',
-                                  style: AppTextStyles.caption,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    AppBadge(
-                      text: med.isActive ? 'Active' : 'Inactive',
-                      variant: med.isActive
-                          ? BadgeVariant.active
-                          : BadgeVariant.inactive,
-                    ),
-                  ],
-                ),
-                if (med != patient.medications.last)
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.h),
-                    child: Divider(
-                      color: AppColors.divider,
-                      height: 1,
-                    ),
+                Padding(
+                  padding: EdgeInsets.all(16.w),
+                  child: Text(
+                    'Demographics',
+                    style: AppTextStyles.titleLarge,
                   ),
+                ),
+                _divider(),
+                _infoRow('Gender', patient.gender),
+                _infoRow('Date of Birth', _formatDate(patient.dob)),
+                _infoRow('Blood Group', patient.bloodGroup ?? 'N/A'),
+                _infoRow('Genotype', patient.genotype ?? 'N/A'),
+                _infoRow('Phone', patient.phone ?? 'N/A'),
+                if (patient.address != null)
+                  _infoRow('Address', patient.address!),
+                if (patient.state != null)
+                  _infoRow('State', patient.state!),
+                if (patient.city != null)
+                  _infoRow('City', patient.city!),
+                if (patient.occupation != null)
+                  _infoRow('Occupation', patient.occupation!),
               ],
             ),
-          )),
-          SizedBox(height: 8.h),
+          ),
+          SizedBox(height: 16.h),
+          if (patient.allergies.isNotEmpty)
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(16.w),
+                    child: Text(
+                      'Allergies',
+                      style: AppTextStyles.titleLarge,
+                    ),
+                  ),
+                  _divider(),
+                  Padding(
+                    padding: EdgeInsets.all(16.w),
+                    child: Wrap(
+                      spacing: 8.w,
+                      runSpacing: 8.h,
+                      children: patient.allergies
+                          .map((a) => Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12.w,
+                                  vertical: 6.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.dangerLight,
+                                  borderRadius: BorderRadius.circular(20.r),
+                                ),
+                                child: Text(
+                                  a,
+                                  style: AppTextStyles.labelMedium.copyWith(
+                                    color: AppColors.danger,
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          SizedBox(height: 16.h),
+          if (patient.emergencyContactName != null ||
+              patient.emergencyContactPhone != null)
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(16.w),
+                    child: Text(
+                      'Emergency Contact',
+                      style: AppTextStyles.titleLarge,
+                    ),
+                  ),
+                  _divider(),
+                  if (patient.emergencyContactName != null)
+                    _infoRow('Name', patient.emergencyContactName!),
+                  if (patient.emergencyContactPhone != null)
+                    _infoRow('Phone', patient.emergencyContactPhone!),
+                ],
+              ),
+            ),
+          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  label: 'New Visit',
+                  onPressed: () => context.push(
+                    '/visits/create?patientId=${widget.patientId}',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 32.h),
         ],
       ),
     );
   }
 
-  Widget _buildVitalsSection(patient) {
-    if (patient.vitals.isEmpty) {
-      return AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppSectionHeader(title: 'Vital Signs'),
-            SizedBox(height: 8.h),
-            Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Text(
-                'No vital signs recorded',
-                style: AppTextStyles.bodyMedium,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final latest = patient.vitals.first;
-    return AppCard(
+  Widget _buildVisitsTab() {
+    return BlocProvider<VisitBloc>(
+      create: (context) {
+        final bloc = VisitBloc(
+          createVisitUseCase: _getCreateVisitUseCase(),
+          getPatientVisitsUseCase: _getPatientVisitsUseCase(),
+          getVisitDetailUseCase: _getVisitDetailUseCase(),
+        );
+        bloc.add(GetPatientVisitsEvent(patientId: widget.patientId));
+        return bloc;
+      },
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppSectionHeader(title: 'Vital Signs'),
-          SizedBox(height: 8.h),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Wrap(
-              spacing: 8.w,
-              runSpacing: 12.h,
-              children: [
-                if (latest.bloodPressureSystolic != null)
-                  _vitalChip(
-                    'BP',
-                    '${latest.bloodPressureSystolic}/${latest.bloodPressureDiastolic ?? '?'}',
-                    Icons.favorite_outlined,
-                    AppColors.coral,
-                  ),
-                if (latest.heartRate != null)
-                  _vitalChip(
-                    'HR',
-                    '${latest.heartRate} bpm',
-                    Icons.favorite_border_rounded,
-                    AppColors.primary,
-                  ),
-                if (latest.temperature != null)
-                  _vitalChip(
-                    'Temp',
-                    '${latest.temperature!.toStringAsFixed(1)}°C',
-                    Icons.thermostat_outlined,
-                    AppColors.gold,
-                  ),
-                if (latest.weight != null)
-                  _vitalChip(
-                    'Weight',
-                    '${latest.weight!.toStringAsFixed(1)} kg',
-                    Icons.monitor_weight_outlined,
-                    AppColors.accent,
-                  ),
-                if (latest.glucose != null)
-                  _vitalChip(
-                    'Glucose',
-                    '${latest.glucose!.toStringAsFixed(1)}',
-                    Icons.bloodtype_outlined,
-                    AppColors.info,
-                  ),
-                if (latest.spo2 != null)
-                  _vitalChip(
-                    'SpO₂',
-                    '${latest.spo2}%',
-                    Icons.air_rounded,
-                    AppColors.success,
-                  ),
-              ],
+          Expanded(
+            child: BlocBuilder<VisitBloc, VisitState>(
+              builder: (context, state) {
+                if (state is VisitLoading) {
+                  return Padding(
+                    padding: EdgeInsets.all(20.w),
+                    child: AppLoading.shimmerList(count: 3),
+                  );
+                }
+                if (state is VisitError) {
+                  return AppEmptyState(
+                    icon: Icons.error_outline_rounded,
+                    title: 'Failed to load visits',
+                    message: state.message,
+                    actionLabel: 'Retry',
+                    onAction: () => context
+                        .read<VisitBloc>()
+                        .add(GetPatientVisitsEvent(patientId: widget.patientId)),
+                  );
+                }
+                if (state is VisitsLoaded) {
+                  final visits = state.visits;
+                  if (visits.isEmpty) {
+                    return const AppEmptyState(
+                      icon: Icons.medical_services_outlined,
+                      title: 'No Visits',
+                      message: 'No visits recorded for this patient',
+                    );
+                  }
+                  final sorted = List.from(visits)
+                    ..sort((a, b) => b.visitDate.compareTo(a.visitDate));
+                  return ListView.builder(
+                    padding: EdgeInsets.all(20.w),
+                    itemCount: sorted.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == sorted.length) {
+                        return Padding(
+                          padding: EdgeInsets.only(top: 12.h),
+                          child: AppButton(
+                            label: 'New Visit',
+                            onPressed: () => context.push(
+                              '/visits/create?patientId=${widget.patientId}',
+                            ),
+                          ),
+                        );
+                      }
+                      final visit = sorted[index];
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 12.h),
+                        child: AppCard(
+                          onTap: () => context.push(
+                            '/patients/${widget.patientId}/visits/${visit.id}',
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44.w,
+                                height: 44.w,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryLight,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: Icon(
+                                  Icons.medical_services_outlined,
+                                  size: 20.sp,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      visit.reason ?? 'Visit #${visit.id}',
+                                      style: AppTextStyles.titleMedium,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      _formatDate(visit.visitDate),
+                                      style: AppTextStyles.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              StatusChip(
+                                text: visit.status,
+                                variant: _statusVariant(visit.status),
+                              ),
+                              SizedBox(width: 4.w),
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                size: 20.sp,
+                                color: AppColors.textHint,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
           ),
-          if (latest.recordedAt != null) ...[
-            SizedBox(height: 8.h),
-            Padding(
-              padding: EdgeInsets.only(left: 16.w, bottom: 8.h),
-              child: Text(
-                'Last recorded: ${_formatDateTime(latest.recordedAt!)}',
-                style: AppTextStyles.caption,
-              ),
-            ),
-          ],
         ],
       ),
     );
+  }
+
+  Widget _buildMedicationsTab() {
+    return BlocProvider<MedicationBloc>(
+      create: (context) {
+        final bloc = MedicationBloc(
+          addMedicationUseCase: inj.sl(),
+          getPatientMedicationsUseCase: inj.sl(),
+          updateMedicationUseCase: inj.sl(),
+          deactivateMedicationUseCase: inj.sl(),
+        );
+        bloc.add(GetPatientMedicationsEvent(patientId: widget.patientId));
+        return bloc;
+      },
+      child: BlocBuilder<MedicationBloc, MedicationState>(
+        builder: (context, state) {
+          if (state is MedicationLoading) {
+            return Padding(
+              padding: EdgeInsets.all(20.w),
+              child: AppLoading.shimmerList(count: 3),
+            );
+          }
+          if (state is MedicationError) {
+            return AppEmptyState(
+              icon: Icons.error_outline_rounded,
+              title: 'Failed to load medications',
+              message: state.message,
+              actionLabel: 'Retry',
+              onAction: () => context
+                  .read<MedicationBloc>()
+                  .add(GetPatientMedicationsEvent(patientId: widget.patientId)),
+            );
+          }
+          if (state is MedicationsLoaded) {
+            final medications = state.medications;
+            if (medications.isEmpty) {
+              return const AppEmptyState(
+                icon: Icons.medication_outlined,
+                title: 'No Medications',
+                message: 'No medications have been prescribed',
+              );
+            }
+            final sorted = List.from(medications)
+              ..sort((a, b) {
+                if (a.startDate == null && b.startDate == null) return 0;
+                if (a.startDate == null) return 1;
+                if (b.startDate == null) return -1;
+                return b.startDate!.compareTo(a.startDate!);
+              });
+            return ListView.builder(
+              padding: EdgeInsets.all(20.w),
+              itemCount: sorted.length,
+              itemBuilder: (context, index) {
+                final med = sorted[index];
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44.w,
+                                height: 44.w,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryLight,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: Icon(
+                                  Icons.medication_outlined,
+                                  size: 20.sp,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      med.name,
+                                      style: AppTextStyles.titleMedium,
+                                    ),
+                                    SizedBox(height: 2.h),
+                                    Text(
+                                      '${med.dosage ?? ""} \u2022 ${med.frequency ?? ""}',
+                                      style: AppTextStyles.bodySmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              StatusChip(
+                                text: med.isActive ? 'Active' : 'Inactive',
+                                variant: med.isActive
+                                    ? StatusChipVariant.active
+                                    : StatusChipVariant.completed,
+                              ),
+                            ],
+                          ),
+                        ),
+                        _divider(),
+                        ..._buildMedDates(med),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
+  List<Widget> _buildMedDates(Medication med) {
+    final rows = <Widget>[];
+    rows.add(_medInfoRow('Name', med.name));
+    if (med.dosage != null) rows.add(_medInfoRow('Dosage', med.dosage!));
+    if (med.frequency != null) rows.add(_medInfoRow('Frequency', med.frequency!));
+    if (med.startDate != null) rows.add(_medInfoRow('Start', _formatDate(med.startDate!)));
+    if (med.endDate != null) rows.add(_medInfoRow('End', _formatDate(med.endDate!)));
+    if (med.prescribedBy != null) rows.add(_medInfoRow('Prescribed by', med.prescribedBy!));
+    return rows;
   }
 
   Widget _infoRow(String label, String value) {
@@ -452,44 +567,85 @@ class _PatientDetailPageState extends State<PatientDetailPage> {
     );
   }
 
-  Widget _vitalChip(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      width: (MediaQuery.of(context).size.width - 76.w) / 3,
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Column(
+  Widget _medInfoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4.h, left: 16.w, right: 16.w),
+      child: Row(
         children: [
-          Icon(icon, size: 20.sp, color: color),
-          SizedBox(height: 4.h),
-          Text(
-            value,
-            style: AppTextStyles.titleMedium.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            label,
-            style: AppTextStyles.caption.copyWith(color: color),
-          ),
+          Text(label, style: AppTextStyles.caption),
+          SizedBox(width: 4.w),
+          Text(value, style: AppTextStyles.labelMedium.copyWith(
+            color: AppColors.textPrimary,
+          )),
         ],
       ),
     );
   }
 
+  Widget _divider() {
+    return Divider(color: AppColors.border, height: 1);
+  }
+
+  StatusChipVariant _statusVariant(String status) {
+    switch (status) {
+      case 'completed':
+        return StatusChipVariant.completed;
+      case 'follow_up':
+      case 'follow-up':
+        return StatusChipVariant.followUpPending;
+      case 'referred':
+        return StatusChipVariant.referred;
+      default:
+        return StatusChipVariant.active;
+    }
+  }
+
+  CreateVisitUseCase _getCreateVisitUseCase() {
+    return inj.sl<CreateVisitUseCase>();
+  }
+
+  GetPatientVisitsUseCase _getPatientVisitsUseCase() {
+    return inj.sl<GetPatientVisitsUseCase>();
+  }
+
+  GetVisitDetailUseCase _getVisitDetailUseCase() {
+    return inj.sl<GetVisitDetailUseCase>();
+  }
+
+  int _calculateAge(DateTime dob) {
+    final now = DateTime.now();
+    int age = now.year - dob.year;
+    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
+}
 
-  String _formatDateTime(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+
+  _TabBarDelegate(this.tabBar);
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: AppColors.white,
+      child: tabBar,
+    );
   }
+
+  @override
+  double get maxExtent => 48.h;
+
+  @override
+  double get minExtent => 48.h;
+
+  @override
+  bool shouldRebuild(_TabBarDelegate oldDelegate) => false;
 }

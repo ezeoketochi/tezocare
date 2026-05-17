@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
 import '../../config/themes/app_text_styles.dart';
 
@@ -34,7 +35,7 @@ class AppBottomSheet {
               width: 40.w,
               height: 4.h,
               decoration: BoxDecoration(
-                color: AppColors.divider,
+                color: AppColors.border,
                 borderRadius: BorderRadius.circular(2.r),
               ),
             ),
@@ -52,7 +53,7 @@ class AppBottomSheet {
                         width: 32.w,
                         height: 32.w,
                         decoration: BoxDecoration(
-                          color: AppColors.background,
+                          color: AppColors.primaryLight,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -78,17 +79,25 @@ class AppBottomSheet {
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 56.h,
+                  height: 48.h,
                   child: ElevatedButton(
                     onPressed: onAction,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      actionLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
                       ),
                     ),
-                    child: Text(actionLabel, style: AppTextStyles.labelLarge),
                   ),
                 ),
               ),

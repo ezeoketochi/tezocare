@@ -24,19 +24,22 @@ class PatientRepositoryImpl implements PatientRepository {
     try {
       final patientModel = PatientModel(
         id: patient.id,
-        fullName: patient.fullName,
-        dob: patient.dob,
+        firstName: patient.firstName,
+        lastName: patient.lastName,
+        dateOfBirth: patient.dateOfBirth,
         gender: patient.gender,
-        bloodGroup: patient.bloodGroup,
         phone: patient.phone,
         address: patient.address,
-        emergencyContactName: patient.emergencyContactName,
-        emergencyContactPhone: patient.emergencyContactPhone,
+        state: patient.state,
+        city: patient.city,
+        occupation: patient.occupation,
+        bloodGroup: patient.bloodGroup,
+        genotype: patient.genotype,
         allergies: patient.allergies,
         chronicConditions: patient.chronicConditions,
+        emergencyContactName: patient.emergencyContactName,
+        emergencyContactPhone: patient.emergencyContactPhone,
         isActive: patient.isActive,
-        createdAt: patient.createdAt,
-        updatedAt: patient.updatedAt,
       );
       final result = await remoteDataSource.createPatient(patientModel);
       return Right(result);
@@ -46,12 +49,12 @@ class PatientRepositoryImpl implements PatientRepository {
   }
 
   @override
-  Future<Either<Failure, List<Patient>>> getPatients({int page = 1}) async {
+  Future<Either<Failure, List<Patient>>> getPatients({int page = 1, String? search, String? status}) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final result = await remoteDataSource.getPatients(page: page);
+      final result = await remoteDataSource.getPatients(page: page, search: search, status: status);
       return Right(result);
     } catch (e) {
       return handleException(e);
@@ -92,19 +95,22 @@ class PatientRepositoryImpl implements PatientRepository {
     try {
       final patientModel = PatientModel(
         id: patient.id,
-        fullName: patient.fullName,
-        dob: patient.dob,
+        firstName: patient.firstName,
+        lastName: patient.lastName,
+        dateOfBirth: patient.dateOfBirth,
         gender: patient.gender,
-        bloodGroup: patient.bloodGroup,
         phone: patient.phone,
         address: patient.address,
-        emergencyContactName: patient.emergencyContactName,
-        emergencyContactPhone: patient.emergencyContactPhone,
+        state: patient.state,
+        city: patient.city,
+        occupation: patient.occupation,
+        bloodGroup: patient.bloodGroup,
+        genotype: patient.genotype,
         allergies: patient.allergies,
         chronicConditions: patient.chronicConditions,
+        emergencyContactName: patient.emergencyContactName,
+        emergencyContactPhone: patient.emergencyContactPhone,
         isActive: patient.isActive,
-        createdAt: patient.createdAt,
-        updatedAt: patient.updatedAt,
       );
       final result = await remoteDataSource.updatePatient(patientModel);
       return Right(result);

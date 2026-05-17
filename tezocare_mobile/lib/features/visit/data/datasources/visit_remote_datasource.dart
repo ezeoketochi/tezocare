@@ -3,15 +3,14 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
 import '../models/visit_model.dart';
-import '../models/vitals_model.dart';
 
 abstract class VisitRemoteDataSource {
-  Future<VisitModel> createVisit({
-    required VisitModel visit,
-    VitalsModel? vitals,
-  });
-  Future<List<VisitModel>> getPatientVisits(int patientId);
+  Future<VisitModel> createVisit(VisitModel visit);
+  Future<List<VisitModel>> getPatientVisits(String patientId);
   Future<VisitModel> getVisitDetail(int id);
+  Future<VisitModel> completeVisit(int id);
+  Future<VisitModel> referVisit(int id, {required String destination, required String reason});
+  Future<VisitModel> markFollowUpDone(int id);
 }
 
 class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
@@ -20,18 +19,11 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   VisitRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<VisitModel> createVisit({
-    required VisitModel visit,
-    VitalsModel? vitals,
-  }) async {
+  Future<VisitModel> createVisit(VisitModel visit) async {
     try {
-      final data = visit.toJson();
-      if (vitals != null) {
-        data['vitals'] = vitals.toJson();
-      }
       final response = await dioClient.dio.post(
         ApiConstants.visits,
-        data: data,
+        data: visit.toJson(),
       );
       return VisitModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
@@ -42,10 +34,10 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   }
 
   @override
-  Future<List<VisitModel>> getPatientVisits(int patientId) async {
+  Future<List<VisitModel>> getPatientVisits(String patientId) async {
     try {
       final response = await dioClient.dio.get(
-        '${ApiConstants.patients}/$patientId${ApiConstants.visits}',
+        '${ApiConstants.patients}/$patientId/visits',
       );
       final dataList = response.data['data'] as List<dynamic>;
       return dataList
@@ -67,6 +59,52 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
       throw _mapDioException(
         e,
         defaultMessage: 'Failed to fetch visit detail',
+      );
+    }
+  }
+
+  @override
+  Future<VisitModel> completeVisit(int id) async {
+    try {
+      final response = await dioClient.dio.patch(
+        '${ApiConstants.visits}/$id/complete',
+      );
+      return VisitModel.fromJson(
+        response.data['data'] as Map<String, dynamic>,
+      );
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Failed to complete visit');
+    }
+  }
+
+  @override
+  Future<VisitModel> referVisit(int id, {required String destination, required String reason}) async {
+    try {
+      final response = await dioClient.dio.patch(
+        '${ApiConstants.visits}/$id/refer',
+        data: {'destination': destination, 'reason': reason},
+      );
+      return VisitModel.fromJson(
+        response.data['data'] as Map<String, dynamic>,
+      );
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Failed to refer patient');
+    }
+  }
+
+  @override
+  Future<VisitModel> markFollowUpDone(int id) async {
+    try {
+      final response = await dioClient.dio.patch(
+        '${ApiConstants.visits}/$id/followup-done',
+      );
+      return VisitModel.fromJson(
+        response.data['data'] as Map<String, dynamic>,
+      );
+    } on DioException catch (e) {
+      throw _mapDioException(
+        e,
+        defaultMessage: 'Failed to mark follow-up done',
       );
     }
   }

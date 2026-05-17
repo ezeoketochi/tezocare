@@ -59,7 +59,7 @@ class AppTextStyles {
 
   static TextStyle get titleSmall => GoogleFonts.poppins(
     fontSize: 13.sp,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
     height: 1.4,
   );
@@ -102,7 +102,7 @@ class AppTextStyles {
   static TextStyle get labelSmall => GoogleFonts.inter(
     fontSize: 11.sp,
     fontWeight: FontWeight.w500,
-    color: AppColors.textTertiary,
+    color: AppColors.textHint,
     letterSpacing: 0.3,
   );
 
@@ -116,14 +116,14 @@ class AppTextStyles {
   static TextStyle get statLabel => GoogleFonts.inter(
     fontSize: 12.sp,
     fontWeight: FontWeight.w400,
-    color: AppColors.textOnDarkSecondary,
+    color: AppColors.textHint,
     height: 1.4,
   );
 
   static TextStyle get caption => GoogleFonts.inter(
     fontSize: 11.sp,
     fontWeight: FontWeight.w400,
-    color: AppColors.textTertiary,
+    color: AppColors.textHint,
     height: 1.4,
   );
 
@@ -137,7 +137,7 @@ class AppTextStyles {
   static TextStyle get onDarkBody => GoogleFonts.inter(
     fontSize: 13.sp,
     fontWeight: FontWeight.w400,
-    color: AppColors.textOnDarkSecondary,
+    color: AppColors.textHint,
     height: 1.5,
   );
 }

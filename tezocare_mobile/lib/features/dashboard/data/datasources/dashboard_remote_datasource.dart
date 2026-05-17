@@ -3,11 +3,9 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/dio_client.dart';
 import '../models/dashboard_stats_model.dart';
-import '../models/refill_model.dart';
 
 abstract class DashboardRemoteDataSource {
   Future<DashboardStatsModel> getDashboardStats();
-  Future<List<RefillModel>> getRefillsDue();
 }
 
 class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
@@ -18,7 +16,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   @override
   Future<DashboardStatsModel> getDashboardStats() async {
     try {
-      final response = await dioClient.dio.get(ApiConstants.dashboardStats);
+      final response = await dioClient.dio.get(ApiConstants.dashboardSummary);
       return DashboardStatsModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
       );
@@ -27,19 +25,6 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         e,
         defaultMessage: 'Failed to fetch dashboard stats',
       );
-    }
-  }
-
-  @override
-  Future<List<RefillModel>> getRefillsDue() async {
-    try {
-      final response = await dioClient.dio.get(ApiConstants.refillsDue);
-      final dataList = response.data['data'] as List<dynamic>;
-      return dataList
-          .map((e) => RefillModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _mapDioException(e, defaultMessage: 'Failed to fetch refills due');
     }
   }
 

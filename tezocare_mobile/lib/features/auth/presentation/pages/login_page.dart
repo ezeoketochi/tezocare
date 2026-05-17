@@ -66,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 280.h,
                   width: double.infinity,
                   decoration: const BoxDecoration(
-                    gradient: AppColors.splashGradient,
+                    gradient: AppColors.primaryGradient,
                   ),
                   child: Stack(
                     children: [
@@ -245,7 +245,7 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               Expanded(
                                 child: Divider(
-                                  color: AppColors.textTertiary.withValues(alpha: 0.3),
+                                  color: AppColors.textHint.withValues(alpha: 0.3),
                                 ),
                               ),
                               Padding(
@@ -253,13 +253,13 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Text(
                                   'OR',
                                   style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.textTertiary,
+                                    color: AppColors.textHint,
                                   ),
                                 ),
                               ),
                               Expanded(
                                 child: Divider(
-                                  color: AppColors.textTertiary.withValues(alpha: 0.3),
+                                  color: AppColors.textHint.withValues(alpha: 0.3),
                                 ),
                               ),
                             ],

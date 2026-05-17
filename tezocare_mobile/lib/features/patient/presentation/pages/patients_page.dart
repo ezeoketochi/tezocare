@@ -10,6 +10,7 @@ import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/app_search_bar.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_avatar.dart';
+import '../../../../shared/widgets/status_chip.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
 import '../bloc/patient_state.dart';
@@ -23,6 +24,9 @@ class PatientsPage extends StatefulWidget {
 
 class _PatientsPageState extends State<PatientsPage> {
   final _searchController = TextEditingController();
+  String _selectedFilter = 'All';
+
+  final _filters = ['All', 'Active', 'Follow-up Pending'];
 
   @override
   void initState() {
@@ -43,7 +47,7 @@ class _PatientsPageState extends State<PatientsPage> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 12.h),
+            padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 8.h),
             child: AppSearchBar(
               controller: _searchController,
               hint: 'Search patients...',
@@ -60,6 +64,49 @@ class _PatientsPageState extends State<PatientsPage> {
               },
             ),
           ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            child: Row(
+              children: _filters.map((filter) {
+                final isSelected = _selectedFilter == filter;
+                return Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedFilter = filter);
+                      context.read<PatientBloc>().add(
+                        filter == 'All'
+                            ? const GetPatientsEvent()
+                            : SearchPatientsEvent(query: filter),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                      child: Text(
+                        filter,
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: isSelected
+                              ? AppColors.white
+                              : AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          SizedBox(height: 8.h),
           Expanded(
             child: BlocBuilder<PatientBloc, PatientState>(
               builder: (context, state) {
@@ -123,26 +170,29 @@ class _PatientsPageState extends State<PatientsPage> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     SizedBox(height: 4.h),
-                                    Text(
-                                      '${patient.gender} \u2022 ${patient.phone}',
-                                      style: AppTextStyles.bodySmall,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '${patient.gender} \u2022 ${_calculateAge(patient.dob)} yrs',
+                                          style: AppTextStyles.bodySmall,
+                                        ),
+                                        if (patient.createdAt != null) ...[
+                                          SizedBox(width: 8.w),
+                                          Text(
+                                            'Reg: ${_formatDate(patient.createdAt!)}',
+                                            style: AppTextStyles.caption,
+                                          ),
+                                        ],
+                                      ],
                                     ),
-                                    if (patient.bloodGroup != null) ...[
-                                      SizedBox(height: 2.h),
-                                      Text(
-                                        'Blood: ${patient.bloodGroup}',
-                                        style: AppTextStyles.caption,
-                                      ),
-                                    ],
                                   ],
                                 ),
                               ),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 20.sp,
-                                color: AppColors.textTertiary,
+                              StatusChip(
+                                text: patient.isActive ? 'Active' : 'Inactive',
+                                variant: patient.isActive
+                                    ? StatusChipVariant.active
+                                    : StatusChipVariant.completed,
                               ),
                             ],
                           ),
@@ -164,5 +214,18 @@ class _PatientsPageState extends State<PatientsPage> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  int _calculateAge(DateTime dob) {
+    final now = DateTime.now();
+    int age = now.year - dob.year;
+    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

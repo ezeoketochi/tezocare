@@ -5,7 +5,7 @@ import '../entities/medication.dart';
 abstract class MedicationRepository {
   Future<Either<Failure, Medication>> addMedication(Medication medication);
   Future<Either<Failure, List<Medication>>> getPatientMedications(
-    int patientId,
+    String patientId,
   );
   Future<Either<Failure, Medication>> updateMedication(Medication medication);
   Future<Either<Failure, void>> deactivateMedication(int id);

@@ -12,12 +12,14 @@ class GetPatientsUseCase
 
   @override
   Future<Either<Failure, List<Patient>>> call(GetPatientsParams params) {
-    return repository.getPatients(page: params.page);
+    return repository.getPatients(page: params.page, search: params.search, status: params.status);
   }
 }
 
 class GetPatientsParams {
   final int page;
+  final String? search;
+  final String? status;
 
-  const GetPatientsParams({this.page = 1});
+  const GetPatientsParams({this.page = 1, this.search, this.status});
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
-import '../../config/themes/app_text_styles.dart';
 
 class AppSectionHeader extends StatelessWidget {
   final String title;
@@ -22,15 +22,23 @@ class AppSectionHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: AppTextStyles.titleLarge),
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
           if (actionLabel != null)
             GestureDetector(
               onTap: onAction,
               child: Text(
                 actionLabel!,
-                style: AppTextStyles.titleSmall.copyWith(
+                style: GoogleFonts.poppins(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
