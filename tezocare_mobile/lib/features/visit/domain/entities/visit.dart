@@ -125,22 +125,34 @@ class MedicationDispensedData extends Equatable {
 
 class FollowUpData extends Equatable {
   final bool required;
-  final DateTime? date;
+  final DateTime? scheduledDate;
+  final bool isDone;
+  final String? outcome;
 
-  const FollowUpData({this.required = false, this.date});
+  const FollowUpData({
+    this.required = false,
+    this.scheduledDate,
+    this.isDone = false,
+    this.outcome,
+  });
 
   @override
-  List<Object?> get props => [required, date];
+  List<Object?> get props => [required, scheduledDate, isDone, outcome];
 }
 
 class ReferralData extends Equatable {
+  final bool isReferred;
   final String? destination;
   final String? reason;
 
-  const ReferralData({this.destination, this.reason});
+  const ReferralData({
+    this.isReferred = false,
+    this.destination,
+    this.reason,
+  });
 
   @override
-  List<Object?> get props => [destination, reason];
+  List<Object?> get props => [isReferred, destination, reason];
 }
 
 class Visit extends Equatable {
@@ -216,7 +228,7 @@ class Visit extends Equatable {
     }
     if (followUp != null && followUp!.required) {
       parts.add(
-          'Follow-up: ${followUp!.date?.toIso8601String().split('T')[0] ?? "TBD"}');
+          'Follow-up: ${followUp!.scheduledDate?.toIso8601String().split('T')[0] ?? "TBD"}');
     }
     if (referral != null &&
         referral!.destination != null &&

@@ -246,7 +246,7 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
       final followUp = _followUpRequired
           ? FollowUpDataModel(
               required: true,
-              date: _followUpDate,
+              scheduledDate: _followUpDate,
             )
           : null;
 

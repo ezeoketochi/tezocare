@@ -150,8 +150,8 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
                     SizedBox(height: 16.h),
                     _buildSection(
                       'Follow-up',
-                      [if (visit.followUp!.date != null)
-                        _detailRow('Date', _formatDate(visit.followUp!.date!))],
+                      [if (visit.followUp!.scheduledDate != null)
+                        _detailRow('Date', _formatDate(visit.followUp!.scheduledDate!))],
                     ),
                   ],
                   if (visit.referral != null && visit.referral!.destination != null) ...[

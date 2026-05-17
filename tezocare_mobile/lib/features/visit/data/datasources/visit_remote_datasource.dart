@@ -6,6 +6,7 @@ import '../models/visit_model.dart';
 
 abstract class VisitRemoteDataSource {
   Future<VisitModel> createVisit(VisitModel visit);
+  Future<VisitModel> updateVisit(String id, VisitModel visit);
   Future<List<VisitModel>> getPatientVisits(String patientId);
   Future<VisitModel> getVisitDetail(String id);
   Future<VisitModel> completeVisit(String id);
@@ -21,15 +22,61 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   @override
   Future<VisitModel> createVisit(VisitModel visit) async {
     try {
+      final createPayload = <String, dynamic>{
+        'patient_id': visit.patientId,
+        'visit_date': visit.visitDate.toIso8601String().split('T')[0],
+      };
       final response = await dioClient.dio.post(
         ApiConstants.visits,
-        data: visit.toJson(),
+        data: createPayload,
       );
-      return VisitModel.fromJson(
-        response.data['data'] as Map<String, dynamic>,
-      );
+      final createdData = response.data['data'] as Map<String, dynamic>;
+      final visitId = createdData['id'] as String;
+
+      final updated = await _updateVisitData(visitId, visit);
+      return updated;
     } on DioException catch (e) {
       throw _mapDioException(e, defaultMessage: 'Failed to create visit');
+    }
+  }
+
+  Future<VisitModel> _updateVisitData(String visitId, VisitModel visit) async {
+    final updatePayload = <String, dynamic>{};
+    final fullJson = visit.toJson();
+
+    const clinicalKeys = [
+      'chief_complaints', 'medication_history', 'vitals',
+      'test_results', 'clinical_assessment', 'medications_dispensed',
+      'counselling_advice', 'follow_up', 'referral',
+    ];
+    for (final key in clinicalKeys) {
+      if (fullJson.containsKey(key)) {
+        updatePayload[key] = fullJson[key];
+      }
+    }
+
+    if (updatePayload.isNotEmpty) {
+      await dioClient.dio.patch(
+        '${ApiConstants.visits}/$visitId',
+        data: updatePayload,
+      );
+    }
+
+    final getResponse = await dioClient.dio.get(
+      '${ApiConstants.visits}/$visitId',
+    );
+    return VisitModel.fromJson(
+      getResponse.data['data'] as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<VisitModel> updateVisit(String id, VisitModel visit) async {
+    try {
+      final result = await _updateVisitData(id, visit);
+      return result;
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Failed to update visit');
     }
   }
 

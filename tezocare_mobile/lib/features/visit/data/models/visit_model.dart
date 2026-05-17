@@ -68,35 +68,35 @@ class VitalsDataModel extends VitalsData {
 
   factory VitalsDataModel.fromJson(Map<String, dynamic> json) {
     return VitalsDataModel(
-      bloodPressureSystolic: json['blood_pressure_systolic'] as int?,
-      bloodPressureDiastolic: json['blood_pressure_diastolic'] as int?,
+      bloodPressureSystolic: json['bp_systolic'] as int?,
+      bloodPressureDiastolic: json['bp_diastolic'] as int?,
       heartRate: json['heart_rate'] as int?,
       temperature: (json['temperature'] as num?)?.toDouble(),
-      spo2: json['spo2'] as int?,
+      spo2: json['sp_o2'] as int?,
       respiratoryRate: json['respiratory_rate'] as int?,
       weight: (json['weight'] as num?)?.toDouble(),
       height: (json['height'] as num?)?.toDouble(),
       bmi: (json['bmi'] as num?)?.toDouble(),
-      glucose: (json['glucose'] as num?)?.toDouble(),
-      glucoseType: json['glucose_type'] as String?,
+      glucose: (json['blood_glucose'] as num?)?.toDouble(),
+      glucoseType: json['blood_glucose_type'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       if (bloodPressureSystolic != null)
-        'blood_pressure_systolic': bloodPressureSystolic,
+        'bp_systolic': bloodPressureSystolic,
       if (bloodPressureDiastolic != null)
-        'blood_pressure_diastolic': bloodPressureDiastolic,
+        'bp_diastolic': bloodPressureDiastolic,
       if (heartRate != null) 'heart_rate': heartRate,
       if (temperature != null) 'temperature': temperature,
-      if (spo2 != null) 'spo2': spo2,
+      if (spo2 != null) 'sp_o2': spo2,
       if (respiratoryRate != null) 'respiratory_rate': respiratoryRate,
       if (weight != null) 'weight': weight,
       if (height != null) 'height': height,
       if (bmi != null) 'bmi': bmi,
-      if (glucose != null) 'glucose': glucose,
-      if (glucoseType != null) 'glucose_type': glucoseType,
+      if (glucose != null) 'blood_glucose': glucose,
+      if (glucoseType != null) 'blood_glucose_type': glucoseType,
     };
   }
 }
@@ -128,7 +128,7 @@ class ClinicalAssessmentDataModel extends ClinicalAssessmentData {
 
   factory ClinicalAssessmentDataModel.fromJson(Map<String, dynamic> json) {
     return ClinicalAssessmentDataModel(
-      diagnosis: json['diagnosis'] as String?,
+      diagnosis: json['suspected_diagnosis'] as String?,
       severity: json['severity'] as String?,
       pharmacistNotes: json['pharmacist_notes'] as String?,
     );
@@ -136,7 +136,7 @@ class ClinicalAssessmentDataModel extends ClinicalAssessmentData {
 
   Map<String, dynamic> toJson() {
     return {
-      if (diagnosis != null) 'diagnosis': diagnosis,
+      if (diagnosis != null) 'suspected_diagnosis': diagnosis,
       if (severity != null) 'severity': severity,
       if (pharmacistNotes != null) 'pharmacist_notes': pharmacistNotes,
     };
@@ -187,30 +187,45 @@ class MedicationDispensedDataModel extends MedicationDispensedData {
 }
 
 class FollowUpDataModel extends FollowUpData {
-  const FollowUpDataModel({super.required, super.date});
+  const FollowUpDataModel({
+    super.required,
+    super.scheduledDate,
+    super.isDone,
+    super.outcome,
+  });
 
   factory FollowUpDataModel.fromJson(Map<String, dynamic> json) {
     return FollowUpDataModel(
       required: json['required'] as bool? ?? false,
-      date: json['date'] != null
-          ? DateTime.parse(json['date'] as String)
+      scheduledDate: json['scheduled_date'] != null
+          ? DateTime.parse(json['scheduled_date'] as String)
           : null,
+      isDone: json['is_done'] as bool? ?? false,
+      outcome: json['outcome'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'required': required,
-      if (date != null) 'date': date!.toIso8601String().split('T')[0],
+      if (scheduledDate != null)
+        'scheduled_date': scheduledDate!.toIso8601String().split('T')[0],
+      'is_done': isDone,
+      if (outcome != null) 'outcome': outcome,
     };
   }
 }
 
 class ReferralDataModel extends ReferralData {
-  const ReferralDataModel({super.destination, super.reason});
+  const ReferralDataModel({
+    super.isReferred,
+    super.destination,
+    super.reason,
+  });
 
   factory ReferralDataModel.fromJson(Map<String, dynamic> json) {
     return ReferralDataModel(
+      isReferred: json['is_referred'] as bool? ?? false,
       destination: json['destination'] as String?,
       reason: json['reason'] as String?,
     );
@@ -218,6 +233,7 @@ class ReferralDataModel extends ReferralData {
 
   Map<String, dynamic> toJson() {
     return {
+      'is_referred': isReferred,
       if (destination != null) 'destination': destination,
       if (reason != null) 'reason': reason,
     };

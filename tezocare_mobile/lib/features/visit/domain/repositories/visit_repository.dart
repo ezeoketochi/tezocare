@@ -4,6 +4,7 @@ import '../entities/visit.dart';
 
 abstract class VisitRepository {
   Future<Either<Failure, Visit>> createVisit(Visit visit);
+  Future<Either<Failure, Visit>> updateVisit(String id, Visit visit);
   Future<Either<Failure, List<Visit>>> getPatientVisits(String patientId);
   Future<Either<Failure, Visit>> getVisitDetail(String id);
   Future<Either<Failure, Visit>> completeVisit(String id);
