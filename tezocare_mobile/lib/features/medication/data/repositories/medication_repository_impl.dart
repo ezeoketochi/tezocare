@@ -94,7 +94,7 @@ class MedicationRepositoryImpl implements MedicationRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deactivateMedication(int id) async {
+  Future<Either<Failure, void>> deactivateMedication(String id) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }

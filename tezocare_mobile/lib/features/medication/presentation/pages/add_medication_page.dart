@@ -42,7 +42,7 @@ class _AddMedicationPageState extends State<AddMedicationPage> {
     if (_formKey.currentState!.validate()) {
       final patientId = widget.patientId ?? '';
       final medication = MedicationModel(
-        id: 0,
+        id: '',
         patientId: patientId,
         name: _nameController.text.trim(),
         dosage: _dosageController.text.trim().isEmpty

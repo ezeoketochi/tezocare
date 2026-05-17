@@ -16,7 +16,7 @@ class DeactivateMedicationUseCase
 }
 
 class DeactivateMedicationParams {
-  final int id;
+  final String id;
 
   const DeactivateMedicationParams({required this.id});
 }

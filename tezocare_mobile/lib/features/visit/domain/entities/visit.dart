@@ -144,10 +144,10 @@ class ReferralData extends Equatable {
 }
 
 class Visit extends Equatable {
-  final int id;
+  final String id;
   final String patientId;
   final String? patientName;
-  final int staffId;
+  final String staffId;
   final String? staffName;
   final String visitNumber;
   final DateTime visitDate;

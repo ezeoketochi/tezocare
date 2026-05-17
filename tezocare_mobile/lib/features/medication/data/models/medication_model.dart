@@ -20,7 +20,7 @@ class MedicationModel extends Medication {
 
   factory MedicationModel.fromJson(Map<String, dynamic> json) {
     return MedicationModel(
-      id: json['id'] as int,
+      id: json['id'] as String,
       patientId: json['patient_id'] as String? ?? '',
       patientName: json['patient_name'] as String?,
       name: json['name'] as String,

@@ -36,7 +36,7 @@ class UpdateMedicationEvent extends MedicationEvent {
 }
 
 class DeactivateMedicationEvent extends MedicationEvent {
-  final int id;
+  final String id;
 
   const DeactivateMedicationEvent({required this.id});
 

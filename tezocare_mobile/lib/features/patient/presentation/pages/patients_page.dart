@@ -173,7 +173,7 @@ class _PatientsPageState extends State<PatientsPage> {
                                     Row(
                                       children: [
                                         Text(
-                                          '${patient.gender} \u2022 ${_calculateAge(patient.dob)} yrs',
+                                          '${patient.gender} \u2022 ${patient.dob != null ? _calculateAge(patient.dob!) : 'N/A'} yrs',
                                           style: AppTextStyles.bodySmall,
                                         ),
                                         if (patient.createdAt != null) ...[

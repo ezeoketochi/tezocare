@@ -64,7 +64,7 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
-  Future<Either<Failure, Visit>> getVisitDetail(int id) async {
+  Future<Either<Failure, Visit>> getVisitDetail(String id) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
@@ -77,7 +77,7 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
-  Future<Either<Failure, Visit>> completeVisit(int id) async {
+  Future<Either<Failure, Visit>> completeVisit(String id) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
@@ -90,7 +90,7 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
-  Future<Either<Failure, Visit>> referVisit(int id, {required String destination, required String reason}) async {
+  Future<Either<Failure, Visit>> referVisit(String id, {required String destination, required String reason}) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
@@ -103,7 +103,7 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
-  Future<Either<Failure, Visit>> markFollowUpDone(int id) async {
+  Future<Either<Failure, Visit>> markFollowUpDone(String id) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }

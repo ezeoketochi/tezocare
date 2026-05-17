@@ -7,10 +7,10 @@ import '../models/visit_model.dart';
 abstract class VisitRemoteDataSource {
   Future<VisitModel> createVisit(VisitModel visit);
   Future<List<VisitModel>> getPatientVisits(String patientId);
-  Future<VisitModel> getVisitDetail(int id);
-  Future<VisitModel> completeVisit(int id);
-  Future<VisitModel> referVisit(int id, {required String destination, required String reason});
-  Future<VisitModel> markFollowUpDone(int id);
+  Future<VisitModel> getVisitDetail(String id);
+  Future<VisitModel> completeVisit(String id);
+  Future<VisitModel> referVisit(String id, {required String destination, required String reason});
+  Future<VisitModel> markFollowUpDone(String id);
 }
 
 class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
@@ -49,7 +49,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   }
 
   @override
-  Future<VisitModel> getVisitDetail(int id) async {
+  Future<VisitModel> getVisitDetail(String id) async {
     try {
       final response = await dioClient.dio.get('${ApiConstants.visits}/$id');
       return VisitModel.fromJson(
@@ -64,7 +64,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   }
 
   @override
-  Future<VisitModel> completeVisit(int id) async {
+  Future<VisitModel> completeVisit(String id) async {
     try {
       final response = await dioClient.dio.patch(
         '${ApiConstants.visits}/$id/complete',
@@ -78,7 +78,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   }
 
   @override
-  Future<VisitModel> referVisit(int id, {required String destination, required String reason}) async {
+  Future<VisitModel> referVisit(String id, {required String destination, required String reason}) async {
     try {
       final response = await dioClient.dio.patch(
         '${ApiConstants.visits}/$id/refer',
@@ -93,7 +93,7 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   }
 
   @override
-  Future<VisitModel> markFollowUpDone(int id) async {
+  Future<VisitModel> markFollowUpDone(String id) async {
     try {
       final response = await dioClient.dio.patch(
         '${ApiConstants.visits}/$id/followup-done',

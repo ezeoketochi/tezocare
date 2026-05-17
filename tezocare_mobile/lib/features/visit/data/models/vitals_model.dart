@@ -17,8 +17,8 @@ class VitalsModel extends Vitals {
 
   factory VitalsModel.fromJson(Map<String, dynamic> json) {
     return VitalsModel(
-      id: json['id'] as int?,
-      visitId: json['visit_id'] as int?,
+      id: json['id'] as String?,
+      visitId: json['visit_id'] as String?,
       temperature: (json['temperature'] as num?)?.toDouble(),
       heartRate: json['heart_rate'] as int?,
       respiratoryRate: json['respiratory_rate'] as int?,

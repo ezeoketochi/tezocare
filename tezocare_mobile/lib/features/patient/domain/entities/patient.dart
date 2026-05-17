@@ -4,7 +4,7 @@ class Patient extends Equatable {
   final String id;
   final String firstName;
   final String lastName;
-  final DateTime dateOfBirth;
+  final DateTime? dateOfBirth;
   final String gender;
   final String? phone;
   final String? address;
@@ -26,7 +26,7 @@ class Patient extends Equatable {
     required this.id,
     required this.firstName,
     required this.lastName,
-    required this.dateOfBirth,
+    this.dateOfBirth,
     required this.gender,
     this.phone,
     this.address,
@@ -46,7 +46,7 @@ class Patient extends Equatable {
   });
 
   String get fullName => '$firstName $lastName';
-  DateTime get dob => dateOfBirth;
+  DateTime? get dob => dateOfBirth;
 
   @override
   List<Object?> get props => [

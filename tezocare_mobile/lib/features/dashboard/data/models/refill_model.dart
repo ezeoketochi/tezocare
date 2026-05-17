@@ -7,20 +7,24 @@ class RefillModel extends Refill {
     required super.medicationName,
     required super.patientId,
     required super.patientName,
-    required super.lastRefillDate,
-    required super.nextRefillDate,
+    super.lastRefillDate,
+    super.nextRefillDate,
     required super.isOverdue,
   });
 
   factory RefillModel.fromJson(Map<String, dynamic> json) {
     return RefillModel(
-      id: json['id'] as int,
-      medicationId: json['medication_id'] as int,
+      id: json['id'] as String,
+      medicationId: json['medication_id'] as String,
       medicationName: json['medication_name'] as String,
-      patientId: json['patient_id'] as int,
+      patientId: json['patient_id'] as String,
       patientName: json['patient_name'] as String,
-      lastRefillDate: DateTime.parse(json['last_refill_date'] as String),
-      nextRefillDate: DateTime.parse(json['next_refill_date'] as String),
+      lastRefillDate: json['last_refill_date'] != null
+          ? DateTime.parse(json['last_refill_date'] as String)
+          : null,
+      nextRefillDate: json['next_refill_date'] != null
+          ? DateTime.parse(json['next_refill_date'] as String)
+          : null,
       isOverdue: json['is_overdue'] as bool? ?? false,
     );
   }
@@ -32,8 +36,8 @@ class RefillModel extends Refill {
       'medication_name': medicationName,
       'patient_id': patientId,
       'patient_name': patientName,
-      'last_refill_date': lastRefillDate.toIso8601String(),
-      'next_refill_date': nextRefillDate.toIso8601String(),
+      if (lastRefillDate != null) 'last_refill_date': lastRefillDate!.toIso8601String(),
+      if (nextRefillDate != null) 'next_refill_date': nextRefillDate!.toIso8601String(),
       'is_overdue': isOverdue,
     };
   }

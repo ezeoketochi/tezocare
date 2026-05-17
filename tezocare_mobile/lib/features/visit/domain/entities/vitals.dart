@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 class Vitals extends Equatable {
-  final int? id;
-  final int? visitId;
+  final String? id;
+  final String? visitId;
   final double? temperature;
   final int? heartRate;
   final int? respiratoryRate;

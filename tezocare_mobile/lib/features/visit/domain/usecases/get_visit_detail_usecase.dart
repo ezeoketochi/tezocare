@@ -16,7 +16,7 @@ class GetVisitDetailUseCase implements UseCase<Visit, GetVisitDetailParams> {
 }
 
 class GetVisitDetailParams {
-  final int id;
+  final String id;
 
   const GetVisitDetailParams({required this.id});
 }

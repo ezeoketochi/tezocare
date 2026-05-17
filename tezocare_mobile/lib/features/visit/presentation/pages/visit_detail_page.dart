@@ -25,7 +25,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
   void initState() {
     super.initState();
     context.read<VisitBloc>().add(
-          GetVisitDetailEvent(id: int.parse(widget.visitId)),
+          GetVisitDetailEvent(id: widget.visitId),
         );
   }
 
@@ -46,7 +46,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               actionLabel: 'Retry',
               onAction: () => context
                   .read<VisitBloc>()
-                  .add(GetVisitDetailEvent(id: int.parse(widget.visitId))),
+                  .add(GetVisitDetailEvent(id: widget.visitId)),
             );
           }
           if (state is VisitDetailLoaded) {

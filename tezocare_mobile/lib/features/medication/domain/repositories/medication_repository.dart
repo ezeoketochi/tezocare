@@ -8,5 +8,5 @@ abstract class MedicationRepository {
     String patientId,
   );
   Future<Either<Failure, Medication>> updateMedication(Medication medication);
-  Future<Either<Failure, void>> deactivateMedication(int id);
+  Future<Either<Failure, void>> deactivateMedication(String id);
 }

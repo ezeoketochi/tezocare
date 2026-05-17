@@ -1,13 +1,13 @@
 import 'package:equatable/equatable.dart';
 
 class Refill extends Equatable {
-  final int id;
-  final int medicationId;
+  final String id;
+  final String medicationId;
   final String medicationName;
-  final int patientId;
+  final String patientId;
   final String patientName;
-  final DateTime lastRefillDate;
-  final DateTime nextRefillDate;
+  final DateTime? lastRefillDate;
+  final DateTime? nextRefillDate;
   final bool isOverdue;
 
   const Refill({
@@ -16,13 +16,13 @@ class Refill extends Equatable {
     required this.medicationName,
     required this.patientId,
     required this.patientName,
-    required this.lastRefillDate,
-    required this.nextRefillDate,
+    this.lastRefillDate,
+    this.nextRefillDate,
     required this.isOverdue,
   });
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         id,
         medicationId,
         medicationName,

@@ -262,9 +262,9 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
           : null;
 
       final visit = VisitModel(
-        id: 0,
+        id: '',
         patientId: patientId,
-        staffId: 0,
+        staffId: '',
         visitDate: _visitDate,
         status: 'active',
         visitNumber: _visitNumber,

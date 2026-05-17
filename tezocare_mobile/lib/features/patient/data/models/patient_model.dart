@@ -5,7 +5,7 @@ class PatientModel extends Patient {
     required super.id,
     required super.firstName,
     required super.lastName,
-    required super.dateOfBirth,
+    super.dateOfBirth,
     required super.gender,
     super.phone,
     super.address,
@@ -31,7 +31,7 @@ class PatientModel extends Patient {
       lastName: json['last_name'] as String? ?? '',
       dateOfBirth: json['date_of_birth'] != null
           ? DateTime.parse(json['date_of_birth'] as String)
-          : DateTime(2000, 1, 1),
+          : null,
       gender: json['gender'] as String? ?? 'male',
       phone: json['phone'] as String?,
       address: json['address'] as String?,
@@ -63,7 +63,7 @@ class PatientModel extends Patient {
     return {
       'first_name': firstName,
       'last_name': lastName,
-      'date_of_birth': dateOfBirth.toIso8601String().split('T')[0],
+      if (dateOfBirth != null) 'date_of_birth': dateOfBirth!.toIso8601String().split('T')[0],
       'gender': gender,
       'phone': phone,
       'address': address,

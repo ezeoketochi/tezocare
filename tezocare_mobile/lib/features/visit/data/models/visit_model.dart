@@ -249,12 +249,12 @@ class VisitModel extends Visit {
 
   factory VisitModel.fromJson(Map<String, dynamic> json) {
     return VisitModel(
-      id: json['id'] as int,
+      id: json['id'] as String,
       patientId: json['patient_id'] as String? ?? '',
       patientName: json['patient_name'] as String?,
-      staffId: json['staff_id'] as int? ?? 0,
+      staffId: json['staff_id'] as String? ?? '',
       staffName: json['staff_name'] as String?,
-      visitNumber: json['visit_number'] as String? ?? '',
+      visitNumber: json['visit_number']?.toString() ?? '',
       visitDate: json['visit_date'] != null
           ? DateTime.parse(json['visit_date'] as String)
           : DateTime.now(),

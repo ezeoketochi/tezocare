@@ -10,8 +10,8 @@ class ApiConstants {
   static const String resetPassword = '/api/v1/auth/reset-password';
   static const String refreshToken = '/api/v1/auth/refresh-token';
   static const String currentUser = '/api/v1/auth/me';
-  static const String patients = '/api/v1/patients';
-  static const String visits = '/api/v1/visits';
+  static const String patients = '/api/v1/patients/';
+  static const String visits = '/api/v1/visits/';
   static const String dashboardSummary = '/api/v1/dashboard/summary';
 
   static const String accessTokenKey = 'tezocare_access_token';

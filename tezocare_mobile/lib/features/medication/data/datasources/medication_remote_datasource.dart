@@ -8,7 +8,7 @@ abstract class MedicationRemoteDataSource {
   Future<MedicationModel> addMedication(MedicationModel medication);
   Future<List<MedicationModel>> getPatientMedications(String patientId);
   Future<MedicationModel> updateMedication(MedicationModel medication);
-  Future<void> deactivateMedication(int id);
+  Future<void> deactivateMedication(String id);
 }
 
 class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
@@ -66,7 +66,7 @@ class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
   }
 
   @override
-  Future<void> deactivateMedication(int id) async {
+  Future<void> deactivateMedication(String id) async {
     try {
       await dioClient.dio.delete(
         '${ApiConstants.patients}/_/medications/$id',

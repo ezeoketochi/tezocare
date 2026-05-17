@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class Medication extends Equatable {
-  final int id;
+  final String id;
   final String patientId;
   final String? patientName;
   final String name;
