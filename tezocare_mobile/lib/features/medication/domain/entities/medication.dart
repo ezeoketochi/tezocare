@@ -7,6 +7,7 @@ class Medication extends Equatable {
   final String name;
   final String? dosage;
   final String? frequency;
+  final String? duration;
   final String? route;
   final DateTime? startDate;
   final DateTime? endDate;
@@ -23,6 +24,7 @@ class Medication extends Equatable {
     required this.name,
     this.dosage,
     this.frequency,
+    this.duration,
     this.route,
     this.startDate,
     this.endDate,
@@ -41,6 +43,7 @@ class Medication extends Equatable {
         name,
         dosage,
         frequency,
+        duration,
         route,
         startDate,
         endDate,

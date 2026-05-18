@@ -412,6 +412,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
   }
 
   Widget _buildMedicationsTab() {
+    final patientId = widget.patientId;
     return BlocProvider<MedicationBloc>(
       create: (context) {
         final bloc = MedicationBloc(
@@ -420,7 +421,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           updateMedicationUseCase: inj.sl(),
           deactivateMedicationUseCase: inj.sl(),
         );
-        bloc.add(GetPatientMedicationsEvent(patientId: widget.patientId));
+        bloc.add(GetPatientMedicationsEvent(patientId: patientId));
         return bloc;
       },
       child: BlocBuilder<MedicationBloc, MedicationState>(
@@ -438,92 +439,73 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               message: state.message,
               actionLabel: 'Retry',
               onAction: () => context.read<MedicationBloc>().add(
-                GetPatientMedicationsEvent(patientId: widget.patientId),
+                GetPatientMedicationsEvent(patientId: patientId),
               ),
             );
           }
           if (state is MedicationsLoaded) {
             final medications = state.medications;
             if (medications.isEmpty) {
-              return const AppEmptyState(
+              return AppEmptyState(
                 icon: Icons.medication_outlined,
-                title: 'No Medications',
-                message: 'No medications have been prescribed',
+                title: 'No Medications Yet',
+                message: 'Medications are recorded during a visit. '
+                    'Start a new visit to add medications for this patient.',
+                actionLabel: 'Start New Visit',
+                onAction: () => context.push(
+                  '/visits/create?patientId=$patientId',
+                ),
               );
             }
-            final sorted = List.from(medications)
+
+            final grouped = <String, List<Medication>>{};
+            for (final med in medications) {
+              final key = med.createdAt?.toIso8601String() ?? 'unknown';
+              grouped.putIfAbsent(key, () => []).add(med);
+            }
+
+            final sortedKeys = grouped.keys.toList()
               ..sort((a, b) {
-                if (a.startDate == null && b.startDate == null) return 0;
-                if (a.startDate == null) return 1;
-                if (b.startDate == null) return -1;
-                return (b.startDate ?? DateTime(0)).compareTo(
-                  a.startDate ?? DateTime(0),
-                );
+                if (a == 'unknown') return 1;
+                if (b == 'unknown') return -1;
+                return b.compareTo(a);
               });
-            return ListView.builder(
-              padding: EdgeInsets.all(20.w),
-              itemCount: sorted.length,
-              itemBuilder: (context, index) {
-                final med = sorted[index];
-                return Padding(
-                  padding: EdgeInsets.only(bottom: 12.h),
-                  child: AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16.w,
-                            vertical: 12.h,
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44.w,
-                                height: 44.w,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryLight,
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                                child: Icon(
-                                  Icons.medication_outlined,
-                                  size: 20.sp,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      med.name,
-                                      style: AppTextStyles.titleMedium,
-                                    ),
-                                    SizedBox(height: 2.h),
-                                    Text(
-                                      '${med.dosage ?? ""} \u2022 ${med.frequency ?? ""}',
-                                      style: AppTextStyles.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              StatusChip(
-                                text: med.isActive ? 'Active' : 'Inactive',
-                                variant: med.isActive
-                                    ? StatusChipVariant.active
-                                    : StatusChipVariant.completed,
-                              ),
-                            ],
-                          ),
-                        ),
-                        _divider(),
-                        ..._buildMedDates(med),
-                      ],
-                    ),
+
+            for (final key in grouped.keys) {
+              grouped[key]!.sort((a, b) => a.name.compareTo(b.name));
+            }
+
+            final items = <Widget>[];
+            for (final key in sortedKeys) {
+              final date = DateTime.tryParse(key);
+              items.add(
+                Padding(
+                  padding: EdgeInsets.only(top: 12.h, bottom: 8.h),
+                  child: Row(
+                    children: [
+                      Text(
+                        date != null ? _formatVisitDate(date) : 'Unknown',
+                        style: AppTextStyles.titleSmall,
+                      ),
+                      SizedBox(width: 8.w),
+                      Expanded(child: Divider(color: AppColors.border)),
+                    ],
+                  ),
+                ),
+              );
+              for (final med in grouped[key]!) {
+                items.add(
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10.h),
+                    child: _buildMedicationCard(med, patientId),
                   ),
                 );
-              },
+              }
+            }
+
+            return ListView(
+              padding: EdgeInsets.all(20.w),
+              children: items,
             );
           }
           return const SizedBox.shrink();
@@ -532,15 +514,102 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     );
   }
 
-  List<Widget> _buildMedDates(Medication med) {
-    final rows = <Widget>[];
-    rows.add(_medInfoRow('Name', med.name));
-    rows.add(_medInfoRow('Dosage', med.dosage ?? 'N/A'));
-    rows.add(_medInfoRow('Frequency', med.frequency ?? 'N/A'));
-    rows.add(_medInfoRow('Start', _formatDateOrNa(med.startDate)));
-    rows.add(_medInfoRow('End', _formatDateOrNa(med.endDate)));
-    rows.add(_medInfoRow('Prescribed by', med.prescribedBy ?? 'N/A'));
-    return rows;
+  Widget _buildMedicationCard(Medication med, String patientId) {
+    final now = DateTime.now();
+    final refillDiff = med.endDate?.difference(now).inDays;
+
+    return AppCard(
+      onTap: () => context.push(
+        '/patients/$patientId/visits/${med.id}',
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44.w,
+              height: 44.w,
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(
+                Icons.medication_outlined,
+                size: 20.sp,
+                color: AppColors.primary,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(med.name, style: AppTextStyles.titleMedium),
+                  SizedBox(height: 2.h),
+                  Text(
+                    [
+                      if (med.dosage != null && med.dosage!.isNotEmpty)
+                        med.dosage!,
+                      if (med.frequency != null && med.frequency!.isNotEmpty)
+                        med.frequency!,
+                      if (med.duration != null && med.duration!.isNotEmpty)
+                        '${med.duration} days',
+                    ].join(' \u2022 '),
+                    style: AppTextStyles.bodySmall,
+                  ),
+                  if (med.prescribedBy != null &&
+                      med.prescribedBy!.isNotEmpty) ...[
+                    SizedBox(height: 2.h),
+                    Text(
+                      'Prescribed by: ${med.prescribedBy}',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (refillDiff != null && refillDiff < 0)
+              _refillChip('Refill Overdue', AppColors.dangerLight, AppColors.danger)
+            else if (refillDiff != null && refillDiff <= 3)
+              _refillChip('Refill Due Soon', AppColors.warningLight, AppColors.warning),
+            SizedBox(width: 4.w),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20.sp,
+              color: AppColors.textHint,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _refillChip(String label, Color bgColor, Color textColor) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.caption.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  String _formatVisitDate(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   Widget _infoRow(String label, String value) {
@@ -553,24 +622,6 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           Text(
             value,
             style: AppTextStyles.titleSmall.copyWith(
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _medInfoRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 4.h, left: 16.w, right: 16.w),
-      child: Row(
-        children: [
-          Text(label, style: AppTextStyles.caption),
-          SizedBox(width: 4.w),
-          Text(
-            value,
-            style: AppTextStyles.labelMedium.copyWith(
               color: AppColors.textPrimary,
             ),
           ),
@@ -621,11 +672,6 @@ class _PatientDetailPageState extends State<PatientDetailPage>
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
-
-  String _formatDateOrNa(DateTime? date) {
-    if (date == null) return 'N/A';
-    return _formatDate(date);
   }
 }
 

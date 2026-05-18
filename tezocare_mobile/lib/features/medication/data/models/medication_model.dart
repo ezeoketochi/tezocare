@@ -8,6 +8,7 @@ class MedicationModel extends Medication {
     required super.name,
     super.dosage,
     super.frequency,
+    super.duration,
     super.route,
     super.startDate,
     super.endDate,
@@ -26,6 +27,7 @@ class MedicationModel extends Medication {
       name: json['drug_name'] as String? ?? '',
       dosage: json['dose'] as String?,
       frequency: json['frequency'] as String?,
+      duration: json['duration'] as String?,
       route: json['route'] as String?,
       startDate: json['date_dispensed'] != null
           ? DateTime.tryParse(json['date_dispensed'] as String)
