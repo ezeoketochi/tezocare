@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tezocare_mobile/features/follow_up/presentation/pages/follow-up.dart';
+import 'package:tezocare_mobile/features/refills/presentation/pages/due_refills.dart';
 import '../../core/constants/api_constants.dart';
 import '../../features/auth/presentation/bloc/auth_form_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
@@ -152,10 +154,18 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: RouteNames.medicationsOverview,
-                name: 'medicationsOverview',
-                builder: (context, state) =>
-                    const MedicationsOverviewPage(),
+                path: RouteNames.dueRefills,
+                name: 'dueRefills',
+                builder: (context, state) => const DueRefillsPage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.followUp,
+                name: 'followUp',
+                builder: (context, state) => const FollowUpPage(),
               ),
             ],
           ),
@@ -209,9 +219,7 @@ class AppRouter {
                 searchPatientsUseCase: sl<SearchPatientsUseCase>(),
                 updatePatientUseCase: sl<UpdatePatientUseCase>(),
               ),
-              child: EditPatientPage(
-                patientId: state.pathParameters['id']!,
-              ),
+              child: EditPatientPage(patientId: state.pathParameters['id']!),
             ),
           ),
           GoRoute(
@@ -223,9 +231,7 @@ class AppRouter {
                 getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
                 getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
               ),
-              child: VisitDetailPage(
-                visitId: state.pathParameters['visitId']!,
-              ),
+              child: VisitDetailPage(visitId: state.pathParameters['visitId']!),
             ),
           ),
           GoRoute(
@@ -237,8 +243,7 @@ class AppRouter {
                 getPatientMedicationsUseCase:
                     sl<GetPatientMedicationsUseCase>(),
                 updateMedicationUseCase: sl<UpdateMedicationUseCase>(),
-                deactivateMedicationUseCase:
-                    sl<DeactivateMedicationUseCase>(),
+                deactivateMedicationUseCase: sl<DeactivateMedicationUseCase>(),
               ),
               child: MedicationsPage(patientId: state.pathParameters['id']),
             ),

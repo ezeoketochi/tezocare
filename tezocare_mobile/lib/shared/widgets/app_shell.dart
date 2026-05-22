@@ -17,7 +17,8 @@ class AppShell extends StatelessWidget {
   static const _tabs = [
     ('Home', Icons.home_rounded),
     ('Patients', Icons.people_rounded),
-    ('Medications', Icons.medication_rounded),
+    ('Due-Refills', Icons.medication_rounded),
+    ('Follow-ups', Icons.phone),
     ('Profile', Icons.person_rounded),
   ];
 
@@ -90,7 +91,7 @@ class AppShell extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (index == 3)
+            if (index == 4)
               AppAvatar(name: staffName, size: AvatarSize.small)
             else
               Container(

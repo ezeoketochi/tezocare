@@ -221,9 +221,7 @@ class DioClient {
             ),
           );
         }
-        final refreshed = await _attemptTokenRefresh(
-          response.requestOptions,
-        );
+        final refreshed = await _attemptTokenRefresh(response.requestOptions);
         if (refreshed != null) {
           return handler.resolve(refreshed);
         }
@@ -304,10 +302,7 @@ class DioClient {
             requestOptions: error.requestOptions,
             response: response,
             type: DioExceptionType.badResponse,
-            error: ServerException(
-              message: message,
-              statusCode: statusCode,
-            ),
+            error: ServerException(message: message, statusCode: statusCode),
           ),
         );
     }
@@ -349,10 +344,7 @@ class DioClient {
 
         if (error.type == DioExceptionType.badResponse &&
             error.response != null) {
-          return _handleHttpError(
-            error: error,
-            handler: handler,
-          );
+          return _handleHttpError(error: error, handler: handler);
         }
 
         handler.next(error);
@@ -363,26 +355,36 @@ class DioClient {
   Future<Response?> _attemptTokenRefresh(
     RequestOptions originalRequestOptions,
   ) async {
+    // Never refresh for auth endpoints
     if (originalRequestOptions.path.contains('/auth/refresh') ||
         originalRequestOptions.path.contains('/auth/login') ||
         originalRequestOptions.path.contains('/auth/register')) {
       return null;
     }
 
+    // If a refresh is already in progress, wait for it to complete
+    // then retry the original request with whatever token is now stored
     if (_isRefreshing) {
-      await _refreshCompleter?.future;
-      final token = await secureStorage.read(
-        key: ApiConstants.accessTokenKey,
-      );
-      if (token != null && token.isNotEmpty) {
-        originalRequestOptions.headers['Authorization'] = 'Bearer $token';
-        return dio.fetch(originalRequestOptions);
+      try {
+        await _refreshCompleter?.future;
+      } catch (_) {
+        return null; // Refresh failed, give up
       }
-      return null;
+      final token = await secureStorage.read(key: ApiConstants.accessTokenKey);
+      if (token == null || token.isEmpty) return null;
+      final retryOptions = originalRequestOptions.copyWith(
+        headers: {
+          ...originalRequestOptions.headers,
+          'Authorization': 'Bearer $token',
+        },
+      );
+      // Use _refreshDio to avoid re-triggering the error interceptor
+      return _refreshDio.fetch(retryOptions);
     }
 
     _isRefreshing = true;
     _refreshCompleter = Completer<void>();
+
     try {
       final storedRefreshToken = await secureStorage.read(
         key: ApiConstants.refreshTokenKey,
@@ -390,6 +392,7 @@ class DioClient {
 
       if (storedRefreshToken == null || storedRefreshToken.isEmpty) {
         await _clearTokens();
+        _refreshCompleter!.completeError('No refresh token');
         return null;
       }
 
@@ -407,36 +410,49 @@ class DioClient {
 
       if (newAccessToken == null || newAccessToken.isEmpty) {
         await _clearTokens();
+        _refreshCompleter!.completeError('No access token in response');
         return null;
       }
 
+      // Store new tokens
       await secureStorage.write(
         key: ApiConstants.accessTokenKey,
         value: newAccessToken,
       );
-      if (newRefreshToken != null) {
+      if (newRefreshToken != null && newRefreshToken.isNotEmpty) {
         await secureStorage.write(
           key: ApiConstants.refreshTokenKey,
           value: newRefreshToken,
         );
       }
 
-      originalRequestOptions.headers['Authorization'] =
-          'Bearer $newAccessToken';
-      final retryResponse = await dio.fetch(originalRequestOptions);
-      return retryResponse;
+      // Signal waiting requests that refresh succeeded
+      _refreshCompleter!.complete();
+
+      // Retry the original request with the new token using _refreshDio
+      // to avoid re-triggering the error interceptor
+      final retryOptions = originalRequestOptions.copyWith(
+        headers: {
+          ...originalRequestOptions.headers,
+          'Authorization': 'Bearer $newAccessToken',
+        },
+      );
+      return _refreshDio.fetch(retryOptions);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         await _clearTokens();
       }
+      if (!_refreshCompleter!.isCompleted) {
+        _refreshCompleter!.completeError('Refresh failed');
+      }
       return null;
-    } catch (_) {
+    } catch (e) {
+      if (!_refreshCompleter!.isCompleted) {
+        _refreshCompleter!.completeError('Refresh failed');
+      }
       return null;
     } finally {
       _isRefreshing = false;
-      if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
-        _refreshCompleter!.complete();
-      }
     }
   }
 
