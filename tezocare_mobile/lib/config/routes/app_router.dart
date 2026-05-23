@@ -2,12 +2,17 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tezocare_mobile/features/follow_up/presentation/pages/follow-up.dart';
-import 'package:tezocare_mobile/features/refills/presentation/pages/due_refills.dart';
 import '../../core/constants/api_constants.dart';
 import '../../features/auth/presentation/bloc/auth_form_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/dashboard/domain/usecases/get_dashboard_stats_usecase.dart';
+import '../../features/follow_up/presentation/bloc/follow_up_bloc.dart';
+import '../../features/follow_up/domain/usecases/get_due_follow_ups_usecase.dart';
+import '../../features/follow_up/domain/usecases/mark_follow_up_done_usecase.dart';
+import '../../features/follow_up/presentation/pages/follow_up_page.dart';
+import '../../features/refills/presentation/bloc/refill_bloc.dart';
+import '../../features/refills/domain/usecases/get_due_refills_usecase.dart';
+import '../../features/refills/presentation/pages/due_refills_page.dart';
 import '../../features/medication/presentation/bloc/medication_bloc.dart';
 import '../../features/medication/domain/usecases/add_medication_usecase.dart';
 import '../../features/medication/domain/usecases/deactivate_medication_usecase.dart';
@@ -156,7 +161,12 @@ class AppRouter {
               GoRoute(
                 path: RouteNames.dueRefills,
                 name: 'dueRefills',
-                builder: (context, state) => const DueRefillsPage(),
+                builder: (context, state) => BlocProvider(
+                  create: (_) => RefillBloc(
+                    getDueRefillsUseCase: sl<GetDueRefillsUseCase>(),
+                  ),
+                  child: const DueRefillsPage(),
+                ),
               ),
             ],
           ),
@@ -165,7 +175,13 @@ class AppRouter {
               GoRoute(
                 path: RouteNames.followUp,
                 name: 'followUp',
-                builder: (context, state) => const FollowUpPage(),
+                builder: (context, state) => BlocProvider(
+                  create: (_) => FollowUpBloc(
+                    getDueFollowUpsUseCase: sl<GetDueFollowUpsUseCase>(),
+                    markFollowUpDoneUseCase: sl<MarkFollowUpDoneUseCase>(),
+                  ),
+                  child: const FollowUpPage(),
+                ),
               ),
             ],
           ),

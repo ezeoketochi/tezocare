@@ -23,6 +23,15 @@ import 'features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import 'features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import 'features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'features/dashboard/domain/usecases/get_dashboard_stats_usecase.dart';
+import 'features/follow_up/data/datasources/follow_up_remote_datasource.dart';
+import 'features/follow_up/data/repositories/follow_up_repository_impl.dart';
+import 'features/follow_up/domain/repositories/follow_up_repository.dart';
+import 'features/follow_up/domain/usecases/get_due_follow_ups_usecase.dart';
+import 'features/follow_up/domain/usecases/mark_follow_up_done_usecase.dart';
+import 'features/refills/data/datasources/refill_remote_datasource.dart';
+import 'features/refills/data/repositories/refill_repository_impl.dart';
+import 'features/refills/domain/repositories/refill_repository.dart';
+import 'features/refills/domain/usecases/get_due_refills_usecase.dart';
 import 'features/medication/data/datasources/medication_remote_datasource.dart';
 import 'features/medication/data/repositories/medication_repository_impl.dart';
 import 'features/medication/domain/repositories/medication_repository.dart';
@@ -55,6 +64,8 @@ Future<void> init() async {
   _initVisit();
   _initMedication();
   _initDashboard();
+  _initFollowUp();
+  _initRefills();
 }
 
 Future<void> _initExternalDependencies() async {
@@ -170,4 +181,25 @@ void _initDashboard() {
     () => DashboardRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
   );
   sl.registerFactory(() => GetDashboardStatsUseCase(repository: sl()));
+}
+
+void _initFollowUp() {
+  sl.registerLazySingleton<FollowUpRemoteDataSource>(
+    () => FollowUpRemoteDataSourceImpl(dioClient: sl()),
+  );
+  sl.registerLazySingleton<FollowUpRepository>(
+    () => FollowUpRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+  );
+  sl.registerFactory(() => GetDueFollowUpsUseCase(repository: sl()));
+  sl.registerFactory(() => MarkFollowUpDoneUseCase(repository: sl()));
+}
+
+void _initRefills() {
+  sl.registerLazySingleton<RefillRemoteDataSource>(
+    () => RefillRemoteDataSourceImpl(dioClient: sl()),
+  );
+  sl.registerLazySingleton<RefillRepository>(
+    () => RefillRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+  );
+  sl.registerFactory(() => GetDueRefillsUseCase(repository: sl()));
 }

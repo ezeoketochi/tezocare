@@ -13,6 +13,8 @@ class ApiConstants {
   static const String patients = '/api/v1/patients/';
   static const String visits = '/api/v1/visits/';
   static const String dashboardSummary = '/api/v1/dashboard/summary';
+  static const String dashboardDueRefills = '/api/v1/dashboard/due-refills';
+  static const String dashboardDueFollowUps = '/api/v1/dashboard/due-followups';
 
   static const String accessTokenKey = 'tezocare_access_token';
   static const String refreshTokenKey = 'tezocare_refresh_token';
