@@ -164,7 +164,7 @@ class _DashboardPageState extends State<DashboardPage> {
       'Total Patients',
       'Visits Today',
       'Follow-ups Pending',
-      'Refills Due',
+      'Refills Pending',
     ];
     final statValues = [
       stats.totalPatients.toString(),
