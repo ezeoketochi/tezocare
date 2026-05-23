@@ -8,10 +8,10 @@ abstract class RefillEvent extends Equatable {
 }
 
 class GetDueRefillsEvent extends RefillEvent {
-  final int days;
+  final int? days;
 
-  const GetDueRefillsEvent({this.days = 7});
+  const GetDueRefillsEvent({this.days});
 
   @override
-  List<Object> get props => [days];
+  List<Object?> get props => [days];
 }

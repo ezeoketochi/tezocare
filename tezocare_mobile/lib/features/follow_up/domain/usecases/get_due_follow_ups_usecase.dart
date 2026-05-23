@@ -17,10 +17,10 @@ class GetDueFollowUpsUseCase implements UseCase<List<DueFollowUp>, GetDueFollowU
 }
 
 class GetDueFollowUpsParams extends Equatable {
-  final int days;
+  final int? days;
 
-  const GetDueFollowUpsParams({this.days = 7});
+  const GetDueFollowUpsParams({this.days});
 
   @override
-  List<Object> get props => [days];
+  List<Object?> get props => [days];
 }

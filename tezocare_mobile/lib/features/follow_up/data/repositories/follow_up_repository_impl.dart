@@ -16,7 +16,7 @@ class FollowUpRepositoryImpl implements FollowUpRepository {
   });
 
   @override
-  Future<Either<Failure, List<DueFollowUp>>> getDueFollowUps({int days = 7}) async {
+  Future<Either<Failure, List<DueFollowUp>>> getDueFollowUps({int? days}) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }

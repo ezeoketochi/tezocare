@@ -8,12 +8,12 @@ abstract class FollowUpEvent extends Equatable {
 }
 
 class GetDueFollowUpsEvent extends FollowUpEvent {
-  final int days;
+  final int? days;
 
-  const GetDueFollowUpsEvent({this.days = 7});
+  const GetDueFollowUpsEvent({this.days});
 
   @override
-  List<Object> get props => [days];
+  List<Object?> get props => [days];
 }
 
 class MarkFollowUpDoneEvent extends FollowUpEvent {

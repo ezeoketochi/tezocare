@@ -20,7 +20,7 @@ class DueRefillsPage extends StatefulWidget {
 }
 
 class _DueRefillsPageState extends State<DueRefillsPage> {
-  int _selectedDays = 7;
+  int? _selectedDays;
 
   @override
   void initState() {
@@ -28,7 +28,7 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
     context.read<RefillBloc>().add(const GetDueRefillsEvent());
   }
 
-  void _onDaysChanged(int days) {
+  void _onDaysChanged(int? days) {
     setState(() => _selectedDays = days);
     context.read<RefillBloc>().add(GetDueRefillsEvent(days: days));
   }

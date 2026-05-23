@@ -20,7 +20,7 @@ class FollowUpPage extends StatefulWidget {
 }
 
 class _FollowUpPageState extends State<FollowUpPage> {
-  int _selectedDays = 7;
+  int? _selectedDays;
 
   @override
   void initState() {
@@ -28,7 +28,7 @@ class _FollowUpPageState extends State<FollowUpPage> {
     context.read<FollowUpBloc>().add(const GetDueFollowUpsEvent());
   }
 
-  void _onDaysChanged(int days) {
+  void _onDaysChanged(int? days) {
     setState(() => _selectedDays = days);
     context.read<FollowUpBloc>().add(GetDueFollowUpsEvent(days: days));
   }

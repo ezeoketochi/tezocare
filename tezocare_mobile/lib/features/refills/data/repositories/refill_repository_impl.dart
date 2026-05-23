@@ -16,7 +16,7 @@ class RefillRepositoryImpl implements RefillRepository {
   });
 
   @override
-  Future<Either<Failure, List<DueRefill>>> getDueRefills({int days = 7}) async {
+  Future<Either<Failure, List<DueRefill>>> getDueRefills({int? days}) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }

@@ -17,10 +17,10 @@ class GetDueRefillsUseCase implements UseCase<List<DueRefill>, GetDueRefillsPara
 }
 
 class GetDueRefillsParams extends Equatable {
-  final int days;
+  final int? days;
 
-  const GetDueRefillsParams({this.days = 7});
+  const GetDueRefillsParams({this.days});
 
   @override
-  List<Object> get props => [days];
+  List<Object?> get props => [days];
 }
