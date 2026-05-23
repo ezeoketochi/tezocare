@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
+import '../../../../shared/widgets/app_day_filter.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/status_chip.dart';
@@ -19,10 +20,17 @@ class DueRefillsPage extends StatefulWidget {
 }
 
 class _DueRefillsPageState extends State<DueRefillsPage> {
+  int _selectedDays = 7;
+
   @override
   void initState() {
     super.initState();
     context.read<RefillBloc>().add(const GetDueRefillsEvent());
+  }
+
+  void _onDaysChanged(int days) {
+    setState(() => _selectedDays = days);
+    context.read<RefillBloc>().add(GetDueRefillsEvent(days: days));
   }
 
   @override
@@ -36,10 +44,16 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
               child: Text('Due Refills', style: AppTextStyles.headlineMedium),
             ),
+            AppDayFilter(
+              selectedDays: _selectedDays,
+              onChanged: _onDaysChanged,
+            ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  context.read<RefillBloc>().add(const GetDueRefillsEvent());
+                  context.read<RefillBloc>().add(
+                    GetDueRefillsEvent(days: _selectedDays),
+                  );
                 },
                 child: BlocBuilder<RefillBloc, RefillState>(
                   builder: (context, state) {

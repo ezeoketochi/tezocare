@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
+import '../../../../shared/widgets/app_day_filter.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/status_chip.dart';
@@ -19,10 +20,17 @@ class FollowUpPage extends StatefulWidget {
 }
 
 class _FollowUpPageState extends State<FollowUpPage> {
+  int _selectedDays = 7;
+
   @override
   void initState() {
     super.initState();
     context.read<FollowUpBloc>().add(const GetDueFollowUpsEvent());
+  }
+
+  void _onDaysChanged(int days) {
+    setState(() => _selectedDays = days);
+    context.read<FollowUpBloc>().add(GetDueFollowUpsEvent(days: days));
   }
 
   @override
@@ -39,11 +47,15 @@ class _FollowUpPageState extends State<FollowUpPage> {
                 style: AppTextStyles.headlineMedium,
               ),
             ),
+            AppDayFilter(
+              selectedDays: _selectedDays,
+              onChanged: _onDaysChanged,
+            ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
                   context.read<FollowUpBloc>().add(
-                    const GetDueFollowUpsEvent(),
+                    GetDueFollowUpsEvent(days: _selectedDays),
                   );
                 },
                 child: BlocBuilder<FollowUpBloc, FollowUpState>(
