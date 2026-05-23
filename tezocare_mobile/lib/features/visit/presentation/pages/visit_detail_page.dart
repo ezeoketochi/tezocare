@@ -24,9 +24,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
   @override
   void initState() {
     super.initState();
-    context.read<VisitBloc>().add(
-          GetVisitDetailEvent(id: widget.visitId),
-        );
+    context.read<VisitBloc>().add(GetVisitDetailEvent(id: widget.visitId));
   }
 
   @override
@@ -44,9 +42,9 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               title: 'Something went wrong',
               message: state.message,
               actionLabel: 'Retry',
-              onAction: () => context
-                  .read<VisitBloc>()
-                  .add(GetVisitDetailEvent(id: widget.visitId)),
+              onAction: () => context.read<VisitBloc>().add(
+                GetVisitDetailEvent(id: widget.visitId),
+              ),
             );
           }
           if (state is VisitDetailLoaded) {
@@ -57,114 +55,27 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildStatusHeader(visit),
+                  SizedBox(height: 12.h),
+                  _buildVisitStatusIndicator(visit.status),
                   SizedBox(height: 20.h),
-                  _buildSection(
-                    'Visit Info',
-                    [
-                      _detailRow('Date', _formatDate(visit.visitDate)),
-                      _detailRow('Visit Number', visit.visitNumber.isNotEmpty ? visit.visitNumber : '#${visit.id}'),
-                      _detailRow('Status', visit.status),
-                      if (visit.patientName != null)
-                        _detailRow('Patient', visit.patientName!),
-                      if (visit.staffName != null)
-                        _detailRow('Staff', visit.staffName!),
-                    ],
-                  ),
+                  _buildInfoCard(visit),
                   if (visit.chiefComplaints.isNotEmpty) ...[
                     SizedBox(height: 16.h),
-                    _buildSection(
-                      'Chief Complaints',
-                      visit.chiefComplaints.map((c) =>
-                        _detailRow(
-                          c.complaint ?? '',
-                          c.duration != null ? 'Duration: ${c.duration}' : '',
-                        ),
-                      ).toList(),
-                    ),
+                    _buildComplaintsCard(visit),
                   ],
-                  if (visit.clinicalAssessment != null) ...[
-                    SizedBox(height: 16.h),
-                    _buildSection(
-                      'Clinical Assessment',
-                      [
-                        if (visit.clinicalAssessment!.diagnosis != null)
-                          _detailRow('Diagnosis', visit.clinicalAssessment!.diagnosis!),
-                        if (visit.clinicalAssessment!.severity != null)
-                          _detailRow('Severity', visit.clinicalAssessment!.severity!),
-                        if (visit.clinicalAssessment!.pharmacistNotes != null)
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 8.h),
-                            child: Text(
-                              visit.clinicalAssessment!.pharmacistNotes!,
-                              style: AppTextStyles.bodyMedium,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                  if (visit.vitals != null) ...[
-                    SizedBox(height: 16.h),
-                    _buildSection(
-                      'Vitals',
-                      [
-                        if (visit.vitals!.bloodPressureSystolic != null)
-                          _detailRow('BP', '${visit.vitals!.bloodPressureSystolic}/${visit.vitals!.bloodPressureDiastolic ?? "?"}'),
-                        if (visit.vitals!.heartRate != null)
-                          _detailRow('Heart Rate', '${visit.vitals!.heartRate} bpm'),
-                        if (visit.vitals!.temperature != null)
-                          _detailRow('Temperature', '${visit.vitals!.temperature} °C'),
-                        if (visit.vitals!.spo2 != null)
-                          _detailRow('SpO2', '${visit.vitals!.spo2} %'),
-                        if (visit.vitals!.weight != null)
-                          _detailRow('Weight', '${visit.vitals!.weight} kg'),
-                        if (visit.vitals!.bmi != null)
-                          _detailRow('BMI', visit.vitals!.bmi!.toStringAsFixed(1)),
-                        if (visit.vitals!.glucose != null)
-                          _detailRow('Glucose', '${visit.vitals!.glucose} (${visit.vitals!.glucoseType ?? "N/A"})'),
-                      ],
-                    ),
-                  ],
+                  _buildAssessmentCard(visit),
+                  _buildVitalsCard(visit),
                   if (visit.medicationsDispensed.isNotEmpty) ...[
                     SizedBox(height: 16.h),
-                    _buildSection(
-                      'Medications Dispensed',
-                      visit.medicationsDispensed.map((m) =>
-                        Padding(
-                          padding: EdgeInsets.only(bottom: 8.h),
-                          child: Text(
-                            '${m.drugName ?? ""} ${m.dose ?? ""} ${m.frequency ?? ""}',
-                            style: AppTextStyles.bodyMedium,
-                          ),
-                        ),
-                      ).toList(),
-                    ),
+                    _buildMedsCard(visit),
                   ],
-                  if (visit.counsellingAdvice != null && visit.counsellingAdvice!.isNotEmpty) ...[
+                  if (visit.counsellingAdvice != null &&
+                      visit.counsellingAdvice!.isNotEmpty) ...[
                     SizedBox(height: 16.h),
-                    _buildSection(
-                      'Counselling & Advice',
-                      [Text(visit.counsellingAdvice!, style: AppTextStyles.bodyMedium)],
-                    ),
+                    _buildCounsellingCard(visit),
                   ],
-                  if (visit.followUp != null && visit.followUp!.required) ...[
-                    SizedBox(height: 16.h),
-                    _buildSection(
-                      'Follow-up',
-                      [if (visit.followUp!.scheduledDate != null)
-                        _detailRow('Date', _formatDate(visit.followUp!.scheduledDate!))],
-                    ),
-                  ],
-                  if (visit.referral != null && visit.referral!.destination != null) ...[
-                    SizedBox(height: 16.h),
-                    _buildSection(
-                      'Referral',
-                      [
-                        _detailRow('Destination', visit.referral!.destination!),
-                        if (visit.referral!.reason != null)
-                          _detailRow('Reason', visit.referral!.reason!),
-                      ],
-                    ),
-                  ],
+                  _buildFollowUpCard(visit),
+                  _buildReferralCard(visit),
                   SizedBox(height: 24.h),
                 ],
               ),
@@ -195,47 +106,430 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
             ],
           ),
         ),
-        StatusChip(
-          text: visit.status,
-          variant: _statusVariant(visit.status),
-        ),
+        StatusChip(text: visit.status, variant: _statusVariant(visit.status)),
       ],
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildVisitStatusIndicator(String status) {
+    Color bgColor;
+    Color textColor;
+    IconData icon;
+    String label;
+
+    switch (status) {
+      case 'completed':
+        bgColor = AppColors.successLight;
+        textColor = AppColors.success;
+        icon = Icons.check_circle_rounded;
+        label = 'Completed';
+      case 'follow_up_pending':
+        bgColor = AppColors.warningLight;
+        textColor = AppColors.warning;
+        icon = Icons.schedule_rounded;
+        label = 'Follow-up Pending';
+      case 'referred':
+        bgColor = const Color(0xFFF3E8FF);
+        textColor = const Color(0xFF7C3AED);
+        icon = Icons.swap_horiz_rounded;
+        label = 'Referred';
+      default:
+        bgColor = AppColors.chipActiveBg;
+        textColor = AppColors.chipActiveText;
+        icon = Icons.circle_rounded;
+        label = 'Active';
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(icon, size: 18.sp, color: textColor),
+          SizedBox(width: 8.w),
+          Text(
+            label,
+            style: AppTextStyles.labelMedium.copyWith(color: textColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionCard(String title, List<Widget> children) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 16.w, 16.w, 8.h),
+              child: Text(title, style: AppTextStyles.titleLarge),
+            ),
+            ...children,
+            SizedBox(height: 8.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(visit) {
+    return _buildSectionCard('Visit Info', [
+      _detailRow('Date', _formatDate(visit.visitDate)),
+      _detailRow(
+        'Visit Number',
+        visit.visitNumber.isNotEmpty ? visit.visitNumber : '#${visit.id}',
+      ),
+      _detailRow('Status', visit.status),
+      if (visit.patientName != null) _detailRow('Patient', visit.patientName!),
+      if (visit.staffName != null) _detailRow('Staff', visit.staffName!),
+    ]);
+  }
+
+  Widget _buildComplaintsCard(visit) {
+    return _buildSectionCard(
+      'Chief Complaints',
+      visit.chiefComplaints.map<Widget>((c) {
+        final complaint = c.complaint?.isNotEmpty == true ? c.complaint : null;
+        final duration = c.duration?.isNotEmpty == true ? c.duration : null;
+        if (complaint == null && duration == null) {
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Text('Not recorded', style: AppTextStyles.bodySmall),
+          );
+        }
+        return _detailRow(
+          complaint ?? '',
+          duration != null ? 'Duration: $duration' : '',
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildAssessmentCard(visit) {
+    final assessment = visit.clinicalAssessment;
+    if (assessment == null) return const SizedBox.shrink();
+
+    final diagnosis = assessment.diagnosis?.isNotEmpty == true
+        ? assessment.diagnosis
+        : null;
+    final severity = assessment.severity?.isNotEmpty == true
+        ? assessment.severity
+        : null;
+    final notes = assessment.pharmacistNotes?.isNotEmpty == true
+        ? assessment.pharmacistNotes
+        : null;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: _buildSectionCard('Clinical Assessment', [
+        if (diagnosis != null)
+          _detailRow('Diagnosis', diagnosis),
+        if (diagnosis == null)
           Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Text(
-              title,
-              style: AppTextStyles.titleLarge,
+            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Diagnosis', style: AppTextStyles.bodySmall),
+                Text('Not recorded', style: AppTextStyles.bodySmall),
+              ],
             ),
           ),
-          ...children.map((child) => Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: child,
-              )),
-          SizedBox(height: 8.h),
-        ],
+        if (severity != null) _detailRow('Severity', severity),
+        if (notes != null)
+          Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+            child: Text(notes, style: AppTextStyles.bodyMedium),
+          ),
+      ]),
+    );
+  }
+
+  Widget _buildVitalsCard(visit) {
+    final v = visit.vitals;
+    if (v == null) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: 16.h),
+        child: AppCard(
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Vitals', style: AppTextStyles.titleLarge),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.monitor_heart_outlined,
+                      size: 16.sp,
+                      color: AppColors.textHint,
+                    ),
+                    SizedBox(width: 8.w),
+                    Text('No vitals recorded', style: AppTextStyles.bodySmall),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final rows = <Widget>[];
+    if (v.bloodPressureSystolic != null)
+      rows.add(
+        _detailRow(
+          'BP',
+          '${v.bloodPressureSystolic}/${v.bloodPressureDiastolic ?? "?"}',
+        ),
+      );
+    if (v.heartRate != null)
+      rows.add(_detailRow('Heart Rate', '${v.heartRate} bpm'));
+    if (v.temperature != null)
+      rows.add(_detailRow('Temperature', '${v.temperature} °C'));
+    if (v.spo2 != null) rows.add(_detailRow('SpO2', '${v.spo2} %'));
+    if (v.weight != null) rows.add(_detailRow('Weight', '${v.weight} kg'));
+    if (v.bmi != null) rows.add(_detailRow('BMI', v.bmi!.toStringAsFixed(1)));
+    if (v.glucose != null)
+      rows.add(
+        _detailRow('Glucose', '${v.glucose} (${v.glucoseType ?? "N/A"})'),
+      );
+
+    if (rows.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: 16.h),
+        child: AppCard(
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Vitals', style: AppTextStyles.titleLarge),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.monitor_heart_outlined,
+                      size: 16.sp,
+                      color: AppColors.textHint,
+                    ),
+                    SizedBox(width: 8.w),
+                    Text('No vitals recorded', style: AppTextStyles.bodySmall),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: _buildSectionCard('Vitals', rows),
+    );
+  }
+
+  Widget _buildMedsCard(visit) {
+    return SizedBox(
+      width: double.infinity,
+      child: _buildSectionCard(
+        'Medications Dispensed',
+        visit.medicationsDispensed.map<Widget>((m) {
+          final parts = [
+            if (m.drugName != null && m.drugName!.isNotEmpty) m.drugName,
+            if (m.dose != null && m.dose!.isNotEmpty) m.dose,
+            if (m.frequency != null && m.frequency!.isNotEmpty) m.frequency,
+          ];
+          return Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+            child: Text(
+              parts.isNotEmpty ? parts.join(' ') : 'Medication',
+              style: AppTextStyles.bodyMedium,
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildCounsellingCard(visit) {
+    return SizedBox(
+      width: double.infinity,
+      child: _buildSectionCard('Counselling & Advice', [
+        Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+          child: Text(visit.counsellingAdvice!, style: AppTextStyles.bodyMedium),
+        ),
+      ]),
+    );
+  }
+
+  Widget _buildFollowUpCard(visit) {
+    final fu = visit.followUp;
+
+    if (fu == null || !fu.required) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: 16.h),
+        child: AppCard(
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Follow-up', style: AppTextStyles.titleLarge),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.event_busy_rounded,
+                      size: 16.sp,
+                      color: AppColors.textHint,
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      'No follow-up scheduled',
+                      style: AppTextStyles.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final isOverdue =
+        !fu.isDone &&
+        fu.scheduledDate != null &&
+        fu.scheduledDate!.isBefore(DateTime.now());
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 16.w, 16.w, 8.h),
+              child: Row(
+                children: [
+                  Text('Follow-up', style: AppTextStyles.titleLarge),
+                  const Spacer(),
+                  if (isOverdue)
+                    Container(
+                      margin: EdgeInsets.only(right: 8.w),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 2.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.dangerLight,
+                        borderRadius: BorderRadius.circular(6.r),
+                      ),
+                      child: Text(
+                        'Overdue',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.danger,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  StatusChip(
+                    text: fu.isDone ? 'Completed' : 'Pending',
+                    variant: fu.isDone
+                        ? StatusChipVariant.completed
+                        : StatusChipVariant.active,
+                  ),
+                ],
+              ),
+            ),
+            _detailRow('Scheduled Date', _formatDate(fu.scheduledDate!)),
+            if (fu.isDone && fu.outcome != null)
+              _detailRow('Outcome', fu.outcome!),
+            if (fu.isDone && fu.outcome == null)
+              _detailRow('Outcome', 'No outcome recorded'),
+            SizedBox(height: 8.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReferralCard(visit) {
+    final ref = visit.referral;
+    if (ref == null || ref.destination == null || ref.destination!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h),
+      child: AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 16.w, 16.w, 8.h),
+              child: Row(
+                children: [
+                  Text('Referral', style: AppTextStyles.titleLarge),
+                  const Spacer(),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 4.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3E8FF),
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                    child: Text(
+                      'Referred',
+                      style: AppTextStyles.caption.copyWith(
+                        color: const Color(0xFF7C3AED),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            _detailRow('Referred To', ref.destination!),
+            if (ref.reason != null && ref.reason!.isNotEmpty)
+              _detailRow('Reason', ref.reason!),
+            if (visit.createdAt != null)
+              _detailRow('Date', _formatDate(visit.createdAt!)),
+            SizedBox(height: 8.h),
+          ],
+        ),
       ),
     );
   }
 
   Widget _detailRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTextStyles.bodySmall),
-          Text(
-            value,
-            style: AppTextStyles.titleSmall.copyWith(
-              color: AppColors.textPrimary,
+          Flexible(
+            child: Text(
+              value,
+              style: AppTextStyles.titleSmall.copyWith(
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.end,
             ),
           ),
         ],
@@ -247,8 +541,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     switch (status) {
       case 'completed':
         return StatusChipVariant.completed;
-      case 'follow_up':
-      case 'follow-up':
+      case 'follow_up_pending':
         return StatusChipVariant.followUpPending;
       case 'referred':
         return StatusChipVariant.referred;

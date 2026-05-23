@@ -298,12 +298,10 @@ class VisitModel extends Visit {
           ? ClinicalAssessmentDataModel.fromJson(
               json['clinical_assessment'] as Map<String, dynamic>)
           : null,
-      medicationsDispensed: json['medications_dispensed'] != null
-          ? (json['medications_dispensed'] as List<dynamic>)
-              .map((e) => MedicationDispensedDataModel.fromJson(
-                  e as Map<String, dynamic>))
-              .toList()
-          : const [],
+      medicationsDispensed: (json['medications_dispensed'] as List<dynamic>?)
+          ?.map((e) => MedicationDispensedDataModel.fromJson(
+              e as Map<String, dynamic>))
+          .toList() ?? [],
       counsellingAdvice: json['counselling_advice'] as String?,
       followUp: json['follow_up'] != null
           ? FollowUpDataModel.fromJson(

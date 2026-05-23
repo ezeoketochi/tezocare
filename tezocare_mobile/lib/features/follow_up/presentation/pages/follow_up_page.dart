@@ -332,7 +332,7 @@ class _FollowUpCard extends StatelessWidget {
                   spacing: 6.w,
                   runSpacing: 4.h,
                   children: followUp.medicationsDispensed
-                      .map(
+                      .map<Widget>(
                         (m) => Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 8.w,
