@@ -284,24 +284,28 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     }
 
     final rows = <Widget>[];
-    if (v.bloodPressureSystolic != null)
+    if (v.bloodPressureSystolic != null) {
       rows.add(
         _detailRow(
           'BP',
           '${v.bloodPressureSystolic}/${v.bloodPressureDiastolic ?? "?"}',
         ),
       );
-    if (v.heartRate != null)
+    }
+    if (v.heartRate != null) {
       rows.add(_detailRow('Heart Rate', '${v.heartRate} bpm'));
-    if (v.temperature != null)
+    }
+    if (v.temperature != null) {
       rows.add(_detailRow('Temperature', '${v.temperature} °C'));
+    }
     if (v.spo2 != null) rows.add(_detailRow('SpO2', '${v.spo2} %'));
     if (v.weight != null) rows.add(_detailRow('Weight', '${v.weight} kg'));
     if (v.bmi != null) rows.add(_detailRow('BMI', v.bmi!.toStringAsFixed(1)));
-    if (v.glucose != null)
+    if (v.glucose != null) {
       rows.add(
         _detailRow('Glucose', '${v.glucose} (${v.glucoseType ?? "N/A"})'),
       );
+    }
 
     if (rows.isEmpty) {
       return Padding(
