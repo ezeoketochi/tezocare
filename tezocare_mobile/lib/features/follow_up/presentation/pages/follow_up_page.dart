@@ -7,6 +7,10 @@ import '../../../../shared/widgets/app_day_filter.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/status_chip.dart';
+import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
+import '../../../dashboard/presentation/bloc/dashboard_event.dart';
+import '../../../visit/presentation/bloc/visit_bloc.dart';
+import '../../../visit/presentation/bloc/visit_event.dart';
 import '../bloc/follow_up_bloc.dart';
 import '../bloc/follow_up_event.dart';
 import '../bloc/follow_up_state.dart';
@@ -35,7 +39,25 @@ class _FollowUpPageState extends State<FollowUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<FollowUpBloc, FollowUpState>(
+      listenWhen: (previous, current) => current is FollowUpMarkedDone,
+      listener: (context, state) {
+        if (state is FollowUpMarkedDone) {
+          try {
+            context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
+          } catch (_) {}
+          try {
+            context.read<VisitBloc>().add(GetVisitDetailEvent(id: state.visitId));
+          } catch (_) {}
+          try {
+            context.read<VisitBloc>().add(GetPatientVisitsEvent(patientId: state.patientId));
+          } catch (_) {}
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Follow-up marked as done')),
+          );
+        }
+      },
+      child: Scaffold(
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,6 +145,7 @@ class _FollowUpPageState extends State<FollowUpPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -52,8 +52,9 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     );
     result.fold(
       (failure) => emit(FollowUpError(message: _failureMessage(failure))),
-      (_) {
-        emit(FollowUpMarkedDone(visitId: event.visitId));
+      (data) {
+        final patientId = data['patient_id'] as String;
+        emit(FollowUpMarkedDone(visitId: event.visitId, patientId: patientId));
         add(const GetDueFollowUpsEvent());
       },
     );

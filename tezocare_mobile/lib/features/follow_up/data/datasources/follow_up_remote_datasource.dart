@@ -6,7 +6,7 @@ import '../models/due_follow_up_model.dart';
 
 abstract class FollowUpRemoteDataSource {
   Future<List<DueFollowUpModel>> getDueFollowUps({int? days});
-  Future<void> markFollowUpDone(String visitId, {required String outcome});
+  Future<Map<String, dynamic>> markFollowUpDone(String visitId, {required String outcome});
 }
 
 class FollowUpRemoteDataSourceImpl implements FollowUpRemoteDataSource {
@@ -34,12 +34,13 @@ class FollowUpRemoteDataSourceImpl implements FollowUpRemoteDataSource {
   }
 
   @override
-  Future<void> markFollowUpDone(String visitId, {required String outcome}) async {
+  Future<Map<String, dynamic>> markFollowUpDone(String visitId, {required String outcome}) async {
     try {
-      await dioClient.dio.patch(
+      final response = await dioClient.dio.patch(
         '${ApiConstants.visits}/$visitId/followup-done',
         data: {'outcome': outcome},
       );
+      return response.data['data'] as Map<String, dynamic>;
     } on DioException catch (e) {
       throw _mapDioException(e, defaultMessage: 'Failed to mark follow-up done');
     }

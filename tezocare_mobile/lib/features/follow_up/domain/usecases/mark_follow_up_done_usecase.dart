@@ -4,13 +4,13 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../repositories/follow_up_repository.dart';
 
-class MarkFollowUpDoneUseCase implements UseCase<void, MarkFollowUpDoneParams> {
+class MarkFollowUpDoneUseCase implements UseCase<Map<String, dynamic>, MarkFollowUpDoneParams> {
   final FollowUpRepository repository;
 
   MarkFollowUpDoneUseCase({required this.repository});
 
   @override
-  Future<Either<Failure, void>> call(MarkFollowUpDoneParams params) {
+  Future<Either<Failure, Map<String, dynamic>>> call(MarkFollowUpDoneParams params) {
     return repository.markFollowUpDone(params.visitId, outcome: params.outcome);
   }
 }

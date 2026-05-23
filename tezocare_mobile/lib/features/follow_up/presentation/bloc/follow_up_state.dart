@@ -37,11 +37,12 @@ class FollowUpLoaded extends FollowUpState {
 
 class FollowUpMarkedDone extends FollowUpState {
   final String visitId;
+  final String patientId;
 
-  const FollowUpMarkedDone({required this.visitId});
+  const FollowUpMarkedDone({required this.visitId, required this.patientId});
 
   @override
-  List<Object> get props => [visitId];
+  List<Object> get props => [visitId, patientId];
 }
 
 class FollowUpError extends FollowUpState {

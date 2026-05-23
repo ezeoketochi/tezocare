@@ -128,16 +128,18 @@ class FollowUpData extends Equatable {
   final DateTime? scheduledDate;
   final bool isDone;
   final String? outcome;
+  final DateTime? dateCompleted;
 
   const FollowUpData({
     this.required = false,
     this.scheduledDate,
     this.isDone = false,
     this.outcome,
+    this.dateCompleted,
   });
 
   @override
-  List<Object?> get props => [required, scheduledDate, isDone, outcome];
+  List<Object?> get props => [required, scheduledDate, isDone, outcome, dateCompleted];
 }
 
 class ReferralData extends Equatable {

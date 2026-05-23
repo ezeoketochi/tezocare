@@ -29,13 +29,13 @@ class FollowUpRepositoryImpl implements FollowUpRepository {
   }
 
   @override
-  Future<Either<Failure, void>> markFollowUpDone(String visitId, {required String outcome}) async {
+  Future<Either<Failure, Map<String, dynamic>>> markFollowUpDone(String visitId, {required String outcome}) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      await remoteDataSource.markFollowUpDone(visitId, outcome: outcome);
-      return const Right(null);
+      final data = await remoteDataSource.markFollowUpDone(visitId, outcome: outcome);
+      return Right(data);
     } catch (e) {
       return handleException(e);
     }

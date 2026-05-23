@@ -192,6 +192,7 @@ class FollowUpDataModel extends FollowUpData {
     super.scheduledDate,
     super.isDone,
     super.outcome,
+    super.dateCompleted,
   });
 
   factory FollowUpDataModel.fromJson(Map<String, dynamic> json) {
@@ -202,6 +203,9 @@ class FollowUpDataModel extends FollowUpData {
           : null,
       isDone: json['is_done'] as bool? ?? false,
       outcome: json['outcome'] as String?,
+      dateCompleted: json['date_completed'] != null
+          ? DateTime.parse(json['date_completed'] as String)
+          : null,
     );
   }
 
@@ -212,6 +216,8 @@ class FollowUpDataModel extends FollowUpData {
         'scheduled_date': scheduledDate!.toIso8601String().split('T')[0],
       'is_done': isDone,
       if (outcome != null) 'outcome': outcome,
+      if (dateCompleted != null)
+        'date_completed': dateCompleted!.toIso8601String(),
     };
   }
 }

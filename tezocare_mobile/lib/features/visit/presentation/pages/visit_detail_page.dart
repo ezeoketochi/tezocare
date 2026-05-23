@@ -230,8 +230,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.h),
       child: _buildSectionCard('Clinical Assessment', [
-        if (diagnosis != null)
-          _detailRow('Diagnosis', diagnosis),
+        if (diagnosis != null) _detailRow('Diagnosis', diagnosis),
         if (diagnosis == null)
           Padding(
             padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
@@ -368,7 +367,10 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
       child: _buildSectionCard('Counselling & Advice', [
         Padding(
           padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
-          child: Text(visit.counsellingAdvice!, style: AppTextStyles.bodyMedium),
+          child: Text(
+            visit.counsellingAdvice!,
+            style: AppTextStyles.bodyMedium,
+          ),
         ),
       ]),
     );
@@ -446,7 +448,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
                       ),
                     ),
                   StatusChip(
-                    text: fu.isDone ? 'Completed' : 'Pending',
+                    text: fu.isDone ? 'Done' : 'Pending',
                     variant: fu.isDone
                         ? StatusChipVariant.completed
                         : StatusChipVariant.active,
@@ -455,6 +457,8 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               ),
             ),
             _detailRow('Scheduled Date', _formatDate(fu.scheduledDate!)),
+            if (fu.isDone && fu.dateCompleted != null)
+              _detailRow('Date Followed Up', _formatDate(fu.dateCompleted!)),
             if (fu.isDone && fu.outcome != null)
               _detailRow('Outcome', fu.outcome!),
             if (fu.isDone && fu.outcome == null)
