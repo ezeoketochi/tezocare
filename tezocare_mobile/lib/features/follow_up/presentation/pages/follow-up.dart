@@ -36,7 +36,7 @@ class _FollowUpPageState extends State<FollowUpPage> {
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
               child: Text(
-                'Medications Overview',
+                'Due Follow-ups',
                 style: AppTextStyles.headlineMedium,
               ),
             ),

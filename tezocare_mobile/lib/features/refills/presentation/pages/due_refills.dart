@@ -13,8 +13,7 @@ class DueRefillsPage extends StatefulWidget {
   const DueRefillsPage({super.key});
 
   @override
-  State<DueRefillsPage> createState() =>
-      _DueRefillsPageState();
+  State<DueRefillsPage> createState() => _DueRefillsPageState();
 }
 
 class _DueRefillsPageState extends State<DueRefillsPage> {
@@ -36,10 +35,7 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
-              child: Text(
-                'Medications Overview',
-                style: AppTextStyles.headlineMedium,
-              ),
+              child: Text('Due Refills', style: AppTextStyles.headlineMedium),
             ),
             Expanded(
               child: BlocBuilder<DashboardBloc, DashboardState>(
@@ -56,9 +52,9 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                       title: 'Something went wrong',
                       message: state.message,
                       actionLabel: 'Retry',
-                      onAction: () => context
-                          .read<DashboardBloc>()
-                          .add(const GetDashboardStatsEvent()),
+                      onAction: () => context.read<DashboardBloc>().add(
+                        const GetDashboardStatsEvent(),
+                      ),
                     );
                   }
                   if (state is DashboardLoaded) {
@@ -72,16 +68,18 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                     }
                     return RefreshIndicator(
                       onRefresh: () async {
-                        context
-                            .read<DashboardBloc>()
-                            .add(const GetDashboardStatsEvent());
+                        context.read<DashboardBloc>().add(
+                          const GetDashboardStatsEvent(),
+                        );
                       },
                       child: ListView.builder(
                         padding: EdgeInsets.symmetric(horizontal: 20.w),
                         itemCount: upcomingRefills.length,
                         itemBuilder: (context, index) {
-                          final refill = upcomingRefills[index] as Map<String, dynamic>;
-                          final isOverdue = refill['is_overdue'] as bool? ?? false;
+                          final refill =
+                              upcomingRefills[index] as Map<String, dynamic>;
+                          final isOverdue =
+                              refill['is_overdue'] as bool? ?? false;
                           return Container(
                             margin: EdgeInsets.only(bottom: 12.h),
                             decoration: BoxDecoration(
@@ -89,8 +87,9 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                               borderRadius: BorderRadius.circular(16.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.06),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.06,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 2),
                                 ),
@@ -105,10 +104,11 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                                 width: 44.w,
                                 height: 44.w,
                                 decoration: BoxDecoration(
-                                  color: (isOverdue
-                                          ? AppColors.danger
-                                          : AppColors.primary)
-                                      .withValues(alpha: 0.12),
+                                  color:
+                                      (isOverdue
+                                              ? AppColors.danger
+                                              : AppColors.primary)
+                                          .withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
