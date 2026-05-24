@@ -24,9 +24,6 @@ class PatientsPage extends StatefulWidget {
 
 class _PatientsPageState extends State<PatientsPage> {
   final _searchController = TextEditingController();
-  String _selectedFilter = 'All';
-
-  final _filters = ['All', 'Active', 'Follow-up Pending'];
 
   @override
   void initState() {
@@ -60,48 +57,6 @@ class _PatientsPageState extends State<PatientsPage> {
                   context.read<PatientBloc>().add(const GetPatientsEvent());
                 }
               },
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Row(
-              children: _filters.map((filter) {
-                final isSelected = _selectedFilter == filter;
-                return Padding(
-                  padding: EdgeInsets.only(right: 8.w),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedFilter = filter);
-                      context.read<PatientBloc>().add(
-                        GetPatientsEvent(
-                          status: filter == 'All' ? null : filter.toLowerCase(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Text(
-                        filter,
-                        style: AppTextStyles.labelMedium.copyWith(
-                          color: isSelected
-                              ? AppColors.white
-                              : AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
             ),
           ),
           SizedBox(height: 8.h),
