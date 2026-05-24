@@ -5,6 +5,8 @@ import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import '../../../../features/dashboard/presentation/bloc/dashboard_event.dart';
 import '../../domain/entities/patient.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
@@ -166,6 +168,9 @@ class _EditPatientPageState extends State<EditPatientPage> {
           current is PatientUpdated || current is PatientError,
       listener: (context, state) {
         if (state is PatientUpdated) {
+          try {
+            context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
+          } catch (_) {}
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Patient updated successfully')),
           );
