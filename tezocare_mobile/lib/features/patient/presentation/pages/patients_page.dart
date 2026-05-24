@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/routes/route_names.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
+import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
+import '../../../dashboard/presentation/bloc/dashboard_event.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/app_search_bar.dart';
@@ -93,7 +95,16 @@ class _PatientsPageState extends State<PatientsPage> {
                           : 'Add Patient',
                       onAction: _searchController.text.isNotEmpty
                           ? null
-                          : () => context.push(RouteNames.createPatient),
+                          : () => context.push(RouteNames.createPatient).then((_) {
+                                if (context.mounted) {
+                                  context.read<PatientBloc>().add(
+                                    const GetPatientsEvent(),
+                                  );
+                                  context.read<DashboardBloc>().add(
+                                    const GetDashboardStatsEvent(),
+                                  );
+                                }
+                              }),
                     );
                   }
                   return ListView.builder(
@@ -165,7 +176,14 @@ class _PatientsPageState extends State<PatientsPage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
-        onPressed: () => context.push(RouteNames.createPatient),
+        onPressed: () {
+          context.push(RouteNames.createPatient).then((_) {
+            if (context.mounted) {
+              context.read<PatientBloc>().add(const GetPatientsEvent());
+              context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
+            }
+          });
+        },
         child: const Icon(Icons.add),
       ),
     );
