@@ -2,6 +2,7 @@ import '../../domain/entities/due_refill.dart';
 
 class DueRefillModel extends DueRefill {
   const DueRefillModel({
+    required super.refillId,
     required super.patientId,
     required super.patientName,
     super.patientPhone,
@@ -14,12 +15,16 @@ class DueRefillModel extends DueRefill {
     super.dateDispensed,
     required super.refillDate,
     required super.daysUntilRefill,
-    required super.refillStatus,
+    super.contactStatus,
+    super.refillStatus,
+    required super.escalatedStatus,
+    super.lastActionAt,
     super.prescribedBy,
   });
 
   factory DueRefillModel.fromJson(Map<String, dynamic> json) {
     return DueRefillModel(
+      refillId: json['id'] as String,
       patientId: json['patient_id'] as String,
       patientName: json['patient_name'] as String? ?? '',
       patientPhone: json['patient_phone'] as String?,
@@ -34,13 +39,19 @@ class DueRefillModel extends DueRefill {
       dateDispensed: json['date_dispensed'] as String?,
       refillDate: json['refill_date'] as String? ?? '',
       daysUntilRefill: json['days_until_refill'] as int? ?? 0,
-      refillStatus: json['refill_status'] as String? ?? 'upcoming',
+      contactStatus: json['contact_status'] as String? ?? 'pending',
+      refillStatus: json['refill_status'] as String? ?? 'pending',
+      escalatedStatus: json['escalated_status'] as String? ?? 'upcoming',
+      lastActionAt: json['last_action_at'] != null
+          ? DateTime.parse(json['last_action_at'] as String)
+          : null,
       prescribedBy: json['prescribed_by'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': refillId,
       'patient_id': patientId,
       'patient_name': patientName,
       if (patientPhone != null) 'patient_phone': patientPhone,
@@ -54,7 +65,11 @@ class DueRefillModel extends DueRefill {
       if (dateDispensed != null) 'date_dispensed': dateDispensed,
       'refill_date': refillDate,
       'days_until_refill': daysUntilRefill,
+      'contact_status': contactStatus,
       'refill_status': refillStatus,
+      'escalated_status': escalatedStatus,
+      if (lastActionAt != null)
+        'last_action_at': lastActionAt!.toIso8601String(),
       if (prescribedBy != null) 'prescribed_by': prescribedBy,
     };
   }

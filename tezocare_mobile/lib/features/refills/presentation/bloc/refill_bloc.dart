@@ -1,14 +1,24 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/usecases/get_due_refills_usecase.dart';
+import '../../domain/usecases/mark_refill_contacted_usecase.dart';
+import '../../domain/usecases/mark_refill_fulfilled_usecase.dart';
 import 'refill_event.dart';
 import 'refill_state.dart';
 
 class RefillBloc extends Bloc<RefillEvent, RefillState> {
   final GetDueRefillsUseCase getDueRefillsUseCase;
+  final MarkRefillContactedUseCase markRefillContactedUseCase;
+  final MarkRefillFulfilledUseCase markRefillFulfilledUseCase;
 
-  RefillBloc({required this.getDueRefillsUseCase}) : super(const RefillInitial()) {
+  RefillBloc({
+    required this.getDueRefillsUseCase,
+    required this.markRefillContactedUseCase,
+    required this.markRefillFulfilledUseCase,
+  }) : super(const RefillInitial()) {
     on<GetDueRefillsEvent>(_onGetDueRefills);
+    on<MarkAsContacted>(_onMarkAsContacted);
+    on<MarkAsRefilled>(_onMarkAsRefilled);
   }
 
   Future<void> _onGetDueRefills(
@@ -17,21 +27,64 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
   ) async {
     emit(const RefillLoading());
     final result = await getDueRefillsUseCase(
-      GetDueRefillsParams(days: event.days),
+      GetDueRefillsParams(filter: event.filter),
     );
     result.fold(
       (failure) => emit(RefillError(message: _failureMessage(failure))),
       (refills) {
-        final overdue = refills.where((r) => r.refillStatus == 'overdue').length;
-        final dueToday = refills.where((r) => r.refillStatus == 'due_today').length;
-        final upcoming = refills.where((r) => r.refillStatus == 'upcoming').length;
+        final overdue = refills
+            .where((r) => r.escalatedStatus == 'Phase 3 (Overdue)')
+            .length;
+        final dueToday = refills
+            .where((r) => r.escalatedStatus == 'Phase 2 (Due Today)')
+            .length;
+        final outreach = refills
+            .where((r) => r.escalatedStatus == 'Phase 1 (Outreach)')
+            .length;
         emit(RefillLoaded(
           refills: refills,
           total: refills.length,
           overdue: overdue,
           dueToday: dueToday,
-          upcoming: upcoming,
+          outreach: outreach,
+          activeFilter: event.filter,
         ));
+      },
+    );
+  }
+
+  Future<void> _onMarkAsContacted(
+    MarkAsContacted event,
+    Emitter<RefillState> emit,
+  ) async {
+    final current = state;
+    if (current is! RefillLoaded) return;
+    emit(const RefillLoading());
+    final result = await markRefillContactedUseCase(
+      MarkRefillContactedParams(refillId: event.refillId),
+    );
+    result.fold(
+      (failure) => emit(RefillError(message: _failureMessage(failure))),
+      (_) {
+        add(GetDueRefillsEvent(filter: current.activeFilter));
+      },
+    );
+  }
+
+  Future<void> _onMarkAsRefilled(
+    MarkAsRefilled event,
+    Emitter<RefillState> emit,
+  ) async {
+    final current = state;
+    if (current is! RefillLoaded) return;
+    emit(const RefillLoading());
+    final result = await markRefillFulfilledUseCase(
+      MarkRefillFulfilledParams(refillId: event.refillId),
+    );
+    result.fold(
+      (failure) => emit(RefillError(message: _failureMessage(failure))),
+      (_) {
+        add(GetDueRefillsEvent(filter: current.activeFilter));
       },
     );
   }

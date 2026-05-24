@@ -5,7 +5,9 @@ import '../../../../core/network/dio_client.dart';
 import '../models/due_refill_model.dart';
 
 abstract class RefillRemoteDataSource {
-  Future<List<DueRefillModel>> getDueRefills({int? days});
+  Future<List<DueRefillModel>> getDueRefills({String? filter});
+  Future<Map<String, dynamic>> markContacted(String refillId);
+  Future<Map<String, dynamic>> markRefilled(String refillId);
 }
 
 class RefillRemoteDataSourceImpl implements RefillRemoteDataSource {
@@ -14,13 +16,13 @@ class RefillRemoteDataSourceImpl implements RefillRemoteDataSource {
   RefillRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<List<DueRefillModel>> getDueRefills({int? days}) async {
+  Future<List<DueRefillModel>> getDueRefills({String? filter}) async {
     try {
       final queryParams = <String, dynamic>{};
-      if (days != null) queryParams['days'] = days;
+      if (filter != null) queryParams['filter'] = filter;
       final response = await dioClient.dio.get(
-        ApiConstants.dashboardDueRefills,
-        queryParameters: queryParams,
+        ApiConstants.refills,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
       final data = response.data['data'] as Map<String, dynamic>;
       final refills = data['refills'] as List<dynamic>;
@@ -29,6 +31,30 @@ class RefillRemoteDataSourceImpl implements RefillRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       throw _mapDioException(e, defaultMessage: 'Failed to fetch due refills');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> markContacted(String refillId) async {
+    try {
+      final response = await dioClient.dio.patch(
+        '${ApiConstants.refills}/$refillId/contact',
+      );
+      return response.data['data'] as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Failed to mark refill as contacted');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> markRefilled(String refillId) async {
+    try {
+      final response = await dioClient.dio.patch(
+        '${ApiConstants.refills}/$refillId/fulfill',
+      );
+      return response.data['data'] as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Failed to mark refill as fulfilled');
     }
   }
 

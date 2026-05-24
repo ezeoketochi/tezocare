@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class DueRefill extends Equatable {
+  final String refillId;
   final String patientId;
   final String patientName;
   final String? patientPhone;
@@ -13,10 +14,14 @@ class DueRefill extends Equatable {
   final String? dateDispensed;
   final String refillDate;
   final int daysUntilRefill;
+  final String contactStatus;
   final String refillStatus;
+  final String escalatedStatus;
+  final DateTime? lastActionAt;
   final String? prescribedBy;
 
   const DueRefill({
+    required this.refillId,
     required this.patientId,
     required this.patientName,
     this.patientPhone,
@@ -29,12 +34,16 @@ class DueRefill extends Equatable {
     this.dateDispensed,
     required this.refillDate,
     required this.daysUntilRefill,
-    required this.refillStatus,
+    this.contactStatus = 'pending',
+    this.refillStatus = 'pending',
+    required this.escalatedStatus,
+    this.lastActionAt,
     this.prescribedBy,
   });
 
   @override
   List<Object?> get props => [
+        refillId,
         patientId,
         patientName,
         patientPhone,
@@ -47,7 +56,10 @@ class DueRefill extends Equatable {
         dateDispensed,
         refillDate,
         daysUntilRefill,
+        contactStatus,
         refillStatus,
+        escalatedStatus,
+        lastActionAt,
         prescribedBy,
       ];
 }

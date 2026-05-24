@@ -12,15 +12,15 @@ class GetDueRefillsUseCase implements UseCase<List<DueRefill>, GetDueRefillsPara
 
   @override
   Future<Either<Failure, List<DueRefill>>> call(GetDueRefillsParams params) {
-    return repository.getDueRefills(days: params.days);
+    return repository.getDueRefills(filter: params.filter);
   }
 }
 
 class GetDueRefillsParams extends Equatable {
-  final int? days;
+  final String? filter;
 
-  const GetDueRefillsParams({this.days});
+  const GetDueRefillsParams({this.filter});
 
   @override
-  List<Object?> get props => [days];
+  List<Object?> get props => [filter];
 }

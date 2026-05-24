@@ -8,10 +8,28 @@ abstract class RefillEvent extends Equatable {
 }
 
 class GetDueRefillsEvent extends RefillEvent {
-  final int? days;
+  final String? filter;
 
-  const GetDueRefillsEvent({this.days});
+  const GetDueRefillsEvent({this.filter});
 
   @override
-  List<Object?> get props => [days];
+  List<Object?> get props => [filter];
+}
+
+class MarkAsContacted extends RefillEvent {
+  final String refillId;
+
+  const MarkAsContacted({required this.refillId});
+
+  @override
+  List<Object> get props => [refillId];
+}
+
+class MarkAsRefilled extends RefillEvent {
+  final String refillId;
+
+  const MarkAsRefilled({required this.refillId});
+
+  @override
+  List<Object> get props => [refillId];
 }

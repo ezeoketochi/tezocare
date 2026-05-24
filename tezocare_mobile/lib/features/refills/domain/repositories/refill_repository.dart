@@ -3,5 +3,7 @@ import '../../../../core/error/failures.dart';
 import '../entities/due_refill.dart';
 
 abstract class RefillRepository {
-  Future<Either<Failure, List<DueRefill>>> getDueRefills({int? days});
+  Future<Either<Failure, List<DueRefill>>> getDueRefills({String? filter});
+  Future<Either<Failure, void>> markContacted(String refillId);
+  Future<Either<Failure, void>> markRefilled(String refillId);
 }

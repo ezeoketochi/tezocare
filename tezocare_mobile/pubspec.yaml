@@ -62,6 +62,9 @@ dependencies:
   # Toast Notifications
   toastification: ^2.3.0
 
+  # URL Launcher (for phone/SMS/WhatsApp from refills)
+  url_launcher: ^6.3.0
+
   # Charts
   fl_chart: ^0.69.0
 

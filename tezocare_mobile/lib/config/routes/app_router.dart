@@ -12,6 +12,8 @@ import '../../features/follow_up/domain/usecases/mark_follow_up_done_usecase.dar
 import '../../features/follow_up/presentation/pages/follow_up_page.dart';
 import '../../features/refills/presentation/bloc/refill_bloc.dart';
 import '../../features/refills/domain/usecases/get_due_refills_usecase.dart';
+import '../../features/refills/domain/usecases/mark_refill_contacted_usecase.dart';
+import '../../features/refills/domain/usecases/mark_refill_fulfilled_usecase.dart';
 import '../../features/refills/presentation/pages/due_refills_page.dart';
 import '../../features/medication/presentation/bloc/medication_bloc.dart';
 import '../../features/medication/domain/usecases/add_medication_usecase.dart';
@@ -163,6 +165,8 @@ class AppRouter {
                 builder: (context, state) => BlocProvider(
                   create: (_) => RefillBloc(
                     getDueRefillsUseCase: sl<GetDueRefillsUseCase>(),
+                    markRefillContactedUseCase: sl<MarkRefillContactedUseCase>(),
+                    markRefillFulfilledUseCase: sl<MarkRefillFulfilledUseCase>(),
                   ),
                   child: const DueRefillsPage(),
                 ),
