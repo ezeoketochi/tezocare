@@ -81,6 +81,21 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                   SliverAppBar(
                     expandedHeight: 200.h,
                     pinned: true,
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () async {
+                          await context.push(
+                            '/patients/${widget.patientId}/edit',
+                          );
+                          if (context.mounted) {
+                            context.read<PatientBloc>().add(
+                              GetPatientDetailEvent(id: widget.patientId),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                     flexibleSpace: FlexibleSpaceBar(
                       background: _buildHeader(patient),
                     ),
@@ -266,19 +281,6 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 ],
               ),
             ),
-          SizedBox(height: 16.h),
-          Row(
-            children: [
-              Expanded(
-                child: AppButton(
-                  label: 'New Visit',
-                  onPressed: () => context.push(
-                    '/visits/create?patientId=${widget.patientId}',
-                  ),
-                ),
-              ),
-            ],
-          ),
           SizedBox(height: 32.h),
         ],
       ),
