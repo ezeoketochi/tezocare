@@ -16,12 +16,12 @@ class RefillRepositoryImpl implements RefillRepository {
   });
 
   @override
-  Future<Either<Failure, List<DueRefill>>> getDueRefills({String? filter}) async {
+  Future<Either<Failure, List<DueRefill>>> getDueRefills({String? filter, int? days}) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final result = await remoteDataSource.getDueRefills(filter: filter);
+      final result = await remoteDataSource.getDueRefills(filter: filter, days: days);
       return Right(result);
     } catch (e) {
       return handleException(e);

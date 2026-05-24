@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_day_filter.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../domain/entities/due_refill.dart';
@@ -21,6 +22,7 @@ class DueRefillsPage extends StatefulWidget {
 
 class _DueRefillsPageState extends State<DueRefillsPage> {
   String? _activeFilter;
+  int? _selectedDays;
 
   static const _filters = <String?>[null, 'pending_contact', 'due_overdue'];
   static const _filterLabels = ['All', 'Pending Contact', 'Due & Overdue'];
@@ -35,7 +37,18 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
     final filter = _filters[index];
     if (filter == _activeFilter) return;
     setState(() => _activeFilter = filter);
-    context.read<RefillBloc>().add(GetDueRefillsEvent(filter: filter));
+    _fetch();
+  }
+
+  void _onDaysChanged(int? days) {
+    setState(() => _selectedDays = days);
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    context.read<RefillBloc>().add(
+      GetDueRefillsEvent(filter: _activeFilter, days: _selectedDays),
+    );
   }
 
   @override
@@ -53,14 +66,13 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
               padding: EdgeInsets.symmetric(horizontal: 20.w),
               child: _buildSegmentedFilter(),
             ),
-            SizedBox(height: 8.h),
+            AppDayFilter(
+              selectedDays: _selectedDays,
+              onChanged: _onDaysChanged,
+            ),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () async {
-                  context.read<RefillBloc>().add(
-                    GetDueRefillsEvent(filter: _activeFilter),
-                  );
-                },
+                onRefresh: _fetch,
                 child: BlocBuilder<RefillBloc, RefillState>(
                   builder: (context, state) {
                     if (state is RefillLoading) {
@@ -84,9 +96,7 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                             title: 'Something went wrong',
                             message: state.message,
                             actionLabel: 'Retry',
-                            onAction: () => context
-                                .read<RefillBloc>()
-                                .add(const GetDueRefillsEvent()),
+                            onAction: _fetch,
                           ),
                         ],
                       );

@@ -27,7 +27,7 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
   ) async {
     emit(const RefillLoading());
     final result = await getDueRefillsUseCase(
-      GetDueRefillsParams(filter: event.filter),
+      GetDueRefillsParams(filter: event.filter, days: event.days),
     );
     result.fold(
       (failure) => emit(RefillError(message: _failureMessage(failure))),
@@ -48,6 +48,7 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
           dueToday: dueToday,
           outreach: outreach,
           activeFilter: event.filter,
+          activeDays: event.days,
         ));
       },
     );
@@ -66,7 +67,7 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
     result.fold(
       (failure) => emit(RefillError(message: _failureMessage(failure))),
       (_) {
-        add(GetDueRefillsEvent(filter: current.activeFilter));
+        add(GetDueRefillsEvent(filter: current.activeFilter, days: current.activeDays));
       },
     );
   }
@@ -84,7 +85,7 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
     result.fold(
       (failure) => emit(RefillError(message: _failureMessage(failure))),
       (_) {
-        add(GetDueRefillsEvent(filter: current.activeFilter));
+        add(GetDueRefillsEvent(filter: current.activeFilter, days: current.activeDays));
       },
     );
   }

@@ -23,6 +23,7 @@ class RefillLoaded extends RefillState {
   final int dueToday;
   final int outreach;
   final String? activeFilter;
+  final int? activeDays;
 
   const RefillLoaded({
     required this.refills,
@@ -31,11 +32,12 @@ class RefillLoaded extends RefillState {
     this.dueToday = 0,
     this.outreach = 0,
     this.activeFilter,
+    this.activeDays,
   });
 
   @override
   List<Object?> get props =>
-      [refills, total, overdue, dueToday, outreach, activeFilter];
+      [refills, total, overdue, dueToday, outreach, activeFilter, activeDays];
 }
 
 class RefillError extends RefillState {
