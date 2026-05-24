@@ -451,12 +451,12 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               return AppEmptyState(
                 icon: Icons.medication_outlined,
                 title: 'No Medications Yet',
-                message: 'Medications are recorded during a visit. '
+                message:
+                    'Medications are recorded during a visit. '
                     'Start a new visit to add medications for this patient.',
                 actionLabel: 'Start New Visit',
-                onAction: () => context.push(
-                  '/visits/create?patientId=$patientId',
-                ),
+                onAction: () =>
+                    context.push('/visits/create?patientId=$patientId'),
               );
             }
 
@@ -505,10 +505,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               }
             }
 
-            return ListView(
-              padding: EdgeInsets.all(20.w),
-              children: items,
-            );
+            return ListView(padding: EdgeInsets.all(20.w), children: items);
           }
           return const SizedBox.shrink();
         },
@@ -521,12 +518,10 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     final refillDiff = med.endDate?.difference(now).inDays;
 
     return AppCard(
-      onTap: () => context.push(
-        '/patients/$patientId/visits/${med.id}',
-      ),
+      onTap: () => context.push('/patients/$patientId/visits/${med.id}'),
       child: Padding(
         padding: EdgeInsets.all(16.w),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
@@ -543,40 +538,46 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               ),
             ),
             SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(med.name, style: AppTextStyles.titleMedium),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(med.name, style: AppTextStyles.titleMedium),
+                SizedBox(height: 2.h),
+                Text(
+                  [
+                    if (med.dosage != null && med.dosage!.isNotEmpty)
+                      med.dosage!,
+                    if (med.frequency != null && med.frequency!.isNotEmpty)
+                      med.frequency!,
+                    if (med.duration != null && med.duration!.isNotEmpty)
+                      '${med.duration} days',
+                  ].join(' \u2022 '),
+                  style: AppTextStyles.bodySmall,
+                ),
+                if (med.prescribedBy != null &&
+                    med.prescribedBy!.isNotEmpty) ...[
                   SizedBox(height: 2.h),
                   Text(
-                    [
-                      if (med.dosage != null && med.dosage!.isNotEmpty)
-                        med.dosage!,
-                      if (med.frequency != null && med.frequency!.isNotEmpty)
-                        med.frequency!,
-                      if (med.duration != null && med.duration!.isNotEmpty)
-                        '${med.duration} days',
-                    ].join(' \u2022 '),
-                    style: AppTextStyles.bodySmall,
-                  ),
-                  if (med.prescribedBy != null &&
-                      med.prescribedBy!.isNotEmpty) ...[
-                    SizedBox(height: 2.h),
-                    Text(
-                      'Prescribed by: ${med.prescribedBy}',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    'Prescribed by: ${med.prescribedBy}',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
                     ),
-                  ],
+                  ),
                 ],
-              ),
+              ],
             ),
             if (refillDiff != null && refillDiff < 0)
-              _refillChip('Refill Overdue', AppColors.dangerLight, AppColors.danger)
+              _refillChip(
+                'Refill Overdue',
+                AppColors.dangerLight,
+                AppColors.danger,
+              )
             else if (refillDiff != null && refillDiff <= 3)
-              _refillChip('Refill Due Soon', AppColors.warningLight, AppColors.warning),
+              _refillChip(
+                'Refill Due Soon',
+                AppColors.warningLight,
+                AppColors.warning,
+              ),
             SizedBox(width: 4.w),
             Icon(
               Icons.chevron_right_rounded,
@@ -608,8 +609,18 @@ class _PatientDetailPageState extends State<PatientDetailPage>
 
   String _formatVisitDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
