@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
+import '../../../../shared/widgets/dialog/confirm_dialog.dart';
+import '../../../../shared/services/app_toast.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../bloc/visit_bloc.dart';
 import '../bloc/visit_event.dart';
+import '../../domain/entities/visit.dart';
 import '../bloc/visit_state.dart';
 
 class VisitDetailPage extends StatefulWidget {
@@ -27,11 +33,31 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     context.read<VisitBloc>().add(GetVisitDetailEvent(id: widget.visitId));
   }
 
+  bool _canEditOrDelete(Visit visit) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return false;
+    final staff = authState.staff;
+    return staff.id == visit.staffId || staff.role == 'admin';
+  }
+
+  bool _canDelete(Visit visit) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return false;
+    final staff = authState.staff;
+    return staff.id == visit.staffId || staff.role == 'admin';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Visit Detail')),
-      body: BlocBuilder<VisitBloc, VisitState>(
+      body: BlocConsumer<VisitBloc, VisitState>(
+        listener: (context, state) {
+          if (state is VisitDeleted) {
+            AppToast.success(context, title: 'Visit deleted');
+            context.pop();
+          }
+        },
         builder: (context, state) {
           if (state is VisitLoading) {
             return Center(child: AppLoading.fullScreen());
@@ -54,6 +80,8 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (_canEditOrDelete(visit))
+                    _buildActionButtons(visit),
                   _buildStatusHeader(visit),
                   SizedBox(height: 12.h),
                   _buildVisitStatusIndicator(visit.status),
@@ -85,6 +113,48 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
         },
       ),
     );
+  }
+
+  Widget _buildActionButtons(Visit visit) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: Row(
+        children: [
+          OutlinedButton.icon(
+            onPressed: () => context.push(
+              '/patients/${visit.patientId}/visits/${visit.id}/edit',
+            ),
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('Edit'),
+          ),
+          SizedBox(width: 12.w),
+          if (_canDelete(visit))
+            OutlinedButton.icon(
+              onPressed: () => _confirmDelete(context, visit),
+              icon: Icon(Icons.delete_outline, size: 18, color: AppColors.danger),
+              label: Text('Delete', style: TextStyle(color: AppColors.danger)),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: AppColors.danger),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, Visit visit) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => ConfirmDialog(
+        title: 'Delete Visit',
+        message: 'Are you sure you want to delete this visit? This action cannot be undone.',
+        confirmLabel: 'Delete',
+        isDestructive: true,
+      ),
+    );
+    if (confirmed == true && mounted) {
+      context.read<VisitBloc>().add(DeleteVisitEvent(id: visit.id));
+    }
   }
 
   Widget _buildStatusHeader(visit) {
@@ -467,6 +537,13 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               _detailRow('Outcome', fu.outcome!),
             if (fu.isDone && fu.outcome == null)
               _detailRow('Outcome', 'No outcome recorded'),
+            if (fu.isRecurrent)
+              _detailRow(
+                'Recurrence',
+                fu.recurrenceIntervalDays != null
+                    ? 'Every ${fu.recurrenceIntervalDays} days'
+                    : 'Recurrent',
+              ),
             SizedBox(height: 8.h),
           ],
         ),

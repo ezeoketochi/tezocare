@@ -43,6 +43,15 @@ class VisitCreated extends VisitState {
   List<Object> get props => [visit];
 }
 
+class VisitDeleted extends VisitState {
+  final String visitId;
+
+  const VisitDeleted({required this.visitId});
+
+  @override
+  List<Object> get props => [visitId];
+}
+
 class VisitError extends VisitState {
   final String message;
 

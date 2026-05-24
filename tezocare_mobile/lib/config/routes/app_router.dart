@@ -30,6 +30,7 @@ import '../../features/visit/presentation/bloc/visit_bloc.dart';
 import '../../features/visit/domain/usecases/create_visit_usecase.dart';
 import '../../features/visit/domain/usecases/get_patient_visits_usecase.dart';
 import '../../features/visit/domain/usecases/get_visit_detail_usecase.dart';
+import '../../features/visit/domain/usecases/delete_visit_usecase.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -249,6 +250,7 @@ class AppRouter {
                 createVisitUseCase: sl<CreateVisitUseCase>(),
                 getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
                 getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
+                deleteVisitUseCase: sl<DeleteVisitUseCase>(),
               ),
               child: VisitDetailPage(visitId: state.pathParameters['visitId']!),
             ),
@@ -296,6 +298,7 @@ class AppRouter {
             createVisitUseCase: sl<CreateVisitUseCase>(),
             getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
             getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
+            deleteVisitUseCase: sl<DeleteVisitUseCase>(),
           ),
           child: CreateVisitPage(
             patientId: state.uri.queryParameters['patientId'],

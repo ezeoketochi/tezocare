@@ -19,6 +19,8 @@ class DueRefill extends Equatable {
   final String escalatedStatus;
   final DateTime? lastActionAt;
   final String? prescribedBy;
+  final bool isRecurrent;
+  final int? recurrenceIntervalDays;
 
   const DueRefill({
     required this.refillId,
@@ -39,6 +41,8 @@ class DueRefill extends Equatable {
     required this.escalatedStatus,
     this.lastActionAt,
     this.prescribedBy,
+    this.isRecurrent = false,
+    this.recurrenceIntervalDays,
   });
 
   @override
@@ -61,5 +65,7 @@ class DueRefill extends Equatable {
         escalatedStatus,
         lastActionAt,
         prescribedBy,
+        isRecurrent,
+        recurrenceIntervalDays,
       ];
 }

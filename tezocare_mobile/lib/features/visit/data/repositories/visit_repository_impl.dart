@@ -148,4 +148,17 @@ class VisitRepositoryImpl implements VisitRepository {
       return handleException(e);
     }
   }
+
+  @override
+  Future<Either<Failure, void>> deleteVisit(String id) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      await remoteDataSource.deleteVisit(id);
+      return const Right(null);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
 }

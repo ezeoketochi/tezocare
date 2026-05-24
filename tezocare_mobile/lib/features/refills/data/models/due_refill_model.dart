@@ -20,6 +20,8 @@ class DueRefillModel extends DueRefill {
     required super.escalatedStatus,
     super.lastActionAt,
     super.prescribedBy,
+    super.isRecurrent,
+    super.recurrenceIntervalDays,
   });
 
   factory DueRefillModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,8 @@ class DueRefillModel extends DueRefill {
           ? DateTime.parse(json['last_action_at'] as String)
           : null,
       prescribedBy: json['prescribed_by'] as String?,
+      isRecurrent: json['is_recurrent'] as bool? ?? false,
+      recurrenceIntervalDays: json['recurrence_interval_days'] as int?,
     );
   }
 
@@ -71,6 +75,9 @@ class DueRefillModel extends DueRefill {
       if (lastActionAt != null)
         'last_action_at': lastActionAt!.toIso8601String(),
       if (prescribedBy != null) 'prescribed_by': prescribedBy,
+      'is_recurrent': isRecurrent,
+      if (recurrenceIntervalDays != null)
+        'recurrence_interval_days': recurrenceIntervalDays,
     };
   }
 }

@@ -12,6 +12,7 @@ abstract class VisitRemoteDataSource {
   Future<VisitModel> completeVisit(String id);
   Future<VisitModel> referVisit(String id, {required String destination, required String reason});
   Future<VisitModel> markFollowUpDone(String id);
+  Future<void> deleteVisit(String id);
 }
 
 class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
@@ -153,6 +154,15 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
         e,
         defaultMessage: 'Failed to mark follow-up done',
       );
+    }
+  }
+
+  @override
+  Future<void> deleteVisit(String id) async {
+    try {
+      await dioClient.dio.delete('${ApiConstants.visits}/$id');
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Failed to delete visit');
     }
   }
 

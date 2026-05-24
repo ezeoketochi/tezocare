@@ -34,3 +34,12 @@ class GetVisitDetailEvent extends VisitEvent {
   @override
   List<Object> get props => [id];
 }
+
+class DeleteVisitEvent extends VisitEvent {
+  final String id;
+
+  const DeleteVisitEvent({required this.id});
+
+  @override
+  List<Object> get props => [id];
+}

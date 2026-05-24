@@ -53,6 +53,7 @@ import 'features/visit/data/datasources/visit_remote_datasource.dart';
 import 'features/visit/data/repositories/visit_repository_impl.dart';
 import 'features/visit/domain/repositories/visit_repository.dart';
 import 'features/visit/domain/usecases/create_visit_usecase.dart';
+import 'features/visit/domain/usecases/delete_visit_usecase.dart';
 import 'features/visit/domain/usecases/get_patient_visits_usecase.dart';
 import 'features/visit/domain/usecases/get_visit_detail_usecase.dart';
 
@@ -160,6 +161,7 @@ void _initVisit() {
   sl.registerFactory(() => CreateVisitUseCase(repository: sl()));
   sl.registerFactory(() => GetPatientVisitsUseCase(repository: sl()));
   sl.registerFactory(() => GetVisitDetailUseCase(repository: sl()));
+  sl.registerFactory(() => DeleteVisitUseCase(repository: sl()));
 }
 
 void _initMedication() {

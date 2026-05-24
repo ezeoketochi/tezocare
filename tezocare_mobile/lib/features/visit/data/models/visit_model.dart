@@ -152,6 +152,8 @@ class MedicationDispensedDataModel extends MedicationDispensedData {
     super.dateDispensed,
     super.refillDate,
     super.specialInstructions,
+    super.isRecurrent,
+    super.recurrenceIntervalDays,
   });
 
   factory MedicationDispensedDataModel.fromJson(Map<String, dynamic> json) {
@@ -167,6 +169,8 @@ class MedicationDispensedDataModel extends MedicationDispensedData {
           ? DateTime.parse(json['refill_date'] as String)
           : null,
       specialInstructions: json['special_instructions'] as String?,
+      isRecurrent: json['is_recurrent'] as bool? ?? false,
+      recurrenceIntervalDays: json['recurrence_interval_days'] as int?,
     );
   }
 
@@ -182,6 +186,9 @@ class MedicationDispensedDataModel extends MedicationDispensedData {
         'refill_date': refillDate!.toIso8601String().split('T')[0],
       if (specialInstructions != null)
         'special_instructions': specialInstructions,
+      'is_recurrent': isRecurrent,
+      if (recurrenceIntervalDays != null)
+        'recurrence_interval_days': recurrenceIntervalDays,
     };
   }
 }
@@ -193,6 +200,8 @@ class FollowUpDataModel extends FollowUpData {
     super.isDone,
     super.outcome,
     super.dateCompleted,
+    super.isRecurrent,
+    super.recurrenceIntervalDays,
   });
 
   factory FollowUpDataModel.fromJson(Map<String, dynamic> json) {
@@ -206,6 +215,8 @@ class FollowUpDataModel extends FollowUpData {
       dateCompleted: json['date_completed'] != null
           ? DateTime.parse(json['date_completed'] as String)
           : null,
+      isRecurrent: json['is_recurrent'] as bool? ?? false,
+      recurrenceIntervalDays: json['recurrence_interval_days'] as int?,
     );
   }
 
@@ -218,6 +229,9 @@ class FollowUpDataModel extends FollowUpData {
       if (outcome != null) 'outcome': outcome,
       if (dateCompleted != null)
         'date_completed': dateCompleted!.toIso8601String(),
+      'is_recurrent': isRecurrent,
+      if (recurrenceIntervalDays != null)
+        'recurrence_interval_days': recurrenceIntervalDays,
     };
   }
 }

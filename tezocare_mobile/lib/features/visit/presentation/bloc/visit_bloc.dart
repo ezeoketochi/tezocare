@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/usecases/create_visit_usecase.dart';
+import '../../domain/usecases/delete_visit_usecase.dart';
 import '../../domain/usecases/get_patient_visits_usecase.dart';
 import '../../domain/usecases/get_visit_detail_usecase.dart';
 import 'visit_event.dart';
@@ -10,15 +11,18 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
   final CreateVisitUseCase createVisitUseCase;
   final GetPatientVisitsUseCase getPatientVisitsUseCase;
   final GetVisitDetailUseCase getVisitDetailUseCase;
+  final DeleteVisitUseCase deleteVisitUseCase;
 
   VisitBloc({
     required this.createVisitUseCase,
     required this.getPatientVisitsUseCase,
     required this.getVisitDetailUseCase,
+    required this.deleteVisitUseCase,
   }) : super(const VisitInitial()) {
     on<CreateVisitEvent>(_onCreateVisit);
     on<GetPatientVisitsEvent>(_onGetPatientVisits);
     on<GetVisitDetailEvent>(_onGetVisitDetail);
+    on<DeleteVisitEvent>(_onDeleteVisit);
   }
 
   Future<void> _onCreateVisit(
@@ -60,6 +64,20 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     result.fold(
       (failure) => emit(VisitError(message: _failureMessage(failure))),
       (visit) => emit(VisitDetailLoaded(visit: visit)),
+    );
+  }
+
+  Future<void> _onDeleteVisit(
+    DeleteVisitEvent event,
+    Emitter<VisitState> emit,
+  ) async {
+    emit(const VisitLoading());
+    final result = await deleteVisitUseCase(
+      DeleteVisitParams(id: event.id),
+    );
+    result.fold(
+      (failure) => emit(VisitError(message: _failureMessage(failure))),
+      (_) => emit(VisitDeleted(visitId: event.id)),
     );
   }
 

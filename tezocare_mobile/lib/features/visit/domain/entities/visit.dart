@@ -100,6 +100,8 @@ class MedicationDispensedData extends Equatable {
   final DateTime? dateDispensed;
   final DateTime? refillDate;
   final String? specialInstructions;
+  final bool isRecurrent;
+  final int? recurrenceIntervalDays;
 
   const MedicationDispensedData({
     this.drugName,
@@ -109,6 +111,8 @@ class MedicationDispensedData extends Equatable {
     this.dateDispensed,
     this.refillDate,
     this.specialInstructions,
+    this.isRecurrent = false,
+    this.recurrenceIntervalDays,
   });
 
   @override
@@ -120,6 +124,8 @@ class MedicationDispensedData extends Equatable {
         dateDispensed,
         refillDate,
         specialInstructions,
+        isRecurrent,
+        recurrenceIntervalDays,
       ];
 }
 
@@ -129,6 +135,8 @@ class FollowUpData extends Equatable {
   final bool isDone;
   final String? outcome;
   final DateTime? dateCompleted;
+  final bool isRecurrent;
+  final int? recurrenceIntervalDays;
 
   const FollowUpData({
     this.required = false,
@@ -136,10 +144,12 @@ class FollowUpData extends Equatable {
     this.isDone = false,
     this.outcome,
     this.dateCompleted,
+    this.isRecurrent = false,
+    this.recurrenceIntervalDays,
   });
 
   @override
-  List<Object?> get props => [required, scheduledDate, isDone, outcome, dateCompleted];
+  List<Object?> get props => [required, scheduledDate, isDone, outcome, dateCompleted, isRecurrent, recurrenceIntervalDays];
 }
 
 class ReferralData extends Equatable {

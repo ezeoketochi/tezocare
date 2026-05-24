@@ -10,4 +10,5 @@ abstract class VisitRepository {
   Future<Either<Failure, Visit>> completeVisit(String id);
   Future<Either<Failure, Visit>> referVisit(String id, {required String destination, required String reason});
   Future<Either<Failure, Visit>> markFollowUpDone(String id);
+  Future<Either<Failure, void>> deleteVisit(String id);
 }

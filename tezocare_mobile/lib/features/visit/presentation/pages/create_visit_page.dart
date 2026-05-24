@@ -38,6 +38,8 @@ class DispensedMedication {
   TextEditingController specialInstructionsController;
   DateTime dateDispensed;
   DateTime? refillDate;
+  bool isRecurrent;
+  int? recurrenceIntervalDays;
 
   DispensedMedication({
     String drugName = '',
@@ -47,6 +49,8 @@ class DispensedMedication {
     DateTime? dateDispensed,
     this.refillDate,
     String specialInstructions = '',
+    this.isRecurrent = false,
+    this.recurrenceIntervalDays,
   }) : drugNameController = TextEditingController(text: drugName),
         doseController = TextEditingController(text: dose),
         frequencyController = TextEditingController(text: frequency),
@@ -103,6 +107,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
 
   bool _followUpRequired = false;
   DateTime? _followUpDate;
+  bool _followUpRecurrent = false;
+  int? _followUpIntervalDays;
 
   bool _referPatient = false;
   final _referralDestinationController = TextEditingController();
@@ -240,6 +246,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     m.specialInstructionsController.text.isNotEmpty
                         ? m.specialInstructionsController.text
                         : null,
+                isRecurrent: m.isRecurrent,
+                recurrenceIntervalDays: m.recurrenceIntervalDays,
               ))
           .toList();
 
@@ -247,6 +255,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
           ? FollowUpDataModel(
               required: true,
               scheduledDate: _followUpDate,
+              isRecurrent: _followUpRecurrent,
+              recurrenceIntervalDays: _followUpIntervalDays,
             )
           : null;
 
@@ -334,6 +344,10 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                           child: AppTextField(
                             controller: c.complaintController,
                             hint: 'Complaint',
+                            label: 'Chief Complaint',
+                            validator: (v) => v == null || v.trim().isEmpty
+                                ? 'Complaint is required'
+                                : null,
                           ),
                         ),
                         SizedBox(width: 8.w),
@@ -610,6 +624,9 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                   controller: _diagnosisController,
                   label: 'Suspected Diagnosis',
                   hint: 'Enter diagnosis',
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Diagnosis is required'
+                      : null,
                 ),
                 SizedBox(height: 12.h),
                 Text('Severity', style: AppTextStyles.titleSmall),
@@ -703,6 +720,59 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                         SizedBox(height: 8.h),
                         _buildMedRefillPicker(m),
                         SizedBox(height: 8.h),
+                        Row(
+                          children: [
+                            Text('Recurrent refill',
+                                style: AppTextStyles.titleSmall.copyWith(
+                                    fontSize: 12.sp)),
+                            Spacer(),
+                            Switch(
+                              value: m.isRecurrent,
+                              activeThumbColor: AppColors.primary,
+                              onChanged: (v) => setState(() {
+                                m.isRecurrent = v;
+                                if (v) m.recurrenceIntervalDays = 30;
+                              }),
+                            ),
+                          ],
+                        ),
+                        if (m.isRecurrent) ...[
+                          SizedBox(height: 8.h),
+                          DropdownButtonFormField<int>(
+                            value: m.recurrenceIntervalDays,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: AppColors.white,
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 14.w, vertical: 10.h),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10.r),
+                                borderSide: const BorderSide(
+                                    color: AppColors.border, width: 1.5),
+                              ),
+                            ),
+                            hint: Text('Select interval',
+                                style: AppTextStyles.bodySmall),
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 7, child: Text('Every 7 days')),
+                              DropdownMenuItem(
+                                  value: 14, child: Text('Every 14 days')),
+                              DropdownMenuItem(
+                                  value: 30, child: Text('Every 30 days')),
+                              DropdownMenuItem(
+                                  value: 90, child: Text('Every 90 days')),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) {
+                                setState(
+                                    () => m.recurrenceIntervalDays = v);
+                              }
+                            },
+                          ),
+                        ],
+                        SizedBox(height: 8.h),
                         AppTextField(
                           controller: m.specialInstructionsController,
                           hint: 'Special instructions',
@@ -764,6 +834,51 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     date: _followUpDate,
                     onPicked: (d) => setState(() => _followUpDate = d),
                   ),
+                  SizedBox(height: 12.h),
+                  Row(
+                    children: [
+                      Text('Recurrent follow-up',
+                          style: AppTextStyles.titleSmall),
+                      Spacer(),
+                      Switch(
+                        value: _followUpRecurrent,
+                        activeThumbColor: AppColors.primary,
+                        onChanged: (v) => setState(() {
+                          _followUpRecurrent = v;
+                          if (v) _followUpIntervalDays = 30;
+                        }),
+                      ),
+                    ],
+                  ),
+                  if (_followUpRecurrent) ...[
+                    SizedBox(height: 8.h),
+                    DropdownButtonFormField<int>(
+                      value: _followUpIntervalDays,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: AppColors.white,
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 14.w, vertical: 10.h),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                          borderSide: const BorderSide(
+                              color: AppColors.border, width: 1.5),
+                        ),
+                      ),
+                      hint: Text('Select interval',
+                          style: AppTextStyles.bodySmall),
+                      items: const [
+                        DropdownMenuItem(value: 7, child: Text('Every 7 days')),
+                        DropdownMenuItem(value: 14, child: Text('Every 14 days')),
+                        DropdownMenuItem(value: 30, child: Text('Every 30 days')),
+                        DropdownMenuItem(value: 90, child: Text('Every 90 days')),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) setState(() => _followUpIntervalDays = v);
+                      },
+                    ),
+                  ],
                 ],
                 SizedBox(height: 24.h),
 
