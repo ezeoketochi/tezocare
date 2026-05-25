@@ -94,36 +94,68 @@ class ClinicalAssessmentData extends Equatable {
 
 class MedicationDispensedData extends Equatable {
   final String? drugName;
-  final String? dose;
+  final double? doseAmount;
+  final String? doseUnit;
+  final String? route;
   final String? frequency;
-  final String? duration;
+  final String? frequencyCode;
+  final int? durationAmount;
+  final String? durationUnit;
+  final int? totalQuantity;
+  final String? instructions;
   final DateTime? dateDispensed;
   final DateTime? refillDate;
-  final String? specialInstructions;
   final bool isRecurrent;
   final int? recurrenceIntervalDays;
 
   const MedicationDispensedData({
     this.drugName,
-    this.dose,
+    this.doseAmount,
+    this.doseUnit,
+    this.route,
     this.frequency,
-    this.duration,
+    this.frequencyCode,
+    this.durationAmount,
+    this.durationUnit,
+    this.totalQuantity,
+    this.instructions,
     this.dateDispensed,
     this.refillDate,
-    this.specialInstructions,
     this.isRecurrent = false,
     this.recurrenceIntervalDays,
   });
 
+  String get sigString {
+    final parts = <String>[];
+    if (doseAmount != null) {
+      final unit = doseUnit != null && doseUnit!.isNotEmpty ? '$doseUnit(s)' : '';
+      parts.add('$doseAmount $unit'.trim());
+    }
+    if (route != null && route!.isNotEmpty) parts.add(route!);
+    if (frequency != null && frequency!.isNotEmpty) parts.add(frequency!);
+    if (durationAmount != null && durationUnit != null && durationUnit!.isNotEmpty) {
+      parts.add('for $durationAmount $durationUnit');
+    }
+    if (instructions != null && instructions!.isNotEmpty) {
+      parts.add('($instructions)');
+    }
+    return parts.join(' ');
+  }
+
   @override
   List<Object?> get props => [
         drugName,
-        dose,
+        doseAmount,
+        doseUnit,
+        route,
         frequency,
-        duration,
+        frequencyCode,
+        durationAmount,
+        durationUnit,
+        totalQuantity,
+        instructions,
         dateDispensed,
         refillDate,
-        specialInstructions,
         isRecurrent,
         recurrenceIntervalDays,
       ];
@@ -230,9 +262,10 @@ class Visit extends Equatable {
     if (medicationsDispensed.isNotEmpty) {
       final meds = medicationsDispensed
           .where((m) => m.drugName != null && m.drugName!.isNotEmpty)
-          .map((m) =>
-              '${m.drugName} ${m.dose ?? ""} ${m.frequency ?? ""}')
-          .join('; ');
+          .map((m) {
+        final sig = m.sigString;
+        return sig.isNotEmpty ? '${m.drugName} — $sig' : m.drugName!;
+      }).join('; ');
       if (meds.isNotEmpty) parts.add('Dispensed: $meds');
     }
     return parts.isNotEmpty ? parts.join('\n') : null;

@@ -357,22 +357,16 @@ class _RefillCard extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 10.h),
-            Row(
-              children: [
-                if (refill.dose.isNotEmpty) ...[
-                  _infoChip(Icons.straighten, refill.dose),
-                  SizedBox(width: 8.w),
-                ],
-                if (refill.frequency.isNotEmpty) ...[
-                  _infoChip(Icons.schedule, refill.frequency),
-                  SizedBox(width: 8.w),
-                ],
-                if (refill.duration.isNotEmpty) ...[
-                  _infoChip(Icons.date_range, refill.duration),
-                ],
-              ],
-            ),
+            if (refill.sig.isNotEmpty) ...[
+              SizedBox(height: 6.h),
+              Text(
+                refill.sig,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
             SizedBox(height: 8.h),
             Row(
               children: [
@@ -532,21 +526,4 @@ class _RefillCard extends StatelessWidget {
     }
   }
 
-  Widget _infoChip(IconData icon, String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-      decoration: BoxDecoration(
-        color: AppColors.primarySurface,
-        borderRadius: BorderRadius.circular(6.r),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12.sp, color: AppColors.primary),
-          SizedBox(width: 4.w),
-          Text(text, style: AppTextStyles.caption.copyWith(color: AppColors.primary)),
-        ],
-      ),
-    );
-  }
 }

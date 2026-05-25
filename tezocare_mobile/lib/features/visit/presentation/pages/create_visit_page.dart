@@ -30,12 +30,46 @@ class TestResultEntry {
           resultController = TextEditingController(text: result);
 }
 
+const sigFrequencyCodes = ['OD', 'BD', 'TDS', 'QDS', 'PRN', 'STAT', 'ON', 'OM'];
+
+const sigDoseUnits = ['tablet', 'mg', 'ml', 'capsule', 'drop', 'puff'];
+
+const sigRoutes = ['orally', 'topical', 'IV', 'IM', 'sublingual', 'inhaled', 'rectal', 'vaginal'];
+
+const sigDurationUnits = ['days', 'weeks', 'months'];
+
+const sigFrequencyMap = {
+  'OD': 'once daily',
+  'BD': 'twice daily',
+  'TDS': 'three times daily',
+  'QDS': 'four times daily',
+  'PRN': 'as needed',
+  'STAT': 'immediately',
+  'ON': 'once nightly',
+  'OM': 'once morning',
+};
+
+const sigMultiplierMap = {
+  'OD': 1,
+  'BD': 2,
+  'TDS': 3,
+  'QDS': 4,
+  'PRN': null,
+  'STAT': 1,
+  'ON': 1,
+  'OM': 1,
+};
+
 class DispensedMedication {
   TextEditingController drugNameController;
-  TextEditingController doseController;
+  TextEditingController doseAmountController;
+  String doseUnit;
+  String route;
+  String frequencyCode;
   TextEditingController frequencyController;
-  TextEditingController durationController;
-  TextEditingController specialInstructionsController;
+  TextEditingController durationAmountController;
+  String durationUnit;
+  TextEditingController instructionsController;
   DateTime dateDispensed;
   DateTime? refillDate;
   bool isRecurrent;
@@ -43,21 +77,33 @@ class DispensedMedication {
 
   DispensedMedication({
     String drugName = '',
-    String dose = '',
+    String doseAmount = '',
+    this.doseUnit = 'tablet',
+    this.route = 'orally',
+    this.frequencyCode = 'BD',
     String frequency = '',
-    String duration = '',
+    String durationAmount = '',
+    this.durationUnit = 'days',
+    String instructions = '',
     DateTime? dateDispensed,
     this.refillDate,
-    String specialInstructions = '',
     this.isRecurrent = false,
     this.recurrenceIntervalDays,
   }) : drugNameController = TextEditingController(text: drugName),
-        doseController = TextEditingController(text: dose),
+        doseAmountController = TextEditingController(text: doseAmount),
         frequencyController = TextEditingController(text: frequency),
-        durationController = TextEditingController(text: duration),
-        specialInstructionsController =
-            TextEditingController(text: specialInstructions),
+        durationAmountController = TextEditingController(text: durationAmount),
+        instructionsController = TextEditingController(text: instructions),
         dateDispensed = dateDispensed ?? DateTime.now();
+
+  int? get totalQuantity {
+    final dose = double.tryParse(doseAmountController.text);
+    final duration = int.tryParse(durationAmountController.text);
+    if (dose == null || duration == null) return null;
+    final mult = sigMultiplierMap[frequencyCode];
+    if (mult == null) return null;
+    return (dose * mult * duration).round();
+  }
 }
 
 class CreateVisitPage extends StatefulWidget {
@@ -142,10 +188,10 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
     }
     for (final m in _dispensedMeds) {
       m.drugNameController.dispose();
-      m.doseController.dispose();
+      m.doseAmountController.dispose();
       m.frequencyController.dispose();
-      m.durationController.dispose();
-      m.specialInstructionsController.dispose();
+      m.durationAmountController.dispose();
+      m.instructionsController.dispose();
     }
     super.dispose();
   }
@@ -229,27 +275,31 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
 
       final medicationsDispensed = _dispensedMeds
           .where((m) => m.drugNameController.text.isNotEmpty)
-          .map((m) => MedicationDispensedDataModel(
-                drugName: m.drugNameController.text,
-                dose: m.doseController.text.isNotEmpty
-                    ? m.doseController.text
-                    : null,
-                frequency: m.frequencyController.text.isNotEmpty
-                    ? m.frequencyController.text
-                    : null,
-                duration: m.durationController.text.isNotEmpty
-                    ? m.durationController.text
-                    : null,
-                dateDispensed: m.dateDispensed,
-                refillDate: m.refillDate,
-                specialInstructions:
-                    m.specialInstructionsController.text.isNotEmpty
-                        ? m.specialInstructionsController.text
-                        : null,
-                isRecurrent: m.isRecurrent,
-                recurrenceIntervalDays: m.recurrenceIntervalDays,
-              ))
-          .toList();
+          .map((m) {
+        final doseAmount = double.tryParse(m.doseAmountController.text);
+        final durationAmount = int.tryParse(m.durationAmountController.text);
+        final freqText = m.frequencyController.text.isNotEmpty
+            ? m.frequencyController.text
+            : (sigFrequencyMap[m.frequencyCode] ?? '');
+        return MedicationDispensedDataModel(
+          drugName: m.drugNameController.text,
+          doseAmount: doseAmount,
+          doseUnit: m.doseUnit.isNotEmpty ? m.doseUnit : null,
+          route: m.route.isNotEmpty ? m.route : null,
+          frequency: freqText.isNotEmpty ? freqText : null,
+          frequencyCode: m.frequencyCode.isNotEmpty ? m.frequencyCode : null,
+          durationAmount: durationAmount,
+          durationUnit: m.durationUnit.isNotEmpty ? m.durationUnit : null,
+          totalQuantity: m.totalQuantity,
+          instructions: m.instructionsController.text.isNotEmpty
+              ? m.instructionsController.text
+              : null,
+          dateDispensed: m.dateDispensed,
+          refillDate: m.refillDate,
+          isRecurrent: m.isRecurrent,
+          recurrenceIntervalDays: m.recurrenceIntervalDays,
+        );
+      }).toList();
 
       final followUp = _followUpRequired
           ? FollowUpDataModel(
@@ -435,7 +485,7 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     Expanded(
                       child: AppTextField(
                         controller: _bpSystolicController,
-                        label: 'BP Systolic',
+                        label: 'BP Systolic (mmHg)',
                         hint: '120',
                         keyboardType: TextInputType.number,
                       ),
@@ -444,7 +494,7 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     Expanded(
                       child: AppTextField(
                         controller: _bpDiastolicController,
-                        label: 'BP Diastolic',
+                        label: 'BP Diastolic (mmHg)',
                         hint: '80',
                         keyboardType: TextInputType.number,
                       ),
@@ -457,8 +507,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     Expanded(
                       child: AppTextField(
                         controller: _heartRateController,
-                        label: 'Heart Rate',
-                        hint: '72 bpm',
+                        label: 'Heart Rate (bpm)',
+                        hint: '72',
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -466,8 +516,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     Expanded(
                       child: AppTextField(
                         controller: _temperatureController,
-                        label: 'Temperature',
-                        hint: '36.5 °C',
+                        label: 'Temperature (°C)',
+                        hint: '36.5',
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -479,8 +529,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     Expanded(
                       child: AppTextField(
                         controller: _spo2Controller,
-                        label: 'SpO2',
-                        hint: '98 %',
+                        label: 'SpO2 (%)',
+                        hint: '98',
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -488,8 +538,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     Expanded(
                       child: AppTextField(
                         controller: _respiratoryRateController,
-                        label: 'Resp. Rate',
-                        hint: '16 /min',
+                        label: 'Resp. Rate (breaths/min)',
+                        hint: '16',
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -501,8 +551,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     Expanded(
                       child: AppTextField(
                         controller: _weightController,
-                        label: 'Weight',
-                        hint: '70 kg',
+                        label: 'Weight (kg)',
+                        hint: '70',
                         keyboardType: TextInputType.number,
                         onChanged: (_) => _calculateBmi(),
                       ),
@@ -511,8 +561,8 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     Expanded(
                       child: AppTextField(
                         controller: _heightController,
-                        label: 'Height',
-                        hint: '175 cm',
+                        label: 'Height (cm)',
+                        hint: '175',
                         keyboardType: TextInputType.number,
                         onChanged: (_) => _calculateBmi(),
                       ),
@@ -676,19 +726,79 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                     ),
                     child: Column(
                       children: [
+                        AppTextField(
+                          controller: m.drugNameController,
+                          hint: 'e.g. Amoxicillin',
+                          label: 'Drug Name',
+                        ),
+                        SizedBox(height: 8.h),
                         Row(
                           children: [
                             Expanded(
+                              flex: 2,
                               child: AppTextField(
-                                controller: m.drugNameController,
-                                hint: 'Drug name',
+                                controller: m.doseAmountController,
+                                hint: 'e.g. 2',
+                                label: 'Dose Amount',
+                                keyboardType: TextInputType.number,
                               ),
                             ),
                             SizedBox(width: 8.w),
                             Expanded(
-                              child: AppTextField(
-                                controller: m.doseController,
-                                hint: 'Dose',
+                              flex: 3,
+                              child: DropdownButtonFormField<String>(
+                                value: m.doseUnit,
+                                decoration: _sigDropdownDecoration(),
+                                hint: Text('Unit', style: AppTextStyles.bodySmall),
+                                items: sigDoseUnits
+                                    .map((u) => DropdownMenuItem(
+                                        value: u, child: Text(u)))
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v != null) setState(() => m.doseUnit = v);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8.h),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                value: m.route,
+                                decoration: _sigDropdownDecoration(),
+                                hint: Text('Route', style: AppTextStyles.bodySmall),
+                                items: sigRoutes
+                                    .map((r) => DropdownMenuItem(
+                                        value: r, child: Text(r)))
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v != null) setState(() => m.route = v);
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                value: m.frequencyCode,
+                                decoration: _sigDropdownDecoration(),
+                                hint: Text('Freq Code', style: AppTextStyles.bodySmall),
+                                items: sigFrequencyCodes
+                                    .map((c) => DropdownMenuItem(
+                                        value: c, child: Text(c)))
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v != null) {
+                                    setState(() {
+                                      m.frequencyCode = v;
+                                      final label = sigFrequencyMap[v];
+                                      if (label != null) {
+                                        m.frequencyController.text = label;
+                                      }
+                                    });
+                                  }
+                                },
                               ),
                             ),
                           ],
@@ -699,18 +809,51 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                             Expanded(
                               child: AppTextField(
                                 controller: m.frequencyController,
-                                hint: 'Frequency',
-                              ),
-                            ),
-                            SizedBox(width: 8.w),
-                            Expanded(
-                              child: AppTextField(
-                                controller: m.durationController,
-                                hint: 'Duration',
+                                hint: 'e.g. twice daily',
+                                label: 'Frequency',
                               ),
                             ),
                           ],
                         ),
+                        SizedBox(height: 8.h),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: AppTextField(
+                                controller: m.durationAmountController,
+                                hint: 'e.g. 7',
+                                label: 'Duration',
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              flex: 3,
+                              child: DropdownButtonFormField<String>(
+                                value: m.durationUnit,
+                                decoration: _sigDropdownDecoration(),
+                                hint: Text('Unit', style: AppTextStyles.bodySmall),
+                                items: sigDurationUnits
+                                    .map((u) => DropdownMenuItem(
+                                        value: u, child: Text(u)))
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v != null) setState(() => m.durationUnit = v);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (m.totalQuantity != null) ...[
+                          SizedBox(height: 8.h),
+                          AppTextField(
+                            controller: TextEditingController(
+                                text: m.totalQuantity.toString()),
+                            label: 'Total Quantity (auto-calc)',
+                            isReadOnly: true,
+                          ),
+                        ],
                         SizedBox(height: 8.h),
                         _buildMedDatePicker(
                           label: 'Date Dispensed',
@@ -774,8 +917,9 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                         ],
                         SizedBox(height: 8.h),
                         AppTextField(
-                          controller: m.specialInstructionsController,
-                          hint: 'Special instructions',
+                          controller: m.instructionsController,
+                          hint: 'e.g. take after food',
+                          label: 'Instructions',
                         ),
                         if (_dispensedMeds.length > 1)
                           Align(
@@ -1066,6 +1210,19 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
           suffixIcon: Icon(Icons.calendar_today_outlined,
               size: 18.sp, color: AppColors.primary),
         ),
+      ),
+    );
+  }
+
+  InputDecoration _sigDropdownDecoration() {
+    return InputDecoration(
+      filled: true,
+      fillColor: AppColors.white,
+      isDense: true,
+      contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.r),
+        borderSide: const BorderSide(color: AppColors.border, width: 1.5),
       ),
     );
   }

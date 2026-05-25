@@ -405,25 +405,27 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     final rows = <Widget>[];
     if (v.bloodPressureSystolic != null) {
       rows.add(
-        _detailRow(
+        _vitalRow(
           'BP',
           '${v.bloodPressureSystolic}/${v.bloodPressureDiastolic ?? "?"}',
+          unit: 'mmHg',
         ),
       );
     }
     if (v.heartRate != null) {
-      rows.add(_detailRow('Heart Rate', '${v.heartRate} bpm'));
+      rows.add(_vitalRow('Heart Rate', '${v.heartRate}', unit: 'bpm'));
     }
     if (v.temperature != null) {
-      rows.add(_detailRow('Temperature', '${v.temperature} °C'));
+      rows.add(_vitalRow('Temperature', '${v.temperature}', unit: '°C'));
     }
-    if (v.spo2 != null) rows.add(_detailRow('SpO2', '${v.spo2} %'));
-    if (v.weight != null) rows.add(_detailRow('Weight', '${v.weight} kg'));
-    if (v.bmi != null) rows.add(_detailRow('BMI', v.bmi!.toStringAsFixed(1)));
+    if (v.spo2 != null) rows.add(_vitalRow('SpO2', '${v.spo2}', unit: '%'));
+    if (v.weight != null)
+      rows.add(_vitalRow('Weight', '${v.weight}', unit: 'kg'));
+    if (v.bmi != null) {
+      rows.add(_vitalRow('BMI', v.bmi!.toStringAsFixed(1), unit: 'kg/m²'));
+    }
     if (v.glucose != null) {
-      rows.add(
-        _detailRow('Glucose', '${v.glucose} (${v.glucoseType ?? "N/A"})'),
-      );
+      rows.add(_vitalRow('Glucose', '${v.glucose}', unit: v.glucoseType ?? ''));
     }
 
     if (rows.isEmpty) {
@@ -467,16 +469,26 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
       child: _buildSectionCard(
         'Medications Dispensed',
         visit.medicationsDispensed.map<Widget>((m) {
-          final parts = [
-            if (m.drugName != null && m.drugName!.isNotEmpty) m.drugName,
-            if (m.dose != null && m.dose!.isNotEmpty) m.dose,
-            if (m.frequency != null && m.frequency!.isNotEmpty) m.frequency,
-          ];
+          final name = m.drugName ?? 'Medication';
+          final sig = m.sigString;
           return Padding(
             padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
-            child: Text(
-              parts.isNotEmpty ? parts.join(' ') : 'Medication',
-              style: AppTextStyles.bodyMedium,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: AppTextStyles.bodyMedium),
+                if (sig.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(top: 2.h),
+                    child: Text(
+                      sig,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           );
         }).toList(),
@@ -648,6 +660,47 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
             SizedBox(height: 8.h),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _vitalRow(String label, String value, {String? unit}) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTextStyles.bodySmall),
+          Flexible(
+            child: (unit != null && unit.isNotEmpty)
+                ? Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: value,
+                          style: AppTextStyles.titleSmall.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' $unit',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.end,
+                  )
+                : Text(
+                    value,
+                    style: AppTextStyles.titleSmall.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                    textAlign: TextAlign.end,
+                  ),
+          ),
+        ],
       ),
     );
   }

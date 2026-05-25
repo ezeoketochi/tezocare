@@ -8,9 +8,16 @@ class DueRefill extends Equatable {
   final String visitId;
   final DateTime? visitDate;
   final String drugName;
-  final String dose;
+  final double? doseAmount;
+  final String? doseUnit;
+  final String? route;
   final String frequency;
-  final String duration;
+  final String? frequencyCode;
+  final int? durationAmount;
+  final String? durationUnit;
+  final int? totalQuantity;
+  final String? instructions;
+  final String? sigString;
   final String? dateDispensed;
   final String refillDate;
   final int daysUntilRefill;
@@ -30,9 +37,16 @@ class DueRefill extends Equatable {
     required this.visitId,
     this.visitDate,
     this.drugName = '',
-    this.dose = '',
+    this.doseAmount,
+    this.doseUnit,
+    this.route,
     this.frequency = '',
-    this.duration = '',
+    this.frequencyCode,
+    this.durationAmount,
+    this.durationUnit,
+    this.totalQuantity,
+    this.instructions,
+    this.sigString,
     this.dateDispensed,
     required this.refillDate,
     required this.daysUntilRefill,
@@ -45,6 +59,25 @@ class DueRefill extends Equatable {
     this.recurrenceIntervalDays,
   });
 
+  String get sig => sigString ?? _buildSigString();
+
+  String _buildSigString() {
+    final parts = <String>[];
+    if (doseAmount != null) {
+      final unit = doseUnit != null && doseUnit!.isNotEmpty ? '$doseUnit(s)' : '';
+      parts.add('$doseAmount $unit'.trim());
+    }
+    if (route != null && route!.isNotEmpty) parts.add(route!);
+    if (frequency.isNotEmpty) parts.add(frequency);
+    if (durationAmount != null && durationUnit != null && durationUnit!.isNotEmpty) {
+      parts.add('for $durationAmount $durationUnit');
+    }
+    if (instructions != null && instructions!.isNotEmpty) {
+      parts.add('($instructions)');
+    }
+    return parts.join(' ');
+  }
+
   @override
   List<Object?> get props => [
         refillId,
@@ -54,9 +87,16 @@ class DueRefill extends Equatable {
         visitId,
         visitDate,
         drugName,
-        dose,
+        doseAmount,
+        doseUnit,
+        route,
         frequency,
-        duration,
+        frequencyCode,
+        durationAmount,
+        durationUnit,
+        totalQuantity,
+        instructions,
+        sigString,
         dateDispensed,
         refillDate,
         daysUntilRefill,

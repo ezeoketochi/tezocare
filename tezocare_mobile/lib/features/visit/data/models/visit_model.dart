@@ -146,12 +146,17 @@ class ClinicalAssessmentDataModel extends ClinicalAssessmentData {
 class MedicationDispensedDataModel extends MedicationDispensedData {
   const MedicationDispensedDataModel({
     super.drugName,
-    super.dose,
+    super.doseAmount,
+    super.doseUnit,
+    super.route,
     super.frequency,
-    super.duration,
+    super.frequencyCode,
+    super.durationAmount,
+    super.durationUnit,
+    super.totalQuantity,
+    super.instructions,
     super.dateDispensed,
     super.refillDate,
-    super.specialInstructions,
     super.isRecurrent,
     super.recurrenceIntervalDays,
   });
@@ -159,16 +164,21 @@ class MedicationDispensedDataModel extends MedicationDispensedData {
   factory MedicationDispensedDataModel.fromJson(Map<String, dynamic> json) {
     return MedicationDispensedDataModel(
       drugName: json['drug_name'] as String?,
-      dose: json['dose'] as String?,
+      doseAmount: (json['dose_amount'] as num?)?.toDouble(),
+      doseUnit: json['dose_unit'] as String?,
+      route: json['route'] as String?,
       frequency: json['frequency'] as String?,
-      duration: json['duration'] as String?,
+      frequencyCode: json['frequency_code'] as String?,
+      durationAmount: json['duration_amount'] as int?,
+      durationUnit: json['duration_unit'] as String?,
+      totalQuantity: json['total_quantity'] as int?,
+      instructions: json['instructions'] as String?,
       dateDispensed: json['date_dispensed'] != null
           ? DateTime.parse(json['date_dispensed'] as String)
           : null,
       refillDate: json['refill_date'] != null
           ? DateTime.parse(json['refill_date'] as String)
           : null,
-      specialInstructions: json['special_instructions'] as String?,
       isRecurrent: json['is_recurrent'] as bool? ?? false,
       recurrenceIntervalDays: json['recurrence_interval_days'] as int?,
     );
@@ -177,15 +187,19 @@ class MedicationDispensedDataModel extends MedicationDispensedData {
   Map<String, dynamic> toJson() {
     return {
       if (drugName != null) 'drug_name': drugName,
-      if (dose != null) 'dose': dose,
+      if (doseAmount != null) 'dose_amount': doseAmount,
+      if (doseUnit != null) 'dose_unit': doseUnit,
+      if (route != null) 'route': route,
       if (frequency != null) 'frequency': frequency,
-      if (duration != null) 'duration': duration,
+      if (frequencyCode != null) 'frequency_code': frequencyCode,
+      if (durationAmount != null) 'duration_amount': durationAmount,
+      if (durationUnit != null) 'duration_unit': durationUnit,
+      if (totalQuantity != null) 'total_quantity': totalQuantity,
+      if (instructions != null) 'instructions': instructions,
       if (dateDispensed != null)
         'date_dispensed': dateDispensed!.toIso8601String().split('T')[0],
       if (refillDate != null)
         'refill_date': refillDate!.toIso8601String().split('T')[0],
-      if (specialInstructions != null)
-        'special_instructions': specialInstructions,
       'is_recurrent': isRecurrent,
       if (recurrenceIntervalDays != null)
         'recurrence_interval_days': recurrenceIntervalDays,
