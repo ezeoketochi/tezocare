@@ -214,8 +214,13 @@ class Visit extends Equatable {
     if (chiefComplaints.isEmpty) return null;
     return chiefComplaints
         .where((c) => c.complaint != null && c.complaint!.isNotEmpty)
-        .map((c) => '${c.complaint} (${c.duration ?? "N/A"})')
-        .join('; ');
+        .map((c) {
+      final complaint = c.complaint!;
+      if (c.duration != null && c.duration!.isNotEmpty) {
+        return '$complaint for ${c.duration}';
+      }
+      return complaint;
+    }).join('; ');
   }
 
   String? get diagnosis => clinicalAssessment?.diagnosis;

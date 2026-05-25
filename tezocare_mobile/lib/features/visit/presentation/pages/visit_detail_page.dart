@@ -139,26 +139,34 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          OutlinedButton.icon(
-            onPressed: () => context.push(
-              '/patients/${visit.patientId}/visits/${visit.id}/edit',
+          Flexible(
+            child: OutlinedButton.icon(
+              onPressed: () => context.push(
+                '/patients/${visit.patientId}/visits/${visit.id}/edit',
+              ),
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: const Text('Edit'),
             ),
-            icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Edit'),
           ),
           SizedBox(width: 12.w),
           if (_canDelete(visit))
-            OutlinedButton.icon(
-              onPressed: () => _confirmDelete(context, visit),
-              icon: Icon(
-                Icons.delete_outline,
-                size: 18,
-                color: AppColors.danger,
-              ),
-              label: Text('Delete', style: TextStyle(color: AppColors.danger)),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: AppColors.danger),
+            Flexible(
+              child: OutlinedButton.icon(
+                onPressed: () => _confirmDelete(context, visit),
+                icon: Icon(
+                  Icons.delete_outline,
+                  size: 18,
+                  color: AppColors.danger,
+                ),
+                label: Text(
+                  'Delete',
+                  style: TextStyle(color: AppColors.danger),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppColors.danger),
+                ),
               ),
             ),
         ],

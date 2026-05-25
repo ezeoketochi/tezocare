@@ -376,15 +376,24 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      visit.reason ?? 'Visit #${visit.id}',
+                                      'Visit ${visit.visitNumber}',
                                       style: AppTextStyles.titleMedium,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    SizedBox(height: 4.h),
+                                    if (visit.reason != null) ...[
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        visit.reason!,
+                                        style: AppTextStyles.bodySmall,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                    SizedBox(height: 2.h),
                                     Text(
                                       _formatDate(visit.visitDate),
-                                      style: AppTextStyles.bodySmall,
+                                      style: AppTextStyles.caption,
                                     ),
                                   ],
                                 ),
