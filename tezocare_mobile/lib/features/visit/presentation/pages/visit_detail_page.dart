@@ -33,12 +33,11 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     context.read<VisitBloc>().add(GetVisitDetailEvent(id: widget.visitId));
   }
 
-  bool _canEditOrDelete(Visit visit) {
+  bool _canEdit(Visit visit) {
     try {
       final authState = context.read<AuthBloc>().state;
       if (authState is! AuthAuthenticated) return false;
-      final staff = authState.staff;
-      return staff.id == visit.staffId || staff.role == 'admin';
+      return authState.staff.id == visit.staffId;
     } catch (_) {
       return false;
     }
@@ -48,8 +47,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     try {
       final authState = context.read<AuthBloc>().state;
       if (authState is! AuthAuthenticated) return false;
-      final staff = authState.staff;
-      return staff.id == visit.staffId || staff.role == 'admin';
+      return authState.staff.role == 'admin';
     } catch (_) {
       return false;
     }
@@ -58,7 +56,23 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Visit Detail')),
+      appBar: AppBar(
+        title: BlocBuilder<VisitBloc, VisitState>(
+          builder: (context, state) {
+            if (state is VisitDetailLoaded) {
+              final visit = state.visit;
+              return Row(
+                children: [
+                  const Text('Visit Detail'),
+                  const Spacer(),
+                  _buildMenuButton(visit),
+                ],
+              );
+            }
+            return const Text('Visit Detail');
+          },
+        ),
+      ),
       body: BlocConsumer<VisitBloc, VisitState>(
         listener: (context, state) {
           if (state is VisitDeleted) {
@@ -89,7 +103,6 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_canEditOrDelete(visit)) _buildActionButtons(visit),
                     _buildStatusHeader(visit),
                     SizedBox(height: 12.h),
                     _buildVisitStatusIndicator(visit.status),
@@ -135,42 +148,45 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     );
   }
 
-  Widget _buildActionButtons(Visit visit) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: OutlinedButton.icon(
-              onPressed: () => context.push(
-                '/patients/${visit.patientId}/visits/${visit.id}/edit',
-              ),
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: const Text('Edit'),
+  Widget _buildMenuButton(Visit visit) {
+    final edit = _canEdit(visit);
+    final delete = _canDelete(visit);
+    if (!edit && !delete) return const SizedBox.shrink();
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert),
+      onSelected: (value) {
+        switch (value) {
+          case 'edit':
+            context.push(
+              '/patients/${visit.patientId}/visits/${visit.id}/edit',
+            );
+          case 'delete':
+            _confirmDelete(context, visit);
+        }
+      },
+      itemBuilder: (context) => [
+        if (edit)
+          const PopupMenuItem(
+            value: 'edit',
+            child: ListTile(
+              leading: Icon(Icons.edit_outlined),
+              title: Text('Edit'),
+              dense: true,
+              contentPadding: EdgeInsets.zero,
             ),
           ),
-          SizedBox(width: 12.w),
-          if (_canDelete(visit))
-            Flexible(
-              child: OutlinedButton.icon(
-                onPressed: () => _confirmDelete(context, visit),
-                icon: Icon(
-                  Icons.delete_outline,
-                  size: 18,
-                  color: AppColors.danger,
-                ),
-                label: Text(
-                  'Delete',
-                  style: TextStyle(color: AppColors.danger),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: AppColors.danger),
-                ),
-              ),
+        if (delete)
+          const PopupMenuItem(
+            value: 'delete',
+            child: ListTile(
+              leading: Icon(Icons.delete_outline, color: AppColors.danger),
+              title: Text('Delete', style: TextStyle(color: AppColors.danger)),
+              dense: true,
+              contentPadding: EdgeInsets.zero,
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
