@@ -34,17 +34,25 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
   }
 
   bool _canEditOrDelete(Visit visit) {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthAuthenticated) return false;
-    final staff = authState.staff;
-    return staff.id == visit.staffId || staff.role == 'admin';
+    try {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is! AuthAuthenticated) return false;
+      final staff = authState.staff;
+      return staff.id == visit.staffId || staff.role == 'admin';
+    } catch (_) {
+      return false;
+    }
   }
 
   bool _canDelete(Visit visit) {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthAuthenticated) return false;
-    final staff = authState.staff;
-    return staff.id == visit.staffId || staff.role == 'admin';
+    try {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is! AuthAuthenticated) return false;
+      final staff = authState.staff;
+      return staff.id == visit.staffId || staff.role == 'admin';
+    } catch (_) {
+      return false;
+    }
   }
 
   @override
@@ -75,39 +83,51 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
           }
           if (state is VisitDetailLoaded) {
             final visit = state.visit;
-            return SingleChildScrollView(
-              padding: EdgeInsets.all(20.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_canEditOrDelete(visit))
-                    _buildActionButtons(visit),
-                  _buildStatusHeader(visit),
-                  SizedBox(height: 12.h),
-                  _buildVisitStatusIndicator(visit.status),
-                  SizedBox(height: 20.h),
-                  _buildInfoCard(visit),
-                  if (visit.chiefComplaints.isNotEmpty) ...[
-                    SizedBox(height: 16.h),
-                    _buildComplaintsCard(visit),
+            try {
+              return SingleChildScrollView(
+                padding: EdgeInsets.all(20.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_canEditOrDelete(visit)) _buildActionButtons(visit),
+                    _buildStatusHeader(visit),
+                    SizedBox(height: 12.h),
+                    _buildVisitStatusIndicator(visit.status),
+                    SizedBox(height: 20.h),
+                    _buildInfoCard(visit),
+                    if (visit.chiefComplaints.isNotEmpty) ...[
+                      SizedBox(height: 16.h),
+                      _buildComplaintsCard(visit),
+                    ],
+                    _buildAssessmentCard(visit),
+                    _buildVitalsCard(visit),
+                    if (visit.medicationsDispensed.isNotEmpty) ...[
+                      SizedBox(height: 16.h),
+                      _buildMedsCard(visit),
+                    ],
+                    if (visit.counsellingAdvice != null &&
+                        visit.counsellingAdvice!.isNotEmpty) ...[
+                      SizedBox(height: 16.h),
+                      _buildCounsellingCard(visit),
+                    ],
+                    _buildFollowUpCard(visit),
+                    _buildReferralCard(visit),
+                    SizedBox(height: 24.h),
                   ],
-                  _buildAssessmentCard(visit),
-                  _buildVitalsCard(visit),
-                  if (visit.medicationsDispensed.isNotEmpty) ...[
-                    SizedBox(height: 16.h),
-                    _buildMedsCard(visit),
-                  ],
-                  if (visit.counsellingAdvice != null &&
-                      visit.counsellingAdvice!.isNotEmpty) ...[
-                    SizedBox(height: 16.h),
-                    _buildCounsellingCard(visit),
-                  ],
-                  _buildFollowUpCard(visit),
-                  _buildReferralCard(visit),
-                  SizedBox(height: 24.h),
-                ],
-              ),
-            );
+                ),
+              );
+            } catch (e, stack) {
+              debugPrint('[VisitDetailPage] build error: $e\n$stack');
+              return AppEmptyState(
+                icon: Icons.error_outline_rounded,
+                title: 'Something went wrong',
+                message: 'Failed to display visit: $e',
+                actionLabel: 'Retry',
+                onAction: () => context.read<VisitBloc>().add(
+                  GetVisitDetailEvent(id: widget.visitId),
+                ),
+              );
+            }
           }
           return const SizedBox.shrink();
         },
@@ -131,7 +151,11 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
           if (_canDelete(visit))
             OutlinedButton.icon(
               onPressed: () => _confirmDelete(context, visit),
-              icon: Icon(Icons.delete_outline, size: 18, color: AppColors.danger),
+              icon: Icon(
+                Icons.delete_outline,
+                size: 18,
+                color: AppColors.danger,
+              ),
               label: Text('Delete', style: TextStyle(color: AppColors.danger)),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: AppColors.danger),
@@ -147,7 +171,8 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
       context: context,
       builder: (ctx) => ConfirmDialog(
         title: 'Delete Visit',
-        message: 'Are you sure you want to delete this visit? This action cannot be undone.',
+        message:
+            'Are you sure you want to delete this visit? This action cannot be undone.',
         confirmLabel: 'Delete',
         isDestructive: true,
       ),
@@ -530,7 +555,9 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
                 ],
               ),
             ),
-            _detailRow('Scheduled Date', _formatDate(fu.scheduledDate!)),
+            if (fu.scheduledDate != null) ...[
+              _detailRow('Scheduled Date', _formatDate(fu.scheduledDate!)),
+            ],
             if (fu.isDone && fu.dateCompleted != null)
               _detailRow('Date Followed Up', _formatDate(fu.dateCompleted!)),
             if (fu.isDone && fu.outcome != null)
