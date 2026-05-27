@@ -181,7 +181,9 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                   _filterLabels[i],
                   textAlign: TextAlign.center,
                   style: AppTextStyles.labelMedium.copyWith(
-                    color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.textSecondary,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
@@ -199,18 +201,24 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
       child: Row(
         children: [
           _summaryChip(
-            '${state.outreach}', 'Outreach',
-            AppColors.warningLight, AppColors.warning,
+            '${state.outreach}',
+            'Outreach',
+            AppColors.warningLight,
+            AppColors.warning,
           ),
           SizedBox(width: 8.w),
           _summaryChip(
-            '${state.dueToday}', 'Due Today',
-            AppColors.chipActiveBg, AppColors.chipActiveText,
+            '${state.dueToday}',
+            'Due Today',
+            AppColors.chipActiveBg,
+            AppColors.chipActiveText,
           ),
           SizedBox(width: 8.w),
           _summaryChip(
-            '${state.overdue}', 'Overdue',
-            AppColors.dangerLight, AppColors.danger,
+            '${state.overdue}',
+            'Overdue',
+            AppColors.dangerLight,
+            AppColors.danger,
           ),
           const Spacer(),
           Text('${state.total} total', style: AppTextStyles.bodySmall),
@@ -219,7 +227,12 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
     );
   }
 
-  Widget _summaryChip(String value, String label, Color bgColor, Color textColor) {
+  Widget _summaryChip(
+    String value,
+    String label,
+    Color bgColor,
+    Color textColor,
+  ) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
@@ -229,7 +242,10 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: AppTextStyles.labelMedium.copyWith(color: textColor)),
+          Text(
+            value,
+            style: AppTextStyles.labelMedium.copyWith(color: textColor),
+          ),
           SizedBox(width: 4.w),
           Text(label, style: AppTextStyles.caption.copyWith(color: textColor)),
         ],
@@ -259,8 +275,8 @@ class _RefillCard extends StatelessWidget {
     final statusColor = _isOverdue
         ? AppColors.danger
         : _isDueToday
-            ? AppColors.chipActiveText
-            : AppColors.warning;
+        ? AppColors.chipActiveText
+        : AppColors.warning;
 
     String statusText;
     Color tagColor;
@@ -291,8 +307,8 @@ class _RefillCard extends StatelessWidget {
         border: _isDueToday
             ? Border.all(color: AppColors.chipActiveText, width: 1.5)
             : _isOverdue
-                ? Border.all(color: AppColors.danger, width: 1.5)
-                : null,
+            ? Border.all(color: AppColors.danger, width: 1.5)
+            : null,
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withValues(alpha: 0.06),
@@ -330,19 +346,23 @@ class _RefillCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        refill.drugName.isNotEmpty ? refill.drugName : 'Medication',
+                        refill.patientName,
                         style: AppTextStyles.titleMedium,
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        refill.patientName,
-                        style: AppTextStyles.bodySmall,
+                        refill.drugName.isNotEmpty
+                            ? refill.drugName
+                            : 'Medication',
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 4.h,
+                  ),
                   decoration: BoxDecoration(
                     color: tagColor,
                     borderRadius: BorderRadius.circular(20.r),
@@ -370,7 +390,11 @@ class _RefillCard extends StatelessWidget {
             SizedBox(height: 8.h),
             Row(
               children: [
-                Icon(Icons.calendar_today, size: 14.sp, color: AppColors.textSecondary),
+                Icon(
+                  Icons.calendar_today,
+                  size: 14.sp,
+                  color: AppColors.textSecondary,
+                ),
                 SizedBox(width: 6.w),
                 Text(
                   'Refill: ${refill.refillDate}',
@@ -380,14 +404,18 @@ class _RefillCard extends StatelessWidget {
                   SizedBox(width: 8.w),
                   Text(
                     '(${refill.daysUntilRefill} days)',
-                    style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
                 const Spacer(),
                 if (refill.prescribedBy != null)
                   Text(
                     refill.prescribedBy!,
-                    style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
               ],
             ),
@@ -411,7 +439,9 @@ class _RefillCard extends StatelessWidget {
               icon: Icon(Icons.check_circle_outline, size: 16.sp),
               label: Text(
                 'Mark Contacted',
-                style: AppTextStyles.labelMedium.copyWith(color: AppColors.primary),
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             )
           else
@@ -445,7 +475,11 @@ class _RefillCard extends StatelessWidget {
         width: double.infinity,
         child: AppButton(
           label: 'Mark as Refilled',
-          prefixIcon: Icon(Icons.check_circle, size: 18.sp, color: AppColors.white),
+          prefixIcon: Icon(
+            Icons.check_circle,
+            size: 18.sp,
+            color: AppColors.white,
+          ),
           onPressed: onRefilled,
         ),
       );
@@ -457,7 +491,11 @@ class _RefillCard extends StatelessWidget {
         child: AppButton(
           variant: AppButtonVariant.outline,
           label: 'Mark as Refilled',
-          prefixIcon: Icon(Icons.check_circle_outline, size: 18.sp, color: AppColors.primary),
+          prefixIcon: Icon(
+            Icons.check_circle_outline,
+            size: 18.sp,
+            color: AppColors.primary,
+          ),
           onPressed: onRefilled,
         ),
       );
@@ -525,5 +563,4 @@ class _RefillCard extends StatelessWidget {
       onContacted();
     }
   }
-
 }
