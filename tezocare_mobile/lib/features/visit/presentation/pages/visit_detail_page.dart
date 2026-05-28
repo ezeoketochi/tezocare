@@ -204,7 +204,9 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
       ),
     );
     if (confirmed == true && mounted) {
-      context.read<VisitBloc>().add(DeleteVisitEvent(id: visit.id));
+      if (context.mounted) {
+        context.read<VisitBloc>().add(DeleteVisitEvent(id: visit.id));
+      }
     }
   }
 
@@ -256,11 +258,6 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
                         .toList(),
                   ),
                 ),
-
-              // Text(
-              //   _formatDate(visit.visitDate),
-              //   style: AppTextStyles.bodySmall,
-              // ),
             ],
           ),
         ),
