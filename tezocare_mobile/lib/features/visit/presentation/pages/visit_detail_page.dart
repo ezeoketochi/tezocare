@@ -222,42 +222,12 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
                 style: AppTextStyles.bodySmall,
               ),
               SizedBox(height: 4.h),
-
-              if (visit.chiefComplaints.isNotEmpty)
-                Padding(
-                  padding: EdgeInsets.only(top: 4.h),
-                  child: Wrap(
-                    spacing: 6.w,
-                    runSpacing: 4.h,
-                    children: visit.chiefComplaints
-                        .where(
-                          (c) => c.complaint != null && c.complaint!.isNotEmpty,
-                        )
-                        .map<Widget>((c) {
-                          final label =
-                              (c.duration != null && c.duration!.isNotEmpty)
-                              ? '${c.complaint} for ${c.duration}'
-                              : c.complaint!;
-                          return Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10.w,
-                              vertical: 4.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryLight,
-                              borderRadius: BorderRadius.circular(20.r),
-                            ),
-                            child: Text(
-                              label,
-                              style: AppTextStyles.labelMedium.copyWith(
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          );
-                        })
-                        .toList(),
-                  ),
-                ),
+              Text(
+                visit.patientName ?? '',
+                style: AppTextStyles.titleMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
         ),
