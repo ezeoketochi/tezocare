@@ -219,24 +219,41 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               ),
               SizedBox(height: 4.h),
 
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: visit.chiefComplaints.map<Widget>((c) {
-                  final complaint = c.complaint?.isNotEmpty == true
-                      ? c.complaint
-                      : null;
-                  final duration = c.duration?.isNotEmpty == true
-                      ? c.duration
-                      : null;
-                  if (complaint == null && duration == null) {
-                    return Text('Not recorded', style: AppTextStyles.bodySmall);
-                  }
-                  return _detailRow(
-                    complaint ?? '',
-                    duration != null ? 'Duration: $duration' : '',
-                  );
-                }).toList(),
-              ),
+              if (visit.chiefComplaints.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(top: 4.h),
+                  child: Wrap(
+                    spacing: 6.w,
+                    runSpacing: 4.h,
+                    children: visit.chiefComplaints
+                        .where(
+                          (c) => c.complaint != null && c.complaint!.isNotEmpty,
+                        )
+                        .map<Widget>((c) {
+                          final label =
+                              (c.duration != null && c.duration!.isNotEmpty)
+                              ? '${c.complaint} for ${c.duration}'
+                              : c.complaint!;
+                          return Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 4.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: Text(
+                              label,
+                              style: AppTextStyles.labelMedium.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          );
+                        })
+                        .toList(),
+                  ),
+                ),
 
               // Text(
               //   _formatDate(visit.visitDate),
@@ -333,23 +350,39 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
   }
 
   Widget _buildComplaintsCard(visit) {
-    return _buildSectionCard(
-      'Chief Complaints',
-      visit.chiefComplaints.map<Widget>((c) {
-        final complaint = c.complaint?.isNotEmpty == true ? c.complaint : null;
-        final duration = c.duration?.isNotEmpty == true ? c.duration : null;
-        if (complaint == null && duration == null) {
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Text('Not recorded', style: AppTextStyles.bodySmall),
+    final items = visit.chiefComplaints
+        .where((c) => c.complaint != null && c.complaint!.isNotEmpty)
+        .map<Widget>((c) {
+          final label = (c.duration != null && c.duration!.isNotEmpty)
+              ? '${c.complaint} for ${c.duration}'
+              : c.complaint!;
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Text(
+              label,
+              style: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.primary,
+              ),
+            ),
           );
-        }
-        return _detailRow(
-          complaint ?? '',
-          duration != null ? 'Duration: $duration' : '',
-        );
-      }).toList(),
-    );
+        })
+        .toList();
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return _buildSectionCard('Chief Complaints', [
+      Padding(
+        padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.w),
+        child: SizedBox(
+          width: double.infinity,
+          child: Wrap(spacing: 6.w, runSpacing: 4.h, children: items),
+        ),
+      ),
+    ]);
   }
 
   Widget _buildAssessmentCard(visit) {

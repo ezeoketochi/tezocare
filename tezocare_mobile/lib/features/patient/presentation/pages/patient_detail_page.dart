@@ -386,16 +386,36 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     if (visit.reason != null) ...[
-                                      SizedBox(height: 2.h),
-                                      ...visit.reason!.map(
-                                        (r) => Padding(
-                                          padding: EdgeInsets.only(bottom: 2.h),
-                                          child: Text(
-                                            r,
-                                            style: AppTextStyles.bodySmall,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
+                                      SizedBox(height: 4.h),
+                                      Wrap(
+                                        spacing: 6.w,
+                                        runSpacing: 4.h,
+                                        children: visit.reason!
+                                            .map<Widget>(
+                                              (r) => Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 10.w,
+                                                  vertical: 4.h,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.primaryLight,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        20.r,
+                                                      ),
+                                                ),
+                                                child: Text(
+                                                  r,
+                                                  style: AppTextStyles
+                                                      .labelMedium
+                                                      .copyWith(
+                                                        color:
+                                                            AppColors.primary,
+                                                      ),
+                                                ),
+                                              ),
+                                            )
+                                            .toList(),
                                       ),
                                     ],
                                     SizedBox(height: 2.h),
