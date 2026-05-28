@@ -214,18 +214,38 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                visit.reason ?? 'Visit #${visit.id}',
-                style: AppTextStyles.headlineSmall,
-              ),
-              SizedBox(height: 4.h),
-              Text(
                 _formatDate(visit.visitDate),
                 style: AppTextStyles.bodySmall,
               ),
+              SizedBox(height: 4.h),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: visit.chiefComplaints.map<Widget>((c) {
+                  final complaint = c.complaint?.isNotEmpty == true
+                      ? c.complaint
+                      : null;
+                  final duration = c.duration?.isNotEmpty == true
+                      ? c.duration
+                      : null;
+                  if (complaint == null && duration == null) {
+                    return Text('Not recorded', style: AppTextStyles.bodySmall);
+                  }
+                  return _detailRow(
+                    complaint ?? '',
+                    duration != null ? 'Duration: $duration' : '',
+                  );
+                }).toList(),
+              ),
+
+              // Text(
+              //   _formatDate(visit.visitDate),
+              //   style: AppTextStyles.bodySmall,
+              // ),
             ],
           ),
         ),
-        StatusChip(text: visit.status, variant: _statusVariant(visit.status)),
+        // StatusChip(text: visit.status, variant: _statusVariant(visit.status)),
       ],
     );
   }

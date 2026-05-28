@@ -325,10 +325,14 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                 if (state is VisitsLoaded) {
                   final visits = state.visits;
                   if (visits.isEmpty) {
-                    return const AppEmptyState(
+                    return AppEmptyState(
                       icon: Icons.medical_services_outlined,
                       title: 'No Visits',
                       message: 'No visits recorded for this patient',
+                      actionLabel: 'Create New Visit',
+                      onAction: () => context.push(
+                        '/visits/create?patientId=${widget.patientId}',
+                      ),
                     );
                   }
                   final sorted = List.from(visits)
@@ -383,11 +387,15 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                                     ),
                                     if (visit.reason != null) ...[
                                       SizedBox(height: 2.h),
-                                      Text(
-                                        visit.reason!,
-                                        style: AppTextStyles.bodySmall,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                      ...visit.reason!.map(
+                                        (r) => Padding(
+                                          padding: EdgeInsets.only(bottom: 2.h),
+                                          child: Text(
+                                            r,
+                                            style: AppTextStyles.bodySmall,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                     SizedBox(height: 2.h),

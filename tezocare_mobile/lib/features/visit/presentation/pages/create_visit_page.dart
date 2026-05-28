@@ -189,6 +189,13 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
       markRefillFulfilledUseCase: di.sl<MarkRefillFulfilledUseCase>(),
       createRefillsBatchUseCase: di.sl<CreateRefillsBatchUseCase>(),
     );
+    _diagnosisController.addListener(_tryAutoSubmit);
+  }
+
+  void _tryAutoSubmit() {
+    if (_formKey.currentState?.validate() ?? false) {
+      _onCreate();
+    }
   }
 
   @override
@@ -450,6 +457,7 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
           padding: EdgeInsets.all(20.w),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -477,6 +485,7 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                             validator: (v) => v == null || v.trim().isEmpty
                                 ? 'Complaint is required'
                                 : null,
+                            onChanged: (_) => _tryAutoSubmit(),
                           ),
                         ),
                         SizedBox(width: 8.w),
@@ -1264,7 +1273,10 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                             label: 'Complete Visit',
                             onPressed: state is VisitLoading ? null : _onCreate,
                             isLoading: state is VisitLoading,
-                            isDisabled: state is VisitLoading,
+                            isDisabled:
+                                state is VisitLoading ||
+                                _diagnosisController.text.trim().isEmpty ||
+                                _complaints.isEmpty,
                           );
                         },
                       ),

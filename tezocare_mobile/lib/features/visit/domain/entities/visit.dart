@@ -24,8 +24,12 @@ class MedicationHistoryData extends Equatable {
   });
 
   @override
-  List<Object?> get props =>
-      [pastMedications, currentMedications, adherence, nonAdherenceReason];
+  List<Object?> get props => [
+    pastMedications,
+    currentMedications,
+    adherence,
+    nonAdherenceReason,
+  ];
 }
 
 class VitalsData extends Equatable {
@@ -57,18 +61,18 @@ class VitalsData extends Equatable {
 
   @override
   List<Object?> get props => [
-        bloodPressureSystolic,
-        bloodPressureDiastolic,
-        heartRate,
-        temperature,
-        spo2,
-        respiratoryRate,
-        weight,
-        height,
-        bmi,
-        glucose,
-        glucoseType,
-      ];
+    bloodPressureSystolic,
+    bloodPressureDiastolic,
+    heartRate,
+    temperature,
+    spo2,
+    respiratoryRate,
+    weight,
+    height,
+    bmi,
+    glucose,
+    glucoseType,
+  ];
 }
 
 class TestResultItem extends Equatable {
@@ -86,7 +90,11 @@ class ClinicalAssessmentData extends Equatable {
   final String? severity;
   final String? pharmacistNotes;
 
-  const ClinicalAssessmentData({this.diagnosis, this.severity, this.pharmacistNotes});
+  const ClinicalAssessmentData({
+    this.diagnosis,
+    this.severity,
+    this.pharmacistNotes,
+  });
 
   @override
   List<Object?> get props => [diagnosis, severity, pharmacistNotes];
@@ -128,12 +136,16 @@ class MedicationDispensedData extends Equatable {
   String get sigString {
     final parts = <String>[];
     if (doseAmount != null) {
-      final unit = doseUnit != null && doseUnit!.isNotEmpty ? '$doseUnit(s)' : '';
+      final unit = doseUnit != null && doseUnit!.isNotEmpty
+          ? '$doseUnit(s)'
+          : '';
       parts.add('$doseAmount $unit'.trim());
     }
     if (route != null && route!.isNotEmpty) parts.add(route!);
     if (frequency != null && frequency!.isNotEmpty) parts.add(frequency!);
-    if (durationAmount != null && durationUnit != null && durationUnit!.isNotEmpty) {
+    if (durationAmount != null &&
+        durationUnit != null &&
+        durationUnit!.isNotEmpty) {
       parts.add('for $durationAmount $durationUnit');
     }
     if (instructions != null && instructions!.isNotEmpty) {
@@ -144,21 +156,21 @@ class MedicationDispensedData extends Equatable {
 
   @override
   List<Object?> get props => [
-        drugName,
-        doseAmount,
-        doseUnit,
-        route,
-        frequency,
-        frequencyCode,
-        durationAmount,
-        durationUnit,
-        totalQuantity,
-        instructions,
-        dateDispensed,
-        refillDate,
-        isRecurrent,
-        recurrenceIntervalDays,
-      ];
+    drugName,
+    doseAmount,
+    doseUnit,
+    route,
+    frequency,
+    frequencyCode,
+    durationAmount,
+    durationUnit,
+    totalQuantity,
+    instructions,
+    dateDispensed,
+    refillDate,
+    isRecurrent,
+    recurrenceIntervalDays,
+  ];
 }
 
 class FollowUpData extends Equatable {
@@ -181,7 +193,15 @@ class FollowUpData extends Equatable {
   });
 
   @override
-  List<Object?> get props => [required, scheduledDate, isDone, outcome, dateCompleted, isRecurrent, recurrenceIntervalDays];
+  List<Object?> get props => [
+    required,
+    scheduledDate,
+    isDone,
+    outcome,
+    dateCompleted,
+    isRecurrent,
+    recurrenceIntervalDays,
+  ];
 }
 
 class ReferralData extends Equatable {
@@ -189,11 +209,7 @@ class ReferralData extends Equatable {
   final String? destination;
   final String? reason;
 
-  const ReferralData({
-    this.isReferred = false,
-    this.destination,
-    this.reason,
-  });
+  const ReferralData({this.isReferred = false, this.destination, this.reason});
 
   @override
   List<Object?> get props => [isReferred, destination, reason];
@@ -242,17 +258,19 @@ class Visit extends Equatable {
     this.updatedAt,
   });
 
-  String? get reason {
+  List<String>? get reason {
     if (chiefComplaints.isEmpty) return null;
-    return chiefComplaints
+    final items = chiefComplaints
         .where((c) => c.complaint != null && c.complaint!.isNotEmpty)
         .map((c) {
-      final complaint = c.complaint!;
-      if (c.duration != null && c.duration!.isNotEmpty) {
-        return '$complaint for ${c.duration}';
-      }
-      return complaint;
-    }).join('; ');
+          final complaint = c.complaint!.trim();
+          if (c.duration != null && c.duration!.isNotEmpty) {
+            return '$complaint for ${c.duration}';
+          }
+          return complaint;
+        })
+        .toList();
+    return items.isEmpty ? null : items;
   }
 
   String? get diagnosis => clinicalAssessment?.diagnosis;
@@ -263,9 +281,10 @@ class Visit extends Equatable {
       final meds = medicationsDispensed
           .where((m) => m.drugName != null && m.drugName!.isNotEmpty)
           .map((m) {
-        final sig = m.sigString;
-        return sig.isNotEmpty ? '${m.drugName} — $sig' : m.drugName!;
-      }).join('; ');
+            final sig = m.sigString;
+            return sig.isNotEmpty ? '${m.drugName} — $sig' : m.drugName!;
+          })
+          .join('\n');
       if (meds.isNotEmpty) parts.add('Dispensed: $meds');
     }
     return parts.isNotEmpty ? parts.join('\n') : null;
@@ -278,37 +297,39 @@ class Visit extends Equatable {
     }
     if (followUp != null && followUp!.required) {
       parts.add(
-          'Follow-up: ${followUp!.scheduledDate?.toIso8601String().split('T')[0] ?? "TBD"}');
+        'Follow-up: ${followUp!.scheduledDate?.toIso8601String().split('T')[0] ?? "TBD"}',
+      );
     }
     if (referral != null &&
         referral!.destination != null &&
         referral!.destination!.isNotEmpty) {
       parts.add(
-          'Referral: ${referral!.destination} - ${referral!.reason ?? ""}');
+        'Referral: ${referral!.destination} - ${referral!.reason ?? ""}',
+      );
     }
     return parts.isNotEmpty ? parts.join('\n') : null;
   }
 
   @override
   List<Object?> get props => [
-        id,
-        patientId,
-        patientName,
-        staffId,
-        staffName,
-        visitNumber,
-        visitDate,
-        status,
-        chiefComplaints,
-        medicationHistory,
-        vitals,
-        testResults,
-        clinicalAssessment,
-        medicationsDispensed,
-        counsellingAdvice,
-        followUp,
-        referral,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    patientId,
+    patientName,
+    staffId,
+    staffName,
+    visitNumber,
+    visitDate,
+    status,
+    chiefComplaints,
+    medicationHistory,
+    vitals,
+    testResults,
+    clinicalAssessment,
+    medicationsDispensed,
+    counsellingAdvice,
+    followUp,
+    referral,
+    createdAt,
+    updatedAt,
+  ];
 }
