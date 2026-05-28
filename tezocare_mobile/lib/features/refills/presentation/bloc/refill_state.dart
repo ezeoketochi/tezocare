@@ -48,3 +48,12 @@ class RefillError extends RefillState {
   @override
   List<Object> get props => [message];
 }
+
+class RefillBatchCreated extends RefillState {
+  final List<String> refillIds;
+
+  const RefillBatchCreated({required this.refillIds});
+
+  @override
+  List<Object> get props => [refillIds];
+}

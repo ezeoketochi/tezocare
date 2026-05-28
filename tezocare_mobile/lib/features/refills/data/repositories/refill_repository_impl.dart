@@ -53,4 +53,20 @@ class RefillRepositoryImpl implements RefillRepository {
       return handleException(e);
     }
   }
+
+  @override
+  Future<Either<Failure, List<String>>> createRefillsBatch(
+    List<Map<String, dynamic>> medications,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      final result = await remoteDataSource.createRefillsBatch(medications);
+      final ids = (result['ids'] as List<dynamic>).cast<String>();
+      return Right(ids);
+    } catch (e) {
+      return handleException(e);
+    }
+  }
 }

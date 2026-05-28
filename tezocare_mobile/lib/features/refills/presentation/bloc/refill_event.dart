@@ -34,3 +34,12 @@ class MarkAsRefilled extends RefillEvent {
   @override
   List<Object> get props => [refillId];
 }
+
+class CreateRefillsBatch extends RefillEvent {
+  final List<Map<String, dynamic>> medications;
+
+  const CreateRefillsBatch({required this.medications});
+
+  @override
+  List<Object> get props => [medications];
+}

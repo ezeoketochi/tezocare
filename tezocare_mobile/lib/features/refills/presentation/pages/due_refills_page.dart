@@ -355,7 +355,7 @@ class _RefillCardState extends State<_RefillCard> {
       tagColor = AppColors.primarySurface;
       tagTextColor = AppColors.primary;
     }
-
+    print("current refill: $refill");
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
@@ -445,7 +445,7 @@ class _RefillCardState extends State<_RefillCard> {
                 children: [
                   Text(
                     refill.drugName.isNotEmpty ? refill.drugName : 'Medication',
-                    style: AppTextStyles.titleMedium,
+                    style: AppTextStyles.bodyMedium,
                   ),
                   if (refill.sig.isNotEmpty) ...[
                     SizedBox(height: 2.h),

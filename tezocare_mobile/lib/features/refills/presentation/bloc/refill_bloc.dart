@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
+import '../../domain/usecases/create_refills_batch_usecase.dart';
 import '../../domain/usecases/get_due_refills_usecase.dart';
 import '../../domain/usecases/mark_refill_contacted_usecase.dart';
 import '../../domain/usecases/mark_refill_fulfilled_usecase.dart';
@@ -10,15 +11,18 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
   final GetDueRefillsUseCase getDueRefillsUseCase;
   final MarkRefillContactedUseCase markRefillContactedUseCase;
   final MarkRefillFulfilledUseCase markRefillFulfilledUseCase;
+  final CreateRefillsBatchUseCase createRefillsBatchUseCase;
 
   RefillBloc({
     required this.getDueRefillsUseCase,
     required this.markRefillContactedUseCase,
     required this.markRefillFulfilledUseCase,
+    required this.createRefillsBatchUseCase,
   }) : super(const RefillInitial()) {
     on<GetDueRefillsEvent>(_onGetDueRefills);
     on<MarkAsContacted>(_onMarkAsContacted);
     on<MarkAsRefilled>(_onMarkAsRefilled);
+    on<CreateRefillsBatch>(_onCreateRefillsBatch);
   }
 
   Future<void> _onGetDueRefills(
@@ -87,6 +91,20 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
       (_) {
         add(GetDueRefillsEvent(filter: current.activeFilter, days: current.activeDays));
       },
+    );
+  }
+
+  Future<void> _onCreateRefillsBatch(
+    CreateRefillsBatch event,
+    Emitter<RefillState> emit,
+  ) async {
+    emit(const RefillLoading());
+    final result = await createRefillsBatchUseCase(
+      CreateRefillsBatchParams(medications: event.medications),
+    );
+    result.fold(
+      (failure) => emit(RefillError(message: _failureMessage(failure))),
+      (ids) => emit(RefillBatchCreated(refillIds: ids)),
     );
   }
 

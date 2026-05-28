@@ -8,6 +8,7 @@ abstract class RefillRemoteDataSource {
   Future<List<DueRefillModel>> getDueRefills({String? filter, int? days});
   Future<Map<String, dynamic>> markContacted(String refillId);
   Future<Map<String, dynamic>> markRefilled(String refillId);
+  Future<Map<String, dynamic>> createRefillsBatch(List<Map<String, dynamic>> medications);
 }
 
 class RefillRemoteDataSourceImpl implements RefillRemoteDataSource {
@@ -56,6 +57,21 @@ class RefillRemoteDataSourceImpl implements RefillRemoteDataSource {
       return response.data['data'] as Map<String, dynamic>;
     } on DioException catch (e) {
       throw _mapDioException(e, defaultMessage: 'Failed to mark refill as fulfilled');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> createRefillsBatch(
+    List<Map<String, dynamic>> medications,
+  ) async {
+    try {
+      final response = await dioClient.dio.post(
+        '${ApiConstants.refills}/batch',
+        data: medications,
+      );
+      return response.data['data'] as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _mapDioException(e, defaultMessage: 'Failed to create refills');
     }
   }
 

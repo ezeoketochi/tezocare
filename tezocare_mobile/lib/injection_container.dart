@@ -34,6 +34,7 @@ import 'features/refills/domain/repositories/refill_repository.dart';
 import 'features/refills/domain/usecases/get_due_refills_usecase.dart';
 import 'features/refills/domain/usecases/mark_refill_contacted_usecase.dart';
 import 'features/refills/domain/usecases/mark_refill_fulfilled_usecase.dart';
+import 'features/refills/domain/usecases/create_refills_batch_usecase.dart';
 import 'features/medication/data/datasources/medication_remote_datasource.dart';
 import 'features/medication/data/repositories/medication_repository_impl.dart';
 import 'features/medication/domain/repositories/medication_repository.dart';
@@ -208,4 +209,5 @@ void _initRefills() {
   sl.registerFactory(() => GetDueRefillsUseCase(repository: sl()));
   sl.registerFactory(() => MarkRefillContactedUseCase(repository: sl()));
   sl.registerFactory(() => MarkRefillFulfilledUseCase(repository: sl()));
+  sl.registerFactory(() => CreateRefillsBatchUseCase(repository: sl()));
 }

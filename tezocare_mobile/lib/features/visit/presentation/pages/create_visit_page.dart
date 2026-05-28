@@ -5,10 +5,17 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
+import '../../../../injection_container.dart' as di;
 import '../../../../shared/services/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/tag_input_field.dart';
+import '../../../../features/refills/presentation/bloc/refill_bloc.dart';
+import '../../../../features/refills/presentation/bloc/refill_event.dart';
+import '../../../../features/refills/domain/usecases/create_refills_batch_usecase.dart';
+import '../../../../features/refills/domain/usecases/get_due_refills_usecase.dart';
+import '../../../../features/refills/domain/usecases/mark_refill_contacted_usecase.dart';
+import '../../../../features/refills/domain/usecases/mark_refill_fulfilled_usecase.dart';
 import '../../data/models/visit_model.dart';
 import '../bloc/visit_bloc.dart';
 import '../bloc/visit_event.dart';
@@ -71,6 +78,7 @@ class DispensedMedication {
   String durationUnit;
   TextEditingController instructionsController;
   DateTime dateDispensed;
+  bool needsRefill;
   DateTime? refillDate;
   bool isRecurrent;
   int? recurrenceIntervalDays;
@@ -86,6 +94,7 @@ class DispensedMedication {
     this.durationUnit = 'days',
     String instructions = '',
     DateTime? dateDispensed,
+    this.needsRefill = false,
     this.refillDate,
     this.isRecurrent = false,
     this.recurrenceIntervalDays,
@@ -159,6 +168,20 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
   bool _referPatient = false;
   final _referralDestinationController = TextEditingController();
   final _referralReasonController = TextEditingController();
+
+  late final RefillBloc _refillBloc;
+  List<Map<String, dynamic>> _pendingRefillBatch = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _refillBloc = RefillBloc(
+      getDueRefillsUseCase: di.sl<GetDueRefillsUseCase>(),
+      markRefillContactedUseCase: di.sl<MarkRefillContactedUseCase>(),
+      markRefillFulfilledUseCase: di.sl<MarkRefillFulfilledUseCase>(),
+      createRefillsBatchUseCase: di.sl<CreateRefillsBatchUseCase>(),
+    );
+  }
 
   @override
   void dispose() {
@@ -295,10 +318,42 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
               ? m.instructionsController.text
               : null,
           dateDispensed: m.dateDispensed,
-          refillDate: m.refillDate,
-          isRecurrent: m.isRecurrent,
-          recurrenceIntervalDays: m.recurrenceIntervalDays,
+          refillDate: m.needsRefill ? m.refillDate : null,
+          isRecurrent: m.needsRefill ? m.isRecurrent : false,
+          recurrenceIntervalDays: m.needsRefill ? m.recurrenceIntervalDays : null,
         );
+      }).toList();
+
+      _pendingRefillBatch = _dispensedMeds
+          .where((m) =>
+              m.drugNameController.text.isNotEmpty && m.needsRefill)
+          .map((m) {
+        final doseAmount = double.tryParse(m.doseAmountController.text);
+        final durationAmount = int.tryParse(m.durationAmountController.text);
+        final freqText = m.frequencyController.text.isNotEmpty
+            ? m.frequencyController.text
+            : (sigFrequencyMap[m.frequencyCode] ?? '');
+        return {
+          'visit_id': '',
+          'patient_id': patientId,
+          'drug_name': m.drugNameController.text,
+          'dose_amount': doseAmount,
+          'dose_unit': m.doseUnit,
+          'route': m.route,
+          'frequency': freqText,
+          'frequency_code': m.frequencyCode,
+          'duration_amount': durationAmount,
+          'duration_unit': m.durationUnit,
+          'total_quantity': m.totalQuantity,
+          'instructions': m.instructionsController.text.isNotEmpty
+              ? m.instructionsController.text
+              : null,
+          'refill_date': m.refillDate != null
+              ? DateFormat('yyyy-MM-dd').format(m.refillDate!)
+              : '',
+          'is_recurrent': m.isRecurrent,
+          'recurrence_interval_days': m.recurrenceIntervalDays,
+        };
       }).toList();
 
       final followUp = _followUpRequired
@@ -351,9 +406,18 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Create Visit')),
-      body: BlocListener<VisitBloc, VisitState>(
+      body:       BlocListener<VisitBloc, VisitState>(
         listener: (context, state) {
           if (state is VisitCreated) {
+            if (_pendingRefillBatch.isNotEmpty) {
+              final visitId = state.visit.id;
+              for (final med in _pendingRefillBatch) {
+                med['visit_id'] = visitId;
+              }
+              _refillBloc.add(CreateRefillsBatch(
+                medications: _pendingRefillBatch,
+              ));
+            }
             AppToast.success(context, title: 'Visit created successfully');
             if (context.mounted) context.pop();
           } else if (state is VisitError) {
@@ -861,59 +925,81 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                           onPicked: (d) => setState(() => m.dateDispensed = d),
                         ),
                         SizedBox(height: 8.h),
-                        _buildMedRefillPicker(m),
-                        SizedBox(height: 8.h),
                         Row(
                           children: [
-                            Text('Recurrent refill',
+                            Text('Needs Refill',
                                 style: AppTextStyles.titleSmall.copyWith(
                                     fontSize: 12.sp)),
                             Spacer(),
                             Switch(
-                              value: m.isRecurrent,
+                              value: m.needsRefill,
                               activeThumbColor: AppColors.primary,
                               onChanged: (v) => setState(() {
-                                m.isRecurrent = v;
-                                if (v) m.recurrenceIntervalDays = 30;
+                                m.needsRefill = v;
+                                if (v && m.refillDate == null) {
+                                  m.refillDate = DateTime.now().add(
+                                      const Duration(days: 30));
+                                }
                               }),
                             ),
                           ],
                         ),
-                        if (m.isRecurrent) ...[
+                        if (m.needsRefill) ...[
                           SizedBox(height: 8.h),
-                          DropdownButtonFormField<int>(
-                            value: m.recurrenceIntervalDays,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: AppColors.white,
-                              isDense: true,
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 14.w, vertical: 10.h),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.r),
-                                borderSide: const BorderSide(
-                                    color: AppColors.border, width: 1.5),
+                          _buildMedRefillPicker(m),
+                          SizedBox(height: 8.h),
+                          Row(
+                            children: [
+                              Text('Recurrent refill',
+                                  style: AppTextStyles.titleSmall.copyWith(
+                                      fontSize: 12.sp)),
+                              Spacer(),
+                              Switch(
+                                value: m.isRecurrent,
+                                activeThumbColor: AppColors.primary,
+                                onChanged: (v) => setState(() {
+                                  m.isRecurrent = v;
+                                  if (v) m.recurrenceIntervalDays = 30;
+                                }),
                               ),
-                            ),
-                            hint: Text('Select interval',
-                                style: AppTextStyles.bodySmall),
-                            items: const [
-                              DropdownMenuItem(
-                                  value: 7, child: Text('Every 7 days')),
-                              DropdownMenuItem(
-                                  value: 14, child: Text('Every 14 days')),
-                              DropdownMenuItem(
-                                  value: 30, child: Text('Every 30 days')),
-                              DropdownMenuItem(
-                                  value: 90, child: Text('Every 90 days')),
                             ],
-                            onChanged: (v) {
-                              if (v != null) {
-                                setState(
-                                    () => m.recurrenceIntervalDays = v);
-                              }
-                            },
                           ),
+                          if (m.isRecurrent) ...[
+                            SizedBox(height: 8.h),
+                            DropdownButtonFormField<int>(
+                              value: m.recurrenceIntervalDays,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: AppColors.white,
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 14.w, vertical: 10.h),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  borderSide: const BorderSide(
+                                      color: AppColors.border, width: 1.5),
+                                ),
+                              ),
+                              hint: Text('Select interval',
+                                  style: AppTextStyles.bodySmall),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 7, child: Text('Every 7 days')),
+                                DropdownMenuItem(
+                                    value: 14, child: Text('Every 14 days')),
+                                DropdownMenuItem(
+                                    value: 30, child: Text('Every 30 days')),
+                                DropdownMenuItem(
+                                    value: 90, child: Text('Every 90 days')),
+                              ],
+                              onChanged: (v) {
+                                if (v != null) {
+                                  setState(
+                                      () => m.recurrenceIntervalDays = v);
+                                }
+                              },
+                            ),
+                          ],
                         ],
                         SizedBox(height: 8.h),
                         AppTextField(
