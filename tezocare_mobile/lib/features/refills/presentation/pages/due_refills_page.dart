@@ -115,25 +115,35 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                           ],
                         );
                       }
+                      final groupedRefills = <String, List<DueRefill>>{};
+                      for (final r in state.refills) {
+                        groupedRefills
+                            .putIfAbsent(r.patientName, () => [])
+                            .add(r);
+                      }
                       return ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: EdgeInsets.only(bottom: 20.h),
                         children: [
                           _buildSummaryRow(state),
-                          ...state.refills.map(
-                            (r) => Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20.w),
-                              child: _RefillCard(
-                                refill: r,
-                                onContacted: () => context
-                                    .read<RefillBloc>()
-                                    .add(MarkAsContacted(refillId: r.refillId)),
-                                onRefilled: () => context
-                                    .read<RefillBloc>()
-                                    .add(MarkAsRefilled(refillId: r.refillId)),
+                          for (final entry in groupedRefills.entries) ...[
+                            _buildPatientHeader(entry.key, entry.value.length),
+                            for (final r in entry.value)
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                child: _RefillCard(
+                                  refill: r,
+                                  onContacted: () =>
+                                      context.read<RefillBloc>().add(
+                                        MarkAsContacted(refillId: r.refillId),
+                                      ),
+                                  onRefilled: () =>
+                                      context.read<RefillBloc>().add(
+                                        MarkAsRefilled(refillId: r.refillId),
+                                      ),
+                                ),
                               ),
-                            ),
-                          ),
+                          ],
                         ],
                       );
                     }
@@ -227,6 +237,42 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
     );
   }
 
+  Widget _buildPatientHeader(String patientName, int drugCount) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 4.h),
+      child: Row(
+        children: [
+          Icon(
+            Icons.person_outline,
+            size: 18.sp,
+            color: AppColors.textSecondary,
+          ),
+          SizedBox(width: 8.w),
+          Text(
+            patientName,
+            style: AppTextStyles.titleSmall.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+            decoration: BoxDecoration(
+              color: AppColors.primarySurface,
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Text(
+              '$drugCount',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _summaryChip(
     String value,
     String label,
@@ -254,7 +300,7 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
   }
 }
 
-class _RefillCard extends StatelessWidget {
+class _RefillCard extends StatefulWidget {
   final DueRefill refill;
   final VoidCallback onContacted;
   final VoidCallback onRefilled;
@@ -264,6 +310,17 @@ class _RefillCard extends StatelessWidget {
     required this.onContacted,
     required this.onRefilled,
   });
+
+  @override
+  State<_RefillCard> createState() => _RefillCardState();
+}
+
+class _RefillCardState extends State<_RefillCard> {
+  bool _expanded = false;
+
+  DueRefill get refill => widget.refill;
+  VoidCallback get onContacted => widget.onContacted;
+  VoidCallback get onRefilled => widget.onRefilled;
 
   bool get _isOutreach => refill.escalatedStatus == 'Phase 1 (Outreach)';
   bool get _isDueToday => refill.escalatedStatus == 'Phase 2 (Due Today)';
@@ -317,113 +374,137 @@ class _RefillCard extends StatelessWidget {
           ),
         ],
       ),
+      child: Column(
+        children: [
+          _buildHeader(statusColor, statusText, tagColor, tagTextColor),
+          if (_expanded) ...[
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDetailRow(
+                    Icons.phone_rounded,
+                    refill.patientPhone ?? 'No phone',
+                  ),
+                  SizedBox(height: 6.h),
+                  _buildDetailRow(
+                    Icons.calendar_today,
+                    'Refill: ${refill.refillDate}'
+                    '${refill.daysUntilRefill > 0 ? " (${refill.daysUntilRefill} days)" : ""}',
+                  ),
+                  if (refill.prescribedBy != null) ...[
+                    SizedBox(height: 6.h),
+                    _buildDetailRow(
+                      Icons.person,
+                      'Prescribed by: ${refill.prescribedBy!}',
+                    ),
+                  ],
+                  SizedBox(height: 12.h),
+                  _buildActions(context),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(
+    Color statusColor,
+    String statusText,
+    Color tagColor,
+    Color tagTextColor,
+  ) {
+    return InkWell(
+      onTap: () => setState(() => _expanded = !_expanded),
+      borderRadius: BorderRadius.circular(16.r),
       child: Padding(
         padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44.w,
-                  height: 44.w,
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _isOverdue
-                        ? Icons.warning_rounded
-                        : Icons.medication_outlined,
-                    color: statusColor,
-                    size: 20.sp,
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        refill.patientName,
-                        style: AppTextStyles.titleMedium,
-                      ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        refill.drugName.isNotEmpty
-                            ? refill.drugName
-                            : 'Medication',
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 4.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: tagColor,
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: AppTextStyles.caption.copyWith(
-                      color: tagTextColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+            Container(
+              width: 44.w,
+              height: 44.w,
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isOverdue ? Icons.warning_rounded : Icons.medication_outlined,
+                color: statusColor,
+                size: 20.sp,
+              ),
             ),
-            if (refill.sig.isNotEmpty) ...[
-              SizedBox(height: 6.h),
-              Text(
-                refill.sig,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
-                  fontStyle: FontStyle.italic,
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    refill.drugName.isNotEmpty ? refill.drugName : 'Medication',
+                    style: AppTextStyles.titleMedium,
+                  ),
+                  if (refill.sig.isNotEmpty) ...[
+                    SizedBox(height: 2.h),
+                    Text(
+                      refill.sig,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: tagColor,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: Text(
+                statusText,
+                style: AppTextStyles.caption.copyWith(
+                  color: tagTextColor,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ],
-            SizedBox(height: 8.h),
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  size: 14.sp,
-                  color: AppColors.textSecondary,
-                ),
-                SizedBox(width: 6.w),
-                Text(
-                  'Refill: ${refill.refillDate}',
-                  style: AppTextStyles.bodySmall,
-                ),
-                if (refill.daysUntilRefill > 0) ...[
-                  SizedBox(width: 8.w),
-                  Text(
-                    '(${refill.daysUntilRefill} days)',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                if (refill.prescribedBy != null)
-                  Text(
-                    refill.prescribedBy!,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-              ],
             ),
-            SizedBox(height: 12.h),
-            _buildActions(context),
+            SizedBox(width: 4.w),
+            AnimatedRotation(
+              turns: _expanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                size: 20.sp,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16.sp, color: AppColors.textSecondary),
+        SizedBox(width: 8.w),
+        Expanded(
+          child: Text(
+            text,
+            style: AppTextStyles.bodySmall,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
