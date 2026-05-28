@@ -69,10 +69,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         key: ApiConstants.accessTokenKey,
         value: tokenModel.accessToken,
       );
-      await secureStorage.write(
-        key: ApiConstants.refreshTokenKey,
-        value: tokenModel.refreshToken,
-      );
+      if (tokenModel.refreshToken.isNotEmpty) {
+        await secureStorage.write(
+          key: ApiConstants.refreshTokenKey,
+          value: tokenModel.refreshToken,
+        );
+      }
       return tokenModel;
     } on DioException catch (e) {
       throw _mapDioException(e, defaultMessage: 'Token refresh failed');
