@@ -779,19 +779,6 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     );
   }
 
-  StatusChipVariant _statusVariant(String status) {
-    switch (status) {
-      case 'completed':
-        return StatusChipVariant.completed;
-      case 'follow_up_pending':
-        return StatusChipVariant.followUpPending;
-      case 'referred':
-        return StatusChipVariant.referred;
-      default:
-        return StatusChipVariant.active;
-    }
-  }
-
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
