@@ -1,3 +1,5 @@
+// ignore_for_file: strict_top_level_inference
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -472,8 +474,9 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
       rows.add(_vitalRow('Temperature', '${v.temperature}', unit: '°C'));
     }
     if (v.spo2 != null) rows.add(_vitalRow('SpO2', '${v.spo2}', unit: '%'));
-    if (v.weight != null)
+    if (v.weight != null) {
       rows.add(_vitalRow('Weight', '${v.weight}', unit: 'kg'));
+    }
     if (v.bmi != null) {
       rows.add(_vitalRow('BMI', v.bmi!.toStringAsFixed(1), unit: 'kg/m²'));
     }
