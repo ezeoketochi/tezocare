@@ -6,6 +6,7 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'config/routes/app_router.dart';
 import 'core/network/dio_client.dart';
 import 'core/network/network_info.dart';
+import 'core/services/notification_service.dart';
 import 'core/utils/logger.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
@@ -111,6 +112,10 @@ void _initCore() {
 
   sl.registerLazySingleton<AppRouter>(() => AppRouter(secureStorage: sl()));
   sl.registerLazySingleton<GoRouter>(() => sl<AppRouter>().router);
+
+  sl.registerLazySingleton<NotificationService>(
+    () => NotificationService(dio: sl()),
+  );
 }
 
 void _initAuth() {

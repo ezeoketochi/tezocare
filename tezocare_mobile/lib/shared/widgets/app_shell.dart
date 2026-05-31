@@ -5,14 +5,69 @@ import 'package:go_router/go_router.dart';
 import '../../config/routes/app_router.dart';
 import '../../config/routes/route_names.dart';
 import '../../config/themes/app_colors.dart';
+import '../../core/services/notification_service.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
+import '../../injection_container.dart';
 import 'app_avatar.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   const AppShell({super.key, required this.navigationShell});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  @override
+  void initState() {
+    super.initState();
+    sl<NotificationService>()
+        .pendingForegroundNotification
+        .addListener(_onForegroundNotification);
+  }
+
+  void _onForegroundNotification() {
+    if (!mounted) return;
+    final msg =
+        sl<NotificationService>().pendingForegroundNotification.value;
+    if (msg == null) return;
+
+    final data = msg.data;
+    final body = msg.notification?.body ?? '';
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(body),
+        duration: const Duration(seconds: 4),
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'View',
+          onPressed: () => _navigateFromData(context, data),
+        ),
+      ),
+    );
+  }
+
+  static void _navigateFromData(
+      BuildContext context, Map<String, dynamic> data) {
+    final type = data['type'] as String?;
+    if (type == 'refill') {
+      context.go(RouteNames.dueRefills);
+    } else if (type == 'followup') {
+      context.go(RouteNames.followUp);
+    }
+  }
+
+  @override
+  void dispose() {
+    sl<NotificationService>()
+        .pendingForegroundNotification
+        .removeListener(_onForegroundNotification);
+    super.dispose();
+  }
 
   static const _tabs = [
     ('Home', Icons.home_rounded),
@@ -36,7 +91,7 @@ class AppShell extends StatelessWidget {
           AppRouter.authRefreshNotifier.value++;
           context.go(RouteNames.login);
         },
-        child: navigationShell,
+        child: widget.navigationShell,
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -63,7 +118,7 @@ class AppShell extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(_tabs.length, (index) {
-                  final isActive = index == navigationShell.currentIndex;
+                  final isActive = index == widget.navigationShell.currentIndex;
                   return _buildTabItem(index, isActive, staffName);
                 }),
               ),
@@ -80,8 +135,8 @@ class AppShell extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        if (index != navigationShell.currentIndex) {
-          navigationShell.goBranch(index);
+        if (index != widget.navigationShell.currentIndex) {
+          widget.navigationShell.goBranch(index);
         }
       },
       behavior: HitTestBehavior.opaque,

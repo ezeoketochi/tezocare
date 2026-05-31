@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/routes/route_names.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../injection_container.dart';
 import '../../../../shared/services/app_toast.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -32,6 +34,22 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  void _handlePostLoginNavigation(BuildContext context) {
+    final pending = sl<NotificationService>().consumePendingNavigation();
+    if (pending != null) {
+      final type = pending['type'] as String?;
+      if (type == 'refill') {
+        context.go(RouteNames.dueRefills);
+      } else if (type == 'followup') {
+        context.go(RouteNames.followUp);
+      } else {
+        context.go(RouteNames.dashboard);
+      }
+    } else {
+      context.go(RouteNames.dashboard);
+    }
+  }
+
   void _onLogin() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
@@ -50,7 +68,8 @@ class _LoginPageState extends State<LoginPage> {
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             AppToast.success(context, title: 'Login successful');
-            context.go(RouteNames.dashboard);
+            sl<NotificationService>().handlePostLogin();
+            _handlePostLoginNavigation(context);
           } else if (state is AuthError) {
             AppToast.error(context, title: state.message);
           } else if (state is AuthValidationError) {
