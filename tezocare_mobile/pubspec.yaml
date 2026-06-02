@@ -59,6 +59,9 @@ dependencies:
   # SVG Support
   flutter_svg: ^2.0.16
 
+  # Local Notifications (heads-up banners for foreground)
+  flutter_local_notifications: ^18.0.1
+
   # Toast Notifications
   toastification: ^2.3.0
 

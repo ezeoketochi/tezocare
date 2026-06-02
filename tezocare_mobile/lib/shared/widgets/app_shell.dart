@@ -24,49 +24,17 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
-    sl<NotificationService>()
-        .pendingForegroundNotification
-        .addListener(_onForegroundNotification);
+    sl<NotificationService>().setNavigationHandler(_navigateFromData);
   }
 
-  void _onForegroundNotification() {
+  void _navigateFromData(Map<String, dynamic> data) {
     if (!mounted) return;
-    final msg =
-        sl<NotificationService>().pendingForegroundNotification.value;
-    if (msg == null) return;
-
-    final data = msg.data;
-    final body = msg.notification?.body ?? '';
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(body),
-        duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'View',
-          onPressed: () => _navigateFromData(context, data),
-        ),
-      ),
-    );
-  }
-
-  static void _navigateFromData(
-      BuildContext context, Map<String, dynamic> data) {
     final type = data['type'] as String?;
     if (type == 'refill') {
       context.go(RouteNames.dueRefills);
     } else if (type == 'followup') {
       context.go(RouteNames.followUp);
     }
-  }
-
-  @override
-  void dispose() {
-    sl<NotificationService>()
-        .pendingForegroundNotification
-        .removeListener(_onForegroundNotification);
-    super.dispose();
   }
 
   static const _tabs = [
