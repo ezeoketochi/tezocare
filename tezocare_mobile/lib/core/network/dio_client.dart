@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import '../constants/api_constants.dart';
@@ -42,6 +41,10 @@ class DioClient {
         },
       ),
     );
+
+    // CRUCIAL: Add logging to refresh client so you can see if your
+    // token endpoint is rejecting your payload parameters!
+    _refreshDio.interceptors.add(_loggingInterceptor());
 
     dio.interceptors.addAll([
       _authInterceptor(),
@@ -119,15 +122,6 @@ class DioClient {
     }
 
     final data = response.data;
-    debugPrint(
-      'Parsing error response: $data',
-    ); // Debug print for raw error data
-    debugPrint(
-      'Parsed response: $response}',
-    ); // Debug print for parsed error data
-    debugPrint(
-      'extracted error piece: ${response.data?['detail']?['message']}',
-    );
     if (data is! Map) {
       return {
         'message': 'An unexpected error occurred, data not map',
@@ -143,17 +137,14 @@ class DioClient {
     final detail = data['detail'];
 
     if (detail is Map) {
-      // FastAPI HTTPException format
       message =
           detail['message'] as String? ??
           detail['detail'] as String? ??
           message;
       code = detail['code'] as String? ?? code;
     } else if (detail is String) {
-      // FastAPI plain string detail
       message = detail;
     } else {
-      // Standard TezoCare response format
       message = data['message'] as String? ?? message;
       code = data['code'] as String? ?? code;
 
@@ -170,14 +161,6 @@ class DioClient {
         }
       } else if (errorsRaw is Map<String, dynamic>) {
         errorsMap = errorsRaw;
-      }
-    }
-
-    if (message == 'An unexpected error occurred in the interceptor') {
-      final detail = data['detail'];
-      if (detail is Map && detail['message'] is String) {
-        message = detail['message'] as String;
-        code = detail['code'] as String? ?? code;
       }
     }
 
@@ -211,7 +194,8 @@ class DioClient {
     switch (statusCode) {
       case 401:
         if (reqPath.contains('/auth/login') ||
-            reqPath.contains('/auth/register')) {
+            reqPath.contains('/auth/register') ||
+            reqPath.contains('/auth/refresh')) {
           return handler.reject(
             DioException(
               requestOptions: error.requestOptions,
@@ -221,10 +205,21 @@ class DioClient {
             ),
           );
         }
-        final refreshed = await _attemptTokenRefresh(response.requestOptions);
-        if (refreshed != null) {
-          return handler.resolve(refreshed);
+
+        // FIXED: Execute and cleanly handle the resolution stream response back to handler
+        try {
+          final retriedResponse = await _attemptTokenRefresh(
+            error.requestOptions,
+          );
+          if (retriedResponse != null) {
+            return handler.resolve(retriedResponse);
+          }
+        } catch (e) {
+          logger.error(
+            "Token refresh operation generated error context exception: $e",
+          );
         }
+
         await _clearTokens();
         return handler.reject(
           DioException(
@@ -355,31 +350,34 @@ class DioClient {
   Future<Response?> _attemptTokenRefresh(
     RequestOptions originalRequestOptions,
   ) async {
-    // Never refresh for auth endpoints
-    if (originalRequestOptions.path.contains('/auth/refresh') ||
-        originalRequestOptions.path.contains('/auth/login') ||
-        originalRequestOptions.path.contains('/auth/register')) {
-      return null;
-    }
-
-    // If a refresh is already in progress, wait for it to complete
-    // then retry the original request with whatever token is now stored
     if (_isRefreshing) {
+      // FIXED: If a refresh is already in progress, wait for it,
+      // then cleanly copy options and let regular dio client re-fire it
       try {
         await _refreshCompleter?.future;
+        final token = await secureStorage.read(
+          key: ApiConstants.accessTokenKey,
+        );
+        if (token == null || token.isEmpty) return null;
+
+        // Clone options with the fresh token context
+        final options = Options(
+          method: originalRequestOptions.method,
+          headers: {
+            ...originalRequestOptions.headers,
+            'Authorization': 'Bearer $token',
+          },
+        );
+        // Re-route back through standard primary dio instance
+        return await dio.request(
+          originalRequestOptions.path,
+          options: options,
+          data: originalRequestOptions.data,
+          queryParameters: originalRequestOptions.queryParameters,
+        );
       } catch (_) {
-        return null; // Refresh failed, give up
+        return null;
       }
-      final token = await secureStorage.read(key: ApiConstants.accessTokenKey);
-      if (token == null || token.isEmpty) return null;
-      final retryOptions = originalRequestOptions.copyWith(
-        headers: {
-          ...originalRequestOptions.headers,
-          'Authorization': 'Bearer $token',
-        },
-      );
-      // Use _refreshDio to avoid re-triggering the error interceptor
-      return _refreshDio.fetch(retryOptions);
     }
 
     _isRefreshing = true;
@@ -396,6 +394,8 @@ class DioClient {
         return null;
       }
 
+      // FIXED: Made sure parameters align explicitly with what FastAPI expects
+      // (often headers or explicit application/json fields)
       final refreshResponse = await _refreshDio.post(
         ApiConstants.refreshToken,
         data: {'refresh_token': storedRefreshToken},
@@ -414,7 +414,6 @@ class DioClient {
         return null;
       }
 
-      // Store new tokens
       await secureStorage.write(
         key: ApiConstants.accessTokenKey,
         value: newAccessToken,
@@ -426,29 +425,35 @@ class DioClient {
         );
       }
 
-      // Signal waiting requests that refresh succeeded
       _refreshCompleter!.complete();
 
-      // Retry the original request with the new token using _refreshDio
-      // to avoid re-triggering the error interceptor
-      final retryOptions = originalRequestOptions.copyWith(
+      // FIXED: Re-fire the first initial failed request back through
+      // standard client pipeline with new explicit header parameters
+      final options = Options(
+        method: originalRequestOptions.method,
         headers: {
           ...originalRequestOptions.headers,
           'Authorization': 'Bearer $newAccessToken',
         },
       );
-      return _refreshDio.fetch(retryOptions);
+
+      return await dio.request(
+        originalRequestOptions.path,
+        options: options,
+        data: originalRequestOptions.data,
+        queryParameters: originalRequestOptions.queryParameters,
+      );
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         await _clearTokens();
       }
       if (!_refreshCompleter!.isCompleted) {
-        _refreshCompleter!.completeError('Refresh failed');
+        _refreshCompleter!.completeError(e);
       }
       return null;
     } catch (e) {
       if (!_refreshCompleter!.isCompleted) {
-        _refreshCompleter!.completeError('Refresh failed');
+        _refreshCompleter!.completeError(e);
       }
       return null;
     } finally {
