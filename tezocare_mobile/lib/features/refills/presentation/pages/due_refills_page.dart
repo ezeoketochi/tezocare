@@ -599,7 +599,7 @@ class _RefillCardState extends State<_RefillCard> {
         ),
         SizedBox(width: 8.w),
         _iconButton(
-          icon: Icons.chat_rounded,
+          icon: Icons.wechat,
           tooltip: 'WhatsApp',
           onTap: () => _launchWhatsApp(context, phone),
         ),

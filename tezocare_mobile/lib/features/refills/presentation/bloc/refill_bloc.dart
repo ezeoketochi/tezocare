@@ -45,15 +45,17 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
         final outreach = refills
             .where((r) => r.escalatedStatus == 'Phase 1 (Outreach)')
             .length;
-        emit(RefillLoaded(
-          refills: refills,
-          total: refills.length,
-          overdue: overdue,
-          dueToday: dueToday,
-          outreach: outreach,
-          activeFilter: event.filter,
-          activeDays: event.days,
-        ));
+        emit(
+          RefillLoaded(
+            refills: refills,
+            total: refills.length,
+            overdue: overdue,
+            dueToday: dueToday,
+            outreach: outreach,
+            activeFilter: event.filter,
+            activeDays: event.days,
+          ),
+        );
       },
     );
   }
@@ -64,17 +66,59 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
   ) async {
     final current = state;
     if (current is! RefillLoaded) return;
-    emit(const RefillLoading());
+
+    final previousRefills = current.refills;
+
+    // Optimistically update your exact unique properties mapping
+    final updatedRefills = current.refills.map((refill) {
+      if (refill.refillId == event.refillId) {
+        return refill.copyWith(
+          contactStatus: 'contacted',
+          lastActionAt: DateTime.now(), // Snappy instant UI timestamp update
+        );
+      }
+      return refill;
+    }).toList();
+
+    // Update in-memory state instantly without a loading spinner
+    emit(current.copyWith(refills: updatedRefills));
+
     final result = await markRefillContactedUseCase(
       MarkRefillContactedParams(refillId: event.refillId),
     );
+
     result.fold(
-      (failure) => emit(RefillError(message: _failureMessage(failure))),
+      (failure) {
+        // Revert if things went south on the server
+        emit(current.copyWith(refills: previousRefills));
+      },
       (_) {
-        add(GetDueRefillsEvent(filter: current.activeFilter, days: current.activeDays));
+        // Success! Do nothing because the UI is already in sync
       },
     );
   }
+  // Future<void> _onMarkAsContacted(
+  //   MarkAsContacted event,
+  //   Emitter<RefillState> emit,
+  // ) async {
+  //   final current = state;
+  //   if (current is! RefillLoaded) return;
+  //   emit(const RefillLoading());
+  //   final result = await markRefillContactedUseCase(
+  //     MarkRefillContactedParams(refillId: event.refillId),
+  //   );
+  //   result.fold(
+  //     (failure) => emit(RefillError(message: _failureMessage(failure))),
+  //     (_) {
+  //       add(
+  //         GetDueRefillsEvent(
+  //           filter: current.activeFilter,
+  //           days: current.activeDays,
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   Future<void> _onMarkAsRefilled(
     MarkAsRefilled event,
@@ -89,7 +133,12 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
     result.fold(
       (failure) => emit(RefillError(message: _failureMessage(failure))),
       (_) {
-        add(GetDueRefillsEvent(filter: current.activeFilter, days: current.activeDays));
+        add(
+          GetDueRefillsEvent(
+            filter: current.activeFilter,
+            days: current.activeDays,
+          ),
+        );
       },
     );
   }
