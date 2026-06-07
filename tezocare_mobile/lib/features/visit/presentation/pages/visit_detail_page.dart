@@ -38,12 +38,12 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
   bool _canEdit(Visit visit) {
     try {
       final authState = context.read<AuthBloc>().state;
+
       if (authState is! AuthAuthenticated) return false;
-      print(
-        'Auth staff ID: ${authState.staff.id}, Visit staff ID: ${visit.staffId}',
-      );
+
       return authState.staff.id == visit.staffId;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error checking edit permission: $e');
       return false;
     }
   }

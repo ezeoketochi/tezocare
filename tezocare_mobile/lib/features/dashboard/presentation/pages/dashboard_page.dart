@@ -39,7 +39,9 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     final staff = authState is AuthAuthenticated ? authState.staff : null;
-
+    // 2. Print its unique identity code
+    debugPrint('DASHBOARD PAGE - AuthBloc HashCode: ${authState.hashCode}');
+    debugPrint('DASHBOARD PAGE - State is: ${authState.runtimeType}');
     return Scaffold(
       body: SafeArea(
         child: BlocBuilder<DashboardBloc, DashboardState>(
