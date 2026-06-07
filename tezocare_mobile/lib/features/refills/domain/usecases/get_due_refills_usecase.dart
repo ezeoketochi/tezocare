@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
@@ -12,16 +13,21 @@ class GetDueRefillsUseCase implements UseCase<List<DueRefill>, GetDueRefillsPara
 
   @override
   Future<Either<Failure, List<DueRefill>>> call(GetDueRefillsParams params) {
-    return repository.getDueRefills(filter: params.filter, days: params.days);
+    return repository.getDueRefills(
+      filter: params.filter,
+      days: params.days,
+      cancelToken: params.cancelToken,
+    );
   }
 }
 
 class GetDueRefillsParams extends Equatable {
   final String? filter;
   final int? days;
+  final CancelToken? cancelToken;
 
-  const GetDueRefillsParams({this.filter, this.days});
+  const GetDueRefillsParams({this.filter, this.days, this.cancelToken});
 
   @override
-  List<Object?> get props => [filter, days];
+  List<Object?> get props => [filter, days, cancelToken];
 }

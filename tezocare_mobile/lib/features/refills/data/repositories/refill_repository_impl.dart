@@ -1,7 +1,9 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/error/repository_helper.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/services/local_cache_service.dart';
 import '../../domain/entities/due_refill.dart';
 import '../../domain/repositories/refill_repository.dart';
 import '../datasources/refill_remote_datasource.dart';
@@ -9,23 +11,40 @@ import '../datasources/refill_remote_datasource.dart';
 class RefillRepositoryImpl implements RefillRepository {
   final RefillRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
+  final LocalCacheService cacheService;
 
   RefillRepositoryImpl({
     required this.remoteDataSource,
     required this.networkInfo,
+    required this.cacheService,
   });
 
   @override
-  Future<Either<Failure, List<DueRefill>>> getDueRefills({String? filter, int? days}) async {
+  Future<Either<Failure, List<DueRefill>>> getDueRefills({String? filter, int? days, CancelToken? cancelToken}) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final result = await remoteDataSource.getDueRefills(filter: filter, days: days);
+      final result = await remoteDataSource.getDueRefills(
+        filter: filter,
+        days: days,
+        cancelToken: cancelToken,
+      );
+      await saveLocalDueRefills(result);
       return Right(result);
     } catch (e) {
       return handleException(e);
     }
+  }
+
+  @override
+  Future<List<DueRefill>> getLocalDueRefills() async {
+    return cacheService.getAs<List<DueRefill>>('due_refills') ?? [];
+  }
+
+  @override
+  Future<void> saveLocalDueRefills(List<DueRefill> refills) async {
+    cacheService.put('due_refills', List<DueRefill>.from(refills));
   }
 
   @override

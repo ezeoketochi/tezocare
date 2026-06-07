@@ -18,13 +18,29 @@ class DashboardLoading extends DashboardState {
 
 class DashboardLoaded extends DashboardState {
   final DashboardStats stats;
+  final bool isBackgroundUpdating;
+  final String? backgroundError;
 
   const DashboardLoaded({
     required this.stats,
+    this.isBackgroundUpdating = false,
+    this.backgroundError,
   });
 
+  DashboardLoaded copyWith({
+    DashboardStats? stats,
+    bool? isBackgroundUpdating,
+    String? backgroundError,
+  }) {
+    return DashboardLoaded(
+      stats: stats ?? this.stats,
+      isBackgroundUpdating: isBackgroundUpdating ?? this.isBackgroundUpdating,
+      backgroundError: backgroundError,
+    );
+  }
+
   @override
-  List<Object> get props => [stats];
+  List<Object?> get props => [stats, isBackgroundUpdating, backgroundError];
 }
 
 class DashboardError extends DashboardState {

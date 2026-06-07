@@ -5,7 +5,7 @@ import '../../../../core/network/dio_client.dart';
 import '../models/due_follow_up_model.dart';
 
 abstract class FollowUpRemoteDataSource {
-  Future<List<DueFollowUpModel>> getDueFollowUps({int? days});
+  Future<List<DueFollowUpModel>> getDueFollowUps({int? days, CancelToken? cancelToken});
   Future<Map<String, dynamic>> markFollowUpDone(String visitId, {required String outcome});
 }
 
@@ -15,13 +15,14 @@ class FollowUpRemoteDataSourceImpl implements FollowUpRemoteDataSource {
   FollowUpRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<List<DueFollowUpModel>> getDueFollowUps({int? days}) async {
+  Future<List<DueFollowUpModel>> getDueFollowUps({int? days, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (days != null) queryParams['days'] = days;
       final response = await dioClient.dio.get(
         ApiConstants.dashboardDueFollowUps,
         queryParameters: queryParams,
+        cancelToken: cancelToken,
       );
       final data = response.data['data'] as Map<String, dynamic>;
       final followups = data['followups'] as List<dynamic>;

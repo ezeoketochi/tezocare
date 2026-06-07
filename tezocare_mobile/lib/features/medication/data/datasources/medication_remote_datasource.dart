@@ -6,7 +6,10 @@ import '../models/medication_model.dart';
 
 abstract class MedicationRemoteDataSource {
   Future<MedicationModel> addMedication(MedicationModel medication);
-  Future<List<MedicationModel>> getPatientMedications(String patientId);
+  Future<List<MedicationModel>> getPatientMedications(
+    String patientId, {
+    CancelToken? cancelToken,
+  });
   Future<MedicationModel> updateMedication(MedicationModel medication);
   Future<void> deactivateMedication(String id);
 }
@@ -32,10 +35,14 @@ class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
   }
 
   @override
-  Future<List<MedicationModel>> getPatientMedications(String patientId) async {
+  Future<List<MedicationModel>> getPatientMedications(
+    String patientId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await dioClient.dio.get(
         '${ApiConstants.patients}/$patientId/medications',
+        cancelToken: cancelToken,
       );
       final dataList = response.data['data'] as List<dynamic>;
       return dataList

@@ -7,6 +7,7 @@ import '../../features/auth/presentation/bloc/auth_form_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/dashboard/domain/usecases/get_dashboard_stats_usecase.dart';
 import '../../features/follow_up/presentation/bloc/follow_up_bloc.dart';
+import '../../features/follow_up/data/repositories/follow_up_repository_impl.dart';
 import '../../features/follow_up/domain/usecases/get_due_follow_ups_usecase.dart';
 import '../../features/follow_up/domain/usecases/mark_follow_up_done_usecase.dart';
 import '../../features/follow_up/presentation/pages/follow_up_page.dart';
@@ -32,6 +33,7 @@ import '../../features/visit/domain/usecases/create_visit_usecase.dart';
 import '../../features/visit/domain/usecases/get_patient_visits_usecase.dart';
 import '../../features/visit/domain/usecases/get_visit_detail_usecase.dart';
 import '../../features/visit/domain/usecases/delete_visit_usecase.dart';
+import '../../features/visit/data/repositories/visit_repository_impl.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -185,6 +187,7 @@ class AppRouter {
                   create: (_) => FollowUpBloc(
                     getDueFollowUpsUseCase: sl<GetDueFollowUpsUseCase>(),
                     markFollowUpDoneUseCase: sl<MarkFollowUpDoneUseCase>(),
+                    followUpRepository: sl<FollowUpRepositoryImpl>(),
                   ),
                   child: const FollowUpPage(),
                 ),
@@ -253,6 +256,7 @@ class AppRouter {
                 getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
                 getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
                 deleteVisitUseCase: sl<DeleteVisitUseCase>(),
+                visitRepository: sl<VisitRepositoryImpl>(),
               ),
               child: VisitDetailPage(visitId: state.pathParameters['visitId']!),
             ),
@@ -301,6 +305,7 @@ class AppRouter {
             getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
             getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
             deleteVisitUseCase: sl<DeleteVisitUseCase>(),
+            visitRepository: sl<VisitRepositoryImpl>(),
           ),
           child: CreateVisitPage(
             patientId: state.uri.queryParameters['patientId'],

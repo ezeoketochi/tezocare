@@ -5,7 +5,7 @@ import '../../../../core/network/dio_client.dart';
 import '../models/due_refill_model.dart';
 
 abstract class RefillRemoteDataSource {
-  Future<List<DueRefillModel>> getDueRefills({String? filter, int? days});
+  Future<List<DueRefillModel>> getDueRefills({String? filter, int? days, CancelToken? cancelToken});
   Future<Map<String, dynamic>> markContacted(String refillId);
   Future<Map<String, dynamic>> markRefilled(String refillId);
   Future<Map<String, dynamic>> createRefillsBatch(List<Map<String, dynamic>> medications);
@@ -17,7 +17,7 @@ class RefillRemoteDataSourceImpl implements RefillRemoteDataSource {
   RefillRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<List<DueRefillModel>> getDueRefills({String? filter, int? days}) async {
+  Future<List<DueRefillModel>> getDueRefills({String? filter, int? days, CancelToken? cancelToken}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (filter != null) queryParams['filter'] = filter;
@@ -25,6 +25,7 @@ class RefillRemoteDataSourceImpl implements RefillRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiConstants.refills,
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
+        cancelToken: cancelToken,
       );
       final data = response.data['data'] as Map<String, dynamic>;
       final refills = data['refills'] as List<dynamic>;

@@ -19,6 +19,7 @@ import '../../../visit/domain/usecases/create_visit_usecase.dart';
 import '../../../visit/domain/usecases/get_patient_visits_usecase.dart';
 import '../../../visit/domain/usecases/get_visit_detail_usecase.dart';
 import '../../../visit/domain/usecases/delete_visit_usecase.dart';
+import '../../../visit/data/repositories/visit_repository_impl.dart';
 import '../../../visit/presentation/bloc/visit_bloc.dart';
 import '../../../visit/presentation/bloc/visit_event.dart';
 import '../../../visit/presentation/bloc/visit_state.dart';
@@ -296,6 +297,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           getPatientVisitsUseCase: _getPatientVisitsUseCase(),
           getVisitDetailUseCase: _getVisitDetailUseCase(),
           deleteVisitUseCase: _getDeleteVisitUseCase(),
+          visitRepository: _getVisitRepository(),
         );
         bloc.add(GetPatientVisitsEvent(patientId: widget.patientId));
         return bloc;
@@ -714,6 +716,10 @@ class _PatientDetailPageState extends State<PatientDetailPage>
 
   DeleteVisitUseCase _getDeleteVisitUseCase() {
     return inj.sl<DeleteVisitUseCase>();
+  }
+
+  VisitRepositoryImpl _getVisitRepository() {
+    return inj.sl<VisitRepositoryImpl>();
   }
 
   int _calculateAge(DateTime dob) {

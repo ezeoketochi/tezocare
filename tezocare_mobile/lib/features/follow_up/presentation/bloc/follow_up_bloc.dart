@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
+import '../../data/repositories/follow_up_repository_impl.dart';
 import '../../domain/usecases/get_due_follow_ups_usecase.dart';
 import '../../domain/usecases/mark_follow_up_done_usecase.dart';
 import 'follow_up_event.dart';
@@ -8,10 +10,13 @@ import 'follow_up_state.dart';
 class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
   final GetDueFollowUpsUseCase getDueFollowUpsUseCase;
   final MarkFollowUpDoneUseCase markFollowUpDoneUseCase;
+  final FollowUpRepositoryImpl followUpRepository;
+  CancelToken? _followUpsCancelToken;
 
   FollowUpBloc({
     required this.getDueFollowUpsUseCase,
     required this.markFollowUpDoneUseCase,
+    required this.followUpRepository,
   }) : super(const FollowUpInitial()) {
     on<GetDueFollowUpsEvent>(_onGetDueFollowUps);
     on<MarkFollowUpDoneEvent>(_onMarkFollowUpDone);
@@ -22,13 +27,46 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     GetDueFollowUpsEvent event,
     Emitter<FollowUpState> emit,
   ) async {
-    emit(const FollowUpLoading());
+    _followUpsCancelToken?.cancel();
+    _followUpsCancelToken = event.cancelToken ?? CancelToken();
+
+    if (state is FollowUpLoaded) {
+      emit((state as FollowUpLoaded).copyWith(isBackgroundUpdating: true));
+    } else {
+      final localData = await followUpRepository.getLocalDueFollowUps();
+      if (localData.isNotEmpty) {
+        final overdue = localData.where((f) => f.followupStatus == 'overdue').length;
+        final dueToday = localData.where((f) => f.followupStatus == 'due_today').length;
+        final upcoming = localData.where((f) => f.followupStatus == 'upcoming').length;
+        emit(FollowUpLoaded(
+          followUps: localData,
+          total: localData.length,
+          overdue: overdue,
+          dueToday: dueToday,
+          upcoming: upcoming,
+          isBackgroundUpdating: true,
+        ));
+      }
+    }
+
     final result = await getDueFollowUpsUseCase(
-      GetDueFollowUpsParams(days: event.days),
+      GetDueFollowUpsParams(days: event.days, cancelToken: _followUpsCancelToken),
     );
+
     result.fold(
-      (failure) => emit(FollowUpError(message: _failureMessage(failure))),
+      (failure) {
+        if (_followUpsCancelToken!.isCancelled) return;
+        if (state is FollowUpLoaded) {
+          emit((state as FollowUpLoaded).copyWith(
+            isBackgroundUpdating: false,
+            backgroundError: _failureMessage(failure),
+          ));
+        } else {
+          emit(FollowUpError(message: _failureMessage(failure)));
+        }
+      },
       (followUps) {
+        if (_followUpsCancelToken!.isCancelled) return;
         final overdue = followUps.where((f) => f.followupStatus == 'overdue').length;
         final dueToday = followUps.where((f) => f.followupStatus == 'due_today').length;
         final upcoming = followUps.where((f) => f.followupStatus == 'upcoming').length;
@@ -38,6 +76,7 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
           overdue: overdue,
           dueToday: dueToday,
           upcoming: upcoming,
+          isBackgroundUpdating: false,
         ));
       },
     );
@@ -78,5 +117,11 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     return failure.message.isNotEmpty
         ? failure.message
         : 'Something went wrong. Please try again.';
+  }
+
+  @override
+  Future<void> close() {
+    _followUpsCancelToken?.cancel();
+    return super.close();
   }
 }

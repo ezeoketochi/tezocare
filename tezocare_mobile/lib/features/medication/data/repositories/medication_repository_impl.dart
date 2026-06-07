@@ -1,7 +1,9 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/error/repository_helper.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/services/local_cache_service.dart';
 import '../../domain/entities/medication.dart';
 import '../../domain/repositories/medication_repository.dart';
 import '../datasources/medication_remote_datasource.dart';
@@ -10,10 +12,12 @@ import '../models/medication_model.dart';
 class MedicationRepositoryImpl implements MedicationRepository {
   final MedicationRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
+  final LocalCacheService cacheService;
 
   MedicationRepositoryImpl({
     required this.remoteDataSource,
     required this.networkInfo,
+    required this.cacheService,
   });
 
   @override
@@ -50,13 +54,18 @@ class MedicationRepositoryImpl implements MedicationRepository {
 
   @override
   Future<Either<Failure, List<Medication>>> getPatientMedications(
-    String patientId,
-  ) async {
+    String patientId, {
+    CancelToken? cancelToken,
+  }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final result = await remoteDataSource.getPatientMedications(patientId);
+      final result = await remoteDataSource.getPatientMedications(
+        patientId,
+        cancelToken: cancelToken,
+      );
+      saveLocalPatientMedications(patientId, result);
       return Right(result);
     } catch (e) {
       return handleException(e);
@@ -106,5 +115,15 @@ class MedicationRepositoryImpl implements MedicationRepository {
     } catch (e) {
       return handleException(e);
     }
+  }
+
+  @override
+  Future<List<Medication>?> getLocalPatientMedications(String patientId) async {
+    return cacheService.getAs<List<Medication>>('medications_$patientId');
+  }
+
+  @override
+  Future<void> saveLocalPatientMedications(String patientId, List<Medication> medications) async {
+    cacheService.put('medications_$patientId', medications);
   }
 }

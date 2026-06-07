@@ -1,9 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/usecases/create_visit_usecase.dart';
 import '../../domain/usecases/delete_visit_usecase.dart';
 import '../../domain/usecases/get_patient_visits_usecase.dart';
 import '../../domain/usecases/get_visit_detail_usecase.dart';
+import '../../data/repositories/visit_repository_impl.dart';
 import 'visit_event.dart';
 import 'visit_state.dart';
 
@@ -12,12 +14,17 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
   final GetPatientVisitsUseCase getPatientVisitsUseCase;
   final GetVisitDetailUseCase getVisitDetailUseCase;
   final DeleteVisitUseCase deleteVisitUseCase;
+  final VisitRepositoryImpl visitRepository;
+
+  CancelToken? _visitsCancelToken;
+  CancelToken? _detailCancelToken;
 
   VisitBloc({
     required this.createVisitUseCase,
     required this.getPatientVisitsUseCase,
     required this.getVisitDetailUseCase,
     required this.deleteVisitUseCase,
+    required this.visitRepository,
   }) : super(const VisitInitial()) {
     on<CreateVisitEvent>(_onCreateVisit);
     on<GetPatientVisitsEvent>(_onGetPatientVisits);
@@ -44,13 +51,54 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     GetPatientVisitsEvent event,
     Emitter<VisitState> emit,
   ) async {
-    emit(const VisitLoading());
+    _visitsCancelToken?.cancel();
+    _visitsCancelToken = CancelToken();
+
+    final current = state;
+
+    if (current is VisitsLoaded) {
+      emit(current.copyWith(
+        isBackgroundUpdating: true,
+        backgroundError: null,
+      ));
+    } else {
+      final cachedVisits =
+          await visitRepository.getLocalVisits(event.patientId);
+      if (cachedVisits.isNotEmpty) {
+        emit(VisitsLoaded(
+          visits: cachedVisits,
+          isBackgroundUpdating: true,
+        ));
+      }
+    }
+
     final result = await getPatientVisitsUseCase(
-      GetPatientVisitsParams(patientId: event.patientId),
+      GetPatientVisitsParams(
+        patientId: event.patientId,
+        cancelToken: _visitsCancelToken,
+      ),
     );
+
     result.fold(
-      (failure) => emit(VisitError(message: _failureMessage(failure))),
-      (visits) => emit(VisitsLoaded(visits: visits)),
+      (failure) {
+        if (_visitsCancelToken?.isCancelled == true) return;
+
+        if (state is VisitsLoaded) {
+          emit((state as VisitsLoaded).copyWith(
+            isBackgroundUpdating: false,
+            backgroundError: failure.message,
+          ));
+        } else {
+          emit(VisitError(message: failure.message));
+        }
+      },
+      (freshVisits) {
+        visitRepository.saveLocalVisits(event.patientId, freshVisits);
+        emit(VisitsLoaded(
+          visits: freshVisits,
+          isBackgroundUpdating: false,
+        ));
+      },
     );
   }
 
@@ -58,13 +106,53 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     GetVisitDetailEvent event,
     Emitter<VisitState> emit,
   ) async {
-    emit(const VisitLoading());
+    _detailCancelToken?.cancel();
+    _detailCancelToken = CancelToken();
+
+    final current = state;
+
+    if (current is VisitDetailLoaded) {
+      emit(current.copyWith(
+        isBackgroundUpdating: true,
+        backgroundError: null,
+      ));
+    } else {
+      final cachedDetail = await visitRepository.getLocalVisitDetail(event.id);
+      if (cachedDetail != null) {
+        emit(VisitDetailLoaded(
+          visit: cachedDetail,
+          isBackgroundUpdating: true,
+        ));
+      }
+    }
+
     final result = await getVisitDetailUseCase(
-      GetVisitDetailParams(id: event.id),
+      GetVisitDetailParams(
+        id: event.id,
+        cancelToken: _detailCancelToken,
+      ),
     );
+
     result.fold(
-      (failure) => emit(VisitError(message: _failureMessage(failure))),
-      (visit) => emit(VisitDetailLoaded(visit: visit)),
+      (failure) {
+        if (_detailCancelToken?.isCancelled == true) return;
+
+        if (state is VisitDetailLoaded) {
+          emit((state as VisitDetailLoaded).copyWith(
+            isBackgroundUpdating: false,
+            backgroundError: failure.message,
+          ));
+        } else {
+          emit(VisitError(message: failure.message));
+        }
+      },
+      (freshVisit) {
+        visitRepository.saveLocalVisitDetail(freshVisit);
+        emit(VisitDetailLoaded(
+          visit: freshVisit,
+          isBackgroundUpdating: false,
+        ));
+      },
     );
   }
 
@@ -75,13 +163,17 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     final current = state;
     if (current is! VisitsLoaded) return;
     final previousVisits = current.visits;
-    final updatedVisits = current.visits.where((v) => v.id != event.id).toList();
+    final updatedVisits =
+        current.visits.where((v) => v.id != event.id).toList();
     emit(current.copyWith(visits: updatedVisits));
     final result = await deleteVisitUseCase(
       DeleteVisitParams(id: event.id),
     );
     result.fold(
-      (failure) => emit(current.copyWith(visits: previousVisits, errorMessage: _failureMessage(failure))),
+      (failure) => emit(current.copyWith(
+        visits: previousVisits,
+        errorMessage: _failureMessage(failure),
+      )),
       (_) => null,
     );
   }
@@ -100,5 +192,12 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     return failure.message.isNotEmpty
         ? failure.message
         : 'Something went wrong. Please try again.';
+  }
+
+  @override
+  Future<void> close() {
+    _visitsCancelToken?.cancel();
+    _detailCancelToken?.cancel();
+    return super.close();
   }
 }

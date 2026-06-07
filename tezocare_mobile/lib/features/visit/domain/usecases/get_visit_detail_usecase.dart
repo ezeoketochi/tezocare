@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/visit.dart';
@@ -11,12 +12,19 @@ class GetVisitDetailUseCase implements UseCase<Visit, GetVisitDetailParams> {
 
   @override
   Future<Either<Failure, Visit>> call(GetVisitDetailParams params) {
-    return repository.getVisitDetail(params.id);
+    return repository.getVisitDetail(
+      params.id,
+      cancelToken: params.cancelToken,
+    );
   }
 }
 
 class GetVisitDetailParams {
   final String id;
+  final CancelToken? cancelToken;
 
-  const GetVisitDetailParams({required this.id});
+  const GetVisitDetailParams({
+    required this.id,
+    this.cancelToken,
+  });
 }

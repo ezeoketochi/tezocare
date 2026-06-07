@@ -6,6 +6,7 @@ import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'config/routes/app_router.dart';
 import 'core/network/dio_client.dart';
 import 'core/network/network_info.dart';
+import 'core/services/local_cache_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/utils/logger.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
@@ -110,6 +111,8 @@ void _initCore() {
     ),
   );
 
+  sl.registerLazySingleton<LocalCacheService>(() => LocalCacheService());
+
   sl.registerLazySingleton<AppRouter>(() => AppRouter(secureStorage: sl()));
   sl.registerLazySingleton<GoRouter>(() => sl<AppRouter>().router);
 
@@ -148,7 +151,7 @@ void _initPatient() {
     () => PatientRemoteDataSourceImpl(dioClient: sl()),
   );
   sl.registerLazySingleton<PatientRepository>(
-    () => PatientRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+    () => PatientRepositoryImpl(remoteDataSource: sl(), networkInfo: sl(), cacheService: sl()),
   );
   sl.registerFactory(() => CreatePatientUseCase(repository: sl()));
   sl.registerFactory(() => GetPatientsUseCase(repository: sl()));
@@ -162,7 +165,7 @@ void _initVisit() {
     () => VisitRemoteDataSourceImpl(dioClient: sl()),
   );
   sl.registerLazySingleton<VisitRepository>(
-    () => VisitRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+    () => VisitRepositoryImpl(remoteDataSource: sl(), networkInfo: sl(), cacheService: sl()),
   );
   sl.registerFactory(() => CreateVisitUseCase(repository: sl()));
   sl.registerFactory(() => GetPatientVisitsUseCase(repository: sl()));
@@ -175,7 +178,7 @@ void _initMedication() {
     () => MedicationRemoteDataSourceImpl(dioClient: sl()),
   );
   sl.registerLazySingleton<MedicationRepository>(
-    () => MedicationRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+    () => MedicationRepositoryImpl(remoteDataSource: sl(), networkInfo: sl(), cacheService: sl()),
   );
   sl.registerFactory(() => AddMedicationUseCase(repository: sl()));
   sl.registerFactory(() => GetPatientMedicationsUseCase(repository: sl()));
@@ -188,7 +191,7 @@ void _initDashboard() {
     () => DashboardRemoteDataSourceImpl(dioClient: sl()),
   );
   sl.registerLazySingleton<DashboardRepository>(
-    () => DashboardRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+    () => DashboardRepositoryImpl(remoteDataSource: sl(), networkInfo: sl(), cacheService: sl()),
   );
   sl.registerFactory(() => GetDashboardStatsUseCase(repository: sl()));
 }
@@ -198,7 +201,7 @@ void _initFollowUp() {
     () => FollowUpRemoteDataSourceImpl(dioClient: sl()),
   );
   sl.registerLazySingleton<FollowUpRepository>(
-    () => FollowUpRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+    () => FollowUpRepositoryImpl(remoteDataSource: sl(), networkInfo: sl(), cacheService: sl()),
   );
   sl.registerFactory(() => GetDueFollowUpsUseCase(repository: sl()));
   sl.registerFactory(() => MarkFollowUpDoneUseCase(repository: sl()));
@@ -209,7 +212,7 @@ void _initRefills() {
     () => RefillRemoteDataSourceImpl(dioClient: sl()),
   );
   sl.registerLazySingleton<RefillRepository>(
-    () => RefillRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+    () => RefillRepositoryImpl(remoteDataSource: sl(), networkInfo: sl(), cacheService: sl()),
   );
   sl.registerFactory(() => GetDueRefillsUseCase(repository: sl()));
   sl.registerFactory(() => MarkRefillContactedUseCase(repository: sl()));

@@ -18,31 +18,64 @@ class VisitLoading extends VisitState {
 
 class VisitsLoaded extends VisitState {
   final List<Visit> visits;
+  final bool isBackgroundUpdating;
+  final String? backgroundError;
   final String? errorMessage;
 
-  const VisitsLoaded({required this.visits, this.errorMessage});
+  const VisitsLoaded({
+    required this.visits,
+    this.isBackgroundUpdating = false,
+    this.backgroundError,
+    this.errorMessage,
+  });
 
   VisitsLoaded copyWith({
     List<Visit>? visits,
+    bool? isBackgroundUpdating,
+    String? backgroundError,
     String? errorMessage,
   }) {
     return VisitsLoaded(
       visits: visits ?? this.visits,
+      isBackgroundUpdating:
+          isBackgroundUpdating ?? this.isBackgroundUpdating,
+      backgroundError: backgroundError,
       errorMessage: errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [visits, errorMessage];
+  List<Object?> get props =>
+      [visits, isBackgroundUpdating, backgroundError, errorMessage];
 }
 
 class VisitDetailLoaded extends VisitState {
   final Visit visit;
+  final bool isBackgroundUpdating;
+  final String? backgroundError;
 
-  const VisitDetailLoaded({required this.visit});
+  const VisitDetailLoaded({
+    required this.visit,
+    this.isBackgroundUpdating = false,
+    this.backgroundError,
+  });
+
+  VisitDetailLoaded copyWith({
+    Visit? visit,
+    bool? isBackgroundUpdating,
+    String? backgroundError,
+  }) {
+    return VisitDetailLoaded(
+      visit: visit ?? this.visit,
+      isBackgroundUpdating:
+          isBackgroundUpdating ?? this.isBackgroundUpdating,
+      backgroundError: backgroundError,
+    );
+  }
 
   @override
-  List<Object> get props => [visit];
+  List<Object?> get props =>
+      [visit, isBackgroundUpdating, backgroundError];
 }
 
 class VisitCreated extends VisitState {

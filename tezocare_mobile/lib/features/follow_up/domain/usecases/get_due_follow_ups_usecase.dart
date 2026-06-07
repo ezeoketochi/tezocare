@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
@@ -12,15 +13,16 @@ class GetDueFollowUpsUseCase implements UseCase<List<DueFollowUp>, GetDueFollowU
 
   @override
   Future<Either<Failure, List<DueFollowUp>>> call(GetDueFollowUpsParams params) {
-    return repository.getDueFollowUps(days: params.days);
+    return repository.getDueFollowUps(days: params.days, cancelToken: params.cancelToken);
   }
 }
 
 class GetDueFollowUpsParams extends Equatable {
   final int? days;
+  final CancelToken? cancelToken;
 
-  const GetDueFollowUpsParams({this.days});
+  const GetDueFollowUpsParams({this.days, this.cancelToken});
 
   @override
-  List<Object?> get props => [days];
+  List<Object?> get props => [days, cancelToken];
 }

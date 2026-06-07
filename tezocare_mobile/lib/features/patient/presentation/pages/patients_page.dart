@@ -65,6 +65,10 @@ class _PatientsPageState extends State<PatientsPage> {
           Expanded(
             child: BlocBuilder<PatientBloc, PatientState>(
               builder: (context, state) {
+                context.read<PatientBloc>().add(const GetPatientsEvent());
+
+                debugPrint("patient state is: ${state.toString()}");
+
                 if (state is PatientLoading) {
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -95,16 +99,18 @@ class _PatientsPageState extends State<PatientsPage> {
                           : 'Add Patient',
                       onAction: _searchController.text.isNotEmpty
                           ? null
-                          : () => context.push(RouteNames.createPatient).then((_) {
-                                if (context.mounted) {
-                                  context.read<PatientBloc>().add(
-                                    const GetPatientsEvent(),
-                                  );
-                                  context.read<DashboardBloc>().add(
-                                    const GetDashboardStatsEvent(),
-                                  );
-                                }
-                              }),
+                          : () => context.push(RouteNames.createPatient).then((
+                              _,
+                            ) {
+                              if (context.mounted) {
+                                context.read<PatientBloc>().add(
+                                  const GetPatientsEvent(),
+                                );
+                                context.read<DashboardBloc>().add(
+                                  const GetDashboardStatsEvent(),
+                                );
+                              }
+                            }),
                     );
                   }
                   return ListView.builder(

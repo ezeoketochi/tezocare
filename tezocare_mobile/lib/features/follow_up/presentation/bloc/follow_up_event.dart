@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class FollowUpEvent extends Equatable {
@@ -9,11 +10,12 @@ abstract class FollowUpEvent extends Equatable {
 
 class GetDueFollowUpsEvent extends FollowUpEvent {
   final int? days;
+  final CancelToken? cancelToken;
 
-  const GetDueFollowUpsEvent({this.days});
+  const GetDueFollowUpsEvent({this.days, this.cancelToken});
 
   @override
-  List<Object?> get props => [days];
+  List<Object?> get props => [days, cancelToken];
 }
 
 class MarkFollowUpDoneEvent extends FollowUpEvent {

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/patient.dart';
 
@@ -12,20 +13,22 @@ class GetPatientsEvent extends PatientEvent {
   final int page;
   final String? search;
   final String? status;
+  final CancelToken? cancelToken;
 
-  const GetPatientsEvent({this.page = 1, this.search, this.status});
+  const GetPatientsEvent({this.page = 1, this.search, this.status, this.cancelToken});
 
   @override
-  List<Object> get props => [page, search ?? '', status ?? ''];
+  List<Object?> get props => [page, search ?? '', status ?? '', cancelToken];
 }
 
 class GetPatientDetailEvent extends PatientEvent {
   final String id;
+  final CancelToken? cancelToken;
 
-  const GetPatientDetailEvent({required this.id});
+  const GetPatientDetailEvent({required this.id, this.cancelToken});
 
   @override
-  List<Object> get props => [id];
+  List<Object?> get props => [id, cancelToken];
 }
 
 class CreatePatientEvent extends PatientEvent {
@@ -48,11 +51,12 @@ class UpdatePatientEvent extends PatientEvent {
 
 class SearchPatientsEvent extends PatientEvent {
   final String query;
+  final CancelToken? cancelToken;
 
-  const SearchPatientsEvent({required this.query});
+  const SearchPatientsEvent({required this.query, this.cancelToken});
 
   @override
-  List<Object> get props => [query];
+  List<Object?> get props => [query, cancelToken];
 }
 
 class ClearPatientError extends PatientEvent {

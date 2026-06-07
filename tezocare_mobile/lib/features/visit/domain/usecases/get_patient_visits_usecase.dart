@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/visit.dart';
@@ -12,12 +13,19 @@ class GetPatientVisitsUseCase
 
   @override
   Future<Either<Failure, List<Visit>>> call(GetPatientVisitsParams params) {
-    return repository.getPatientVisits(params.patientId);
+    return repository.getPatientVisits(
+      params.patientId,
+      cancelToken: params.cancelToken,
+    );
   }
 }
 
 class GetPatientVisitsParams {
   final String patientId;
+  final CancelToken? cancelToken;
 
-  const GetPatientVisitsParams({required this.patientId});
+  const GetPatientVisitsParams({
+    required this.patientId,
+    this.cancelToken,
+  });
 }

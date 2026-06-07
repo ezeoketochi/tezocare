@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/visit.dart';
 
@@ -19,8 +20,12 @@ class CreateVisitEvent extends VisitEvent {
 
 class GetPatientVisitsEvent extends VisitEvent {
   final String patientId;
+  final CancelToken? cancelToken;
 
-  const GetPatientVisitsEvent({required this.patientId});
+  const GetPatientVisitsEvent({
+    required this.patientId,
+    this.cancelToken,
+  });
 
   @override
   List<Object> get props => [patientId];
@@ -28,8 +33,12 @@ class GetPatientVisitsEvent extends VisitEvent {
 
 class GetVisitDetailEvent extends VisitEvent {
   final String id;
+  final CancelToken? cancelToken;
 
-  const GetVisitDetailEvent({required this.id});
+  const GetVisitDetailEvent({
+    required this.id,
+    this.cancelToken,
+  });
 
   @override
   List<Object> get props => [id];

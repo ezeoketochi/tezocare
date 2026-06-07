@@ -5,7 +5,7 @@ import '../../../../core/network/dio_client.dart';
 import '../models/dashboard_stats_model.dart';
 
 abstract class DashboardRemoteDataSource {
-  Future<DashboardStatsModel> getDashboardStats();
+  Future<DashboardStatsModel> getDashboardStats({CancelToken? cancelToken});
 }
 
 class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
@@ -14,9 +14,12 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   DashboardRemoteDataSourceImpl({required this.dioClient});
 
   @override
-  Future<DashboardStatsModel> getDashboardStats() async {
+  Future<DashboardStatsModel> getDashboardStats({CancelToken? cancelToken}) async {
     try {
-      final response = await dioClient.dio.get(ApiConstants.dashboardSummary);
+      final response = await dioClient.dio.get(
+        ApiConstants.dashboardSummary,
+        cancelToken: cancelToken,
+      );
       return DashboardStatsModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
       );

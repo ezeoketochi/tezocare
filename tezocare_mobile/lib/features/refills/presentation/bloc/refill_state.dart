@@ -71,6 +71,8 @@ class RefillLoaded extends RefillState {
   final String? activeFilter;
   final int? activeDays;
   final String? errorMessage;
+  final bool isBackgroundUpdating;
+  final String? backgroundError;
 
   const RefillLoaded({
     required this.refills,
@@ -81,6 +83,8 @@ class RefillLoaded extends RefillState {
     this.activeFilter,
     this.activeDays,
     this.errorMessage,
+    this.isBackgroundUpdating = false,
+    this.backgroundError,
   });
 
   RefillLoaded copyWith({
@@ -92,6 +96,8 @@ class RefillLoaded extends RefillState {
     String? activeFilter,
     int? activeDays,
     String? errorMessage,
+    bool? isBackgroundUpdating,
+    String? backgroundError,
   }) {
     return RefillLoaded(
       refills: refills ?? this.refills,
@@ -102,6 +108,8 @@ class RefillLoaded extends RefillState {
       activeFilter: activeFilter ?? this.activeFilter,
       activeDays: activeDays ?? this.activeDays,
       errorMessage: errorMessage,
+      isBackgroundUpdating: isBackgroundUpdating ?? this.isBackgroundUpdating,
+      backgroundError: backgroundError,
     );
   }
 
@@ -115,5 +123,7 @@ class RefillLoaded extends RefillState {
     activeFilter,
     activeDays,
     errorMessage,
+    isBackgroundUpdating,
+    backgroundError,
   ];
 }

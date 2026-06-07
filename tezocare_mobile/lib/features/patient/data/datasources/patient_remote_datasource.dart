@@ -6,9 +6,9 @@ import '../models/patient_model.dart';
 
 abstract class PatientRemoteDataSource {
   Future<PatientModel> createPatient(PatientModel patient);
-  Future<List<PatientModel>> getPatients({int page = 1, String? search, String? status});
-  Future<PatientModel> getPatientDetail(String id);
-  Future<List<PatientModel>> searchPatients(String query);
+  Future<List<PatientModel>> getPatients({int page = 1, String? search, String? status, CancelToken? cancelToken});
+  Future<PatientModel> getPatientDetail(String id, {CancelToken? cancelToken});
+  Future<List<PatientModel>> searchPatients(String query, {CancelToken? cancelToken});
   Future<PatientModel> updatePatient(PatientModel patient);
 }
 
@@ -33,7 +33,7 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
   }
 
   @override
-  Future<List<PatientModel>> getPatients({int page = 1, String? search, String? status}) async {
+  Future<List<PatientModel>> getPatients({int page = 1, String? search, String? status, CancelToken? cancelToken}) async {
     try {
       final params = <String, dynamic>{'page': page};
       if (search != null && search.isNotEmpty) params['search'] = search;
@@ -41,6 +41,7 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
       final response = await dioClient.dio.get(
         ApiConstants.patients,
         queryParameters: params,
+        cancelToken: cancelToken,
       );
       final dataList = response.data['data'] as List<dynamic>;
       return dataList
@@ -52,9 +53,12 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
   }
 
   @override
-  Future<PatientModel> getPatientDetail(String id) async {
+  Future<PatientModel> getPatientDetail(String id, {CancelToken? cancelToken}) async {
     try {
-      final response = await dioClient.dio.get('${ApiConstants.patients}/$id');
+      final response = await dioClient.dio.get(
+        '${ApiConstants.patients}/$id',
+        cancelToken: cancelToken,
+      );
       return PatientModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
       );
@@ -67,11 +71,12 @@ class PatientRemoteDataSourceImpl implements PatientRemoteDataSource {
   }
 
   @override
-  Future<List<PatientModel>> searchPatients(String query) async {
+  Future<List<PatientModel>> searchPatients(String query, {CancelToken? cancelToken}) async {
     try {
       final response = await dioClient.dio.get(
         ApiConstants.patients,
         queryParameters: {'search': query},
+        cancelToken: cancelToken,
       );
       final dataList = response.data['data'] as List<dynamic>;
       return dataList

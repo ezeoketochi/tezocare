@@ -7,10 +7,20 @@ import '../models/visit_model.dart';
 abstract class VisitRemoteDataSource {
   Future<VisitModel> createVisit(VisitModel visit);
   Future<VisitModel> updateVisit(String id, VisitModel visit);
-  Future<List<VisitModel>> getPatientVisits(String patientId);
-  Future<VisitModel> getVisitDetail(String id);
+  Future<List<VisitModel>> getPatientVisits(
+    String patientId, {
+    CancelToken? cancelToken,
+  });
+  Future<VisitModel> getVisitDetail(
+    String id, {
+    CancelToken? cancelToken,
+  });
   Future<VisitModel> completeVisit(String id);
-  Future<VisitModel> referVisit(String id, {required String destination, required String reason});
+  Future<VisitModel> referVisit(
+    String id, {
+    required String destination,
+    required String reason,
+  });
   Future<VisitModel> markFollowUpDone(String id);
   Future<void> deleteVisit(String id);
 }
@@ -46,9 +56,15 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
     final fullJson = visit.toJson();
 
     const clinicalKeys = [
-      'chief_complaints', 'medication_history', 'vitals',
-      'test_results', 'clinical_assessment', 'medications_dispensed',
-      'counselling_advice', 'follow_up', 'referral',
+      'chief_complaints',
+      'medication_history',
+      'vitals',
+      'test_results',
+      'clinical_assessment',
+      'medications_dispensed',
+      'counselling_advice',
+      'follow_up',
+      'referral',
     ];
     for (final key in clinicalKeys) {
       if (fullJson.containsKey(key)) {
@@ -82,10 +98,14 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   }
 
   @override
-  Future<List<VisitModel>> getPatientVisits(String patientId) async {
+  Future<List<VisitModel>> getPatientVisits(
+    String patientId, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final response = await dioClient.dio.get(
         '${ApiConstants.patients}/$patientId/visits',
+        cancelToken: cancelToken,
       );
       final dataList = response.data['data'] as List<dynamic>;
       return dataList
@@ -97,9 +117,15 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   }
 
   @override
-  Future<VisitModel> getVisitDetail(String id) async {
+  Future<VisitModel> getVisitDetail(
+    String id, {
+    CancelToken? cancelToken,
+  }) async {
     try {
-      final response = await dioClient.dio.get('${ApiConstants.visits}/$id');
+      final response = await dioClient.dio.get(
+        '${ApiConstants.visits}/$id',
+        cancelToken: cancelToken,
+      );
       return VisitModel.fromJson(
         response.data['data'] as Map<String, dynamic>,
       );
@@ -126,7 +152,11 @@ class VisitRemoteDataSourceImpl implements VisitRemoteDataSource {
   }
 
   @override
-  Future<VisitModel> referVisit(String id, {required String destination, required String reason}) async {
+  Future<VisitModel> referVisit(
+    String id, {
+    required String destination,
+    required String reason,
+  }) async {
     try {
       final response = await dioClient.dio.patch(
         '${ApiConstants.visits}/$id/refer',

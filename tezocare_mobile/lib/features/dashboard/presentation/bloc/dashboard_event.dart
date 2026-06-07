@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class DashboardEvent extends Equatable {
@@ -8,5 +9,10 @@ abstract class DashboardEvent extends Equatable {
 }
 
 class GetDashboardStatsEvent extends DashboardEvent {
-  const GetDashboardStatsEvent();
+  final CancelToken? cancelToken;
+
+  const GetDashboardStatsEvent({this.cancelToken});
+
+  @override
+  List<Object?> get props => [cancelToken];
 }

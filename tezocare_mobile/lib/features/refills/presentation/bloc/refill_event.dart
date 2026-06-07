@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class RefillEvent extends Equatable {
@@ -10,11 +11,12 @@ abstract class RefillEvent extends Equatable {
 class GetDueRefillsEvent extends RefillEvent {
   final String? filter;
   final int? days;
+  final CancelToken? cancelToken;
 
-  const GetDueRefillsEvent({this.filter, this.days});
+  const GetDueRefillsEvent({this.filter, this.days, this.cancelToken});
 
   @override
-  List<Object?> get props => [filter, days];
+  List<Object?> get props => [filter, days, cancelToken];
 }
 
 class MarkAsContacted extends RefillEvent {

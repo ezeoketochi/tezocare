@@ -24,6 +24,8 @@ class FollowUpLoaded extends FollowUpState {
   final int upcoming;
   final String? errorMessage;
   final String? successMessage;
+  final bool isBackgroundUpdating;
+  final String? backgroundError;
 
   const FollowUpLoaded({
     required this.followUps,
@@ -33,6 +35,8 @@ class FollowUpLoaded extends FollowUpState {
     this.upcoming = 0,
     this.errorMessage,
     this.successMessage,
+    this.isBackgroundUpdating = false,
+    this.backgroundError,
   });
 
   FollowUpLoaded copyWith({
@@ -43,6 +47,8 @@ class FollowUpLoaded extends FollowUpState {
     int? upcoming,
     String? errorMessage,
     String? successMessage,
+    bool? isBackgroundUpdating,
+    String? backgroundError,
   }) {
     return FollowUpLoaded(
       followUps: followUps ?? this.followUps,
@@ -52,11 +58,16 @@ class FollowUpLoaded extends FollowUpState {
       upcoming: upcoming ?? this.upcoming,
       errorMessage: errorMessage,
       successMessage: successMessage,
+      isBackgroundUpdating: isBackgroundUpdating ?? this.isBackgroundUpdating,
+      backgroundError: backgroundError,
     );
   }
 
   @override
-  List<Object?> get props => [followUps, total, overdue, dueToday, upcoming, errorMessage, successMessage];
+  List<Object?> get props => [
+    followUps, total, overdue, dueToday, upcoming,
+    errorMessage, successMessage, isBackgroundUpdating, backgroundError,
+  ];
 }
 
 class FollowUpMarkedDone extends FollowUpState {

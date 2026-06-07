@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/patient.dart';
@@ -12,12 +13,13 @@ class SearchPatientsUseCase
 
   @override
   Future<Either<Failure, List<Patient>>> call(SearchPatientsParams params) {
-    return repository.searchPatients(params.query);
+    return repository.searchPatients(params.query, cancelToken: params.cancelToken);
   }
 }
 
 class SearchPatientsParams {
   final String query;
+  final CancelToken? cancelToken;
 
-  const SearchPatientsParams({required this.query});
+  const SearchPatientsParams({required this.query, this.cancelToken});
 }

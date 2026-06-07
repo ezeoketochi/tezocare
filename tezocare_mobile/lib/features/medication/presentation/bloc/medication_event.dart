@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/medication.dart';
 
@@ -19,11 +20,15 @@ class AddMedicationEvent extends MedicationEvent {
 
 class GetPatientMedicationsEvent extends MedicationEvent {
   final String patientId;
+  final CancelToken? cancelToken;
 
-  const GetPatientMedicationsEvent({required this.patientId});
+  const GetPatientMedicationsEvent({
+    required this.patientId,
+    this.cancelToken,
+  });
 
   @override
-  List<Object> get props => [patientId];
+  List<Object?> get props => [patientId, cancelToken];
 }
 
 class UpdateMedicationEvent extends MedicationEvent {

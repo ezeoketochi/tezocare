@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../entities/medication.dart';
@@ -14,12 +15,19 @@ class GetPatientMedicationsUseCase
   Future<Either<Failure, List<Medication>>> call(
     GetPatientMedicationsParams params,
   ) {
-    return repository.getPatientMedications(params.patientId);
+    return repository.getPatientMedications(
+      params.patientId,
+      cancelToken: params.cancelToken,
+    );
   }
 }
 
 class GetPatientMedicationsParams {
   final String patientId;
+  final CancelToken? cancelToken;
 
-  const GetPatientMedicationsParams({required this.patientId});
+  const GetPatientMedicationsParams({
+    required this.patientId,
+    this.cancelToken,
+  });
 }

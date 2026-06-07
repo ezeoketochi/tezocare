@@ -19,21 +19,32 @@ class MedicationLoading extends MedicationState {
 class MedicationsLoaded extends MedicationState {
   final List<Medication> medications;
   final String? errorMessage;
+  final bool isBackgroundUpdating;
+  final String? backgroundError;
 
-  const MedicationsLoaded({required this.medications, this.errorMessage});
+  const MedicationsLoaded({
+    required this.medications,
+    this.errorMessage,
+    this.isBackgroundUpdating = false,
+    this.backgroundError,
+  });
 
   MedicationsLoaded copyWith({
     List<Medication>? medications,
     String? errorMessage,
+    bool? isBackgroundUpdating,
+    String? backgroundError,
   }) {
     return MedicationsLoaded(
       medications: medications ?? this.medications,
       errorMessage: errorMessage,
+      isBackgroundUpdating: isBackgroundUpdating ?? this.isBackgroundUpdating,
+      backgroundError: backgroundError,
     );
   }
 
   @override
-  List<Object?> get props => [medications, errorMessage];
+  List<Object?> get props => [medications, errorMessage, isBackgroundUpdating, backgroundError];
 }
 
 class MedicationAdded extends MedicationState {

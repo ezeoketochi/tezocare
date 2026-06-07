@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/usecases/create_patient_usecase.dart';
@@ -14,6 +15,10 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
   final GetPatientDetailUseCase getPatientDetailUseCase;
   final SearchPatientsUseCase searchPatientsUseCase;
   final UpdatePatientUseCase updatePatientUseCase;
+
+  CancelToken? _patientsCancelToken;
+  CancelToken? _detailCancelToken;
+  CancelToken? _searchCancelToken;
 
   PatientBloc({
     required this.createPatientUseCase,
@@ -34,13 +39,61 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     GetPatientsEvent event,
     Emitter<PatientState> emit,
   ) async {
-    emit(const PatientLoading());
-    final result = await getPatientsUseCase(
-      GetPatientsParams(page: event.page, search: event.search, status: event.status),
+    _patientsCancelToken?.cancel();
+    final cancelToken = CancelToken();
+    _patientsCancelToken = cancelToken;
+
+    final cached = getPatientsUseCase.repository.getCachedPatients(
+      page: event.page,
+      search: event.search,
+      status: event.status,
     );
+
+    if (cached != null && cached.isNotEmpty) {
+      emit(PatientsLoaded(
+        patients: cached,
+        currentPage: event.page,
+        isBackgroundUpdating: true,
+      ));
+    } else {
+      emit(const PatientLoading());
+    }
+
+    final result = await getPatientsUseCase(
+      GetPatientsParams(
+        page: event.page,
+        search: event.search,
+        status: event.status,
+        cancelToken: cancelToken,
+      ),
+    );
+
+    if (cancelToken.isCancelled) return;
+
     result.fold(
-      (failure) => emit(PatientError(message: _failureMessage(failure))),
-      (patients) => emit(PatientsLoaded(patients: patients, currentPage: event.page)),
+      (failure) {
+        if (state is PatientsLoaded) {
+          emit((state as PatientsLoaded).copyWith(
+            isBackgroundUpdating: false,
+            backgroundError: _failureMessage(failure),
+          ));
+        } else {
+          emit(PatientError(message: _failureMessage(failure)));
+        }
+      },
+      (patients) {
+        getPatientsUseCase.repository.cachePatients(
+          page: event.page,
+          search: event.search,
+          status: event.status,
+          patients: patients,
+        );
+        emit(PatientsLoaded(
+          patients: patients,
+          currentPage: event.page,
+          isBackgroundUpdating: false,
+        ));
+      },
     );
   }
 
@@ -48,13 +101,48 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     GetPatientDetailEvent event,
     Emitter<PatientState> emit,
   ) async {
-    emit(const PatientLoading());
+    _detailCancelToken?.cancel();
+    final cancelToken = CancelToken();
+    _detailCancelToken = cancelToken;
+
+    final cached = getPatientDetailUseCase.repository.getCachedPatientDetail(event.id);
+
+    if (cached != null) {
+      emit(PatientDetailLoaded(
+        patient: cached,
+        isBackgroundUpdating: true,
+      ));
+    } else {
+      emit(const PatientLoading());
+    }
+
     final result = await getPatientDetailUseCase(
-      GetPatientDetailParams(id: event.id),
+      GetPatientDetailParams(
+        id: event.id,
+        cancelToken: cancelToken,
+      ),
     );
+
+    if (cancelToken.isCancelled) return;
+
     result.fold(
-      (failure) => emit(PatientError(message: _failureMessage(failure))),
-      (patient) => emit(PatientDetailLoaded(patient: patient)),
+      (failure) {
+        if (state is PatientDetailLoaded) {
+          emit((state as PatientDetailLoaded).copyWith(
+            isBackgroundUpdating: false,
+            backgroundError: _failureMessage(failure),
+          ));
+        } else {
+          emit(PatientError(message: _failureMessage(failure)));
+        }
+      },
+      (patient) {
+        getPatientDetailUseCase.repository.cachePatientDetail(event.id, patient);
+        emit(PatientDetailLoaded(
+          patient: patient,
+          isBackgroundUpdating: false,
+        ));
+      },
     );
   }
 
@@ -107,22 +195,36 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     SearchPatientsEvent event,
     Emitter<PatientState> emit,
   ) async {
+    _searchCancelToken?.cancel();
+    final cancelToken = CancelToken();
+    _searchCancelToken = cancelToken;
+
     emit(const PatientLoading());
+
     final result = await searchPatientsUseCase(
-      SearchPatientsParams(query: event.query),
+      SearchPatientsParams(
+        query: event.query,
+        cancelToken: cancelToken,
+      ),
     );
+
+    if (cancelToken.isCancelled) return;
+
     result.fold(
       (failure) => emit(PatientError(message: _failureMessage(failure))),
-      (patients) => emit(PatientsLoaded(patients: patients)),
+      (patients) => emit(PatientsLoaded(
+        patients: patients,
+        isBackgroundUpdating: false,
+      )),
     );
   }
 
   void _onClearPatientError(ClearPatientError event, Emitter<PatientState> emit) {
     final current = state;
     if (current is PatientsLoaded) {
-      emit(current.copyWith(errorMessage: null));
+      emit(current.copyWith(errorMessage: null, backgroundError: null));
     } else if (current is PatientDetailLoaded) {
-      emit(current.copyWith(errorMessage: null));
+      emit(current.copyWith(errorMessage: null, backgroundError: null));
     }
   }
 
@@ -133,5 +235,13 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     return failure.message.isNotEmpty
         ? failure.message
         : 'Something went wrong. Please try again.';
+  }
+
+  @override
+  Future<void> close() {
+    _patientsCancelToken?.cancel();
+    _detailCancelToken?.cancel();
+    _searchCancelToken?.cancel();
+    return super.close();
   }
 }

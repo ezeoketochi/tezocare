@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/usecases/add_medication_usecase.dart';
@@ -12,6 +13,7 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
   final GetPatientMedicationsUseCase getPatientMedicationsUseCase;
   final UpdateMedicationUseCase updateMedicationUseCase;
   final DeactivateMedicationUseCase deactivateMedicationUseCase;
+  CancelToken? _medicationsCancelToken;
 
   MedicationBloc({
     required this.addMedicationUseCase,
@@ -44,13 +46,54 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
     GetPatientMedicationsEvent event,
     Emitter<MedicationState> emit,
   ) async {
-    emit(const MedicationLoading());
+    _medicationsCancelToken?.cancel();
+    _medicationsCancelToken = CancelToken();
+
+    if (state is MedicationsLoaded) {
+      final current = state as MedicationsLoaded;
+      emit(current.copyWith(isBackgroundUpdating: true));
+    } else {
+      final cached = await getPatientMedicationsUseCase.repository
+          .getLocalPatientMedications(event.patientId);
+      if (cached != null) {
+        emit(MedicationsLoaded(
+          medications: cached,
+          isBackgroundUpdating: true,
+        ));
+      } else {
+        emit(const MedicationLoading());
+      }
+    }
+
     final result = await getPatientMedicationsUseCase(
-      GetPatientMedicationsParams(patientId: event.patientId),
+      GetPatientMedicationsParams(
+        patientId: event.patientId,
+        cancelToken: _medicationsCancelToken,
+      ),
     );
+
     result.fold(
-      (failure) => emit(MedicationError(message: _failureMessage(failure))),
-      (medications) => emit(MedicationsLoaded(medications: medications)),
+      (failure) {
+        if (_medicationsCancelToken!.isCancelled) return;
+        if (state is MedicationsLoaded) {
+          final current = state as MedicationsLoaded;
+          emit(current.copyWith(
+            isBackgroundUpdating: false,
+            backgroundError: _failureMessage(failure),
+          ));
+        } else {
+          emit(MedicationError(message: _failureMessage(failure)));
+        }
+      },
+      (medications) {
+        if (_medicationsCancelToken!.isCancelled) return;
+        getPatientMedicationsUseCase.repository
+            .saveLocalPatientMedications(event.patientId, medications);
+        emit(MedicationsLoaded(
+          medications: medications,
+          isBackgroundUpdating: false,
+        ));
+      },
     );
   }
 
@@ -106,5 +149,11 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
     return failure.message.isNotEmpty
         ? failure.message
         : 'Something went wrong. Please try again.';
+  }
+
+  @override
+  Future<void> close() {
+    _medicationsCancelToken?.cancel();
+    return super.close();
   }
 }

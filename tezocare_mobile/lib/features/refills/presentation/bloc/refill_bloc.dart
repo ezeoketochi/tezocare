@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/usecases/create_refills_batch_usecase.dart';
@@ -12,6 +13,8 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
   final MarkRefillContactedUseCase markRefillContactedUseCase;
   final MarkRefillFulfilledUseCase markRefillFulfilledUseCase;
   final CreateRefillsBatchUseCase createRefillsBatchUseCase;
+
+  CancelToken? _refillsCancelToken;
 
   RefillBloc({
     required this.getDueRefillsUseCase,
@@ -30,13 +33,66 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
     GetDueRefillsEvent event,
     Emitter<RefillState> emit,
   ) async {
-    emit(const RefillLoading());
+    _refillsCancelToken?.cancel();
+    _refillsCancelToken = CancelToken();
+
+    bool loadedFromCache = false;
+    if (state is RefillLoaded) {
+      emit((state as RefillLoaded).copyWith(isBackgroundUpdating: true));
+      loadedFromCache = true;
+    } else {
+      final localData = await getDueRefillsUseCase.repository.getLocalDueRefills();
+      if (localData.isNotEmpty) {
+        final overdue = localData
+            .where((r) => r.escalatedStatus == 'Phase 3 (Overdue)')
+            .length;
+        final dueToday = localData
+            .where((r) => r.escalatedStatus == 'Phase 2 (Due Today)')
+            .length;
+        final outreach = localData
+            .where((r) => r.escalatedStatus == 'Phase 1 (Outreach)')
+            .length;
+        emit(RefillLoaded(
+          refills: localData,
+          total: localData.length,
+          overdue: overdue,
+          dueToday: dueToday,
+          outreach: outreach,
+          activeFilter: event.filter,
+          activeDays: event.days,
+          isBackgroundUpdating: true,
+        ));
+        loadedFromCache = true;
+      }
+    }
+
+    if (!loadedFromCache) {
+      emit(const RefillLoading());
+    }
+
     final result = await getDueRefillsUseCase(
-      GetDueRefillsParams(filter: event.filter, days: event.days),
+      GetDueRefillsParams(
+        filter: event.filter,
+        days: event.days,
+        cancelToken: _refillsCancelToken,
+      ),
     );
-    result.fold(
-      (failure) => emit(RefillError(message: _failureMessage(failure))),
-      (refills) {
+
+    if (_refillsCancelToken?.isCancelled ?? false) return;
+
+    await result.fold(
+      (failure) async {
+        if (state is RefillLoaded) {
+          emit((state as RefillLoaded).copyWith(
+            isBackgroundUpdating: false,
+            backgroundError: _failureMessage(failure),
+          ));
+        } else {
+          emit(RefillError(message: _failureMessage(failure)));
+        }
+      },
+      (refills) async {
+        await getDueRefillsUseCase.repository.saveLocalDueRefills(refills);
         final overdue = refills
             .where((r) => r.escalatedStatus == 'Phase 3 (Overdue)')
             .length;
@@ -46,17 +102,16 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
         final outreach = refills
             .where((r) => r.escalatedStatus == 'Phase 1 (Outreach)')
             .length;
-        emit(
-          RefillLoaded(
-            refills: refills,
-            total: refills.length,
-            overdue: overdue,
-            dueToday: dueToday,
-            outreach: outreach,
-            activeFilter: event.filter,
-            activeDays: event.days,
-          ),
-        );
+        emit(RefillLoaded(
+          refills: refills,
+          total: refills.length,
+          overdue: overdue,
+          dueToday: dueToday,
+          outreach: outreach,
+          activeFilter: event.filter,
+          activeDays: event.days,
+          isBackgroundUpdating: false,
+        ));
       },
     );
   }
@@ -148,6 +203,12 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
     if (current is RefillLoaded) {
       emit(current.copyWith(errorMessage: null));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _refillsCancelToken?.cancel();
+    return super.close();
   }
 
   String _failureMessage(Failure failure) {

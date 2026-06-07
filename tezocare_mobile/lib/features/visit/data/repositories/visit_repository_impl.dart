@@ -1,7 +1,9 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/error/repository_helper.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/services/local_cache_service.dart';
 import '../../domain/entities/visit.dart';
 import '../../domain/repositories/visit_repository.dart';
 import '../datasources/visit_remote_datasource.dart';
@@ -10,10 +12,12 @@ import '../models/visit_model.dart';
 class VisitRepositoryImpl implements VisitRepository {
   final VisitRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
+  final LocalCacheService cacheService;
 
   VisitRepositoryImpl({
     required this.remoteDataSource,
     required this.networkInfo,
+    required this.cacheService,
   });
 
   @override
@@ -85,12 +89,19 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
-  Future<Either<Failure, List<Visit>>> getPatientVisits(String patientId) async {
+  Future<Either<Failure, List<Visit>>> getPatientVisits(
+    String patientId, {
+    CancelToken? cancelToken,
+  }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final result = await remoteDataSource.getPatientVisits(patientId);
+      final result = await remoteDataSource.getPatientVisits(
+        patientId,
+        cancelToken: cancelToken,
+      );
+      await saveLocalVisits(patientId, result);
       return Right(result);
     } catch (e) {
       return handleException(e);
@@ -98,12 +109,19 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
-  Future<Either<Failure, Visit>> getVisitDetail(String id) async {
+  Future<Either<Failure, Visit>> getVisitDetail(
+    String id, {
+    CancelToken? cancelToken,
+  }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final result = await remoteDataSource.getVisitDetail(id);
+      final result = await remoteDataSource.getVisitDetail(
+        id,
+        cancelToken: cancelToken,
+      );
+      await saveLocalVisitDetail(result);
       return Right(result);
     } catch (e) {
       return handleException(e);
@@ -124,12 +142,20 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
-  Future<Either<Failure, Visit>> referVisit(String id, {required String destination, required String reason}) async {
+  Future<Either<Failure, Visit>> referVisit(
+    String id, {
+    required String destination,
+    required String reason,
+  }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final result = await remoteDataSource.referVisit(id, destination: destination, reason: reason);
+      final result = await remoteDataSource.referVisit(
+        id,
+        destination: destination,
+        reason: reason,
+      );
       return Right(result);
     } catch (e) {
       return handleException(e);
@@ -160,5 +186,26 @@ class VisitRepositoryImpl implements VisitRepository {
     } catch (e) {
       return handleException(e);
     }
+  }
+
+  @override
+  Future<List<Visit>> getLocalVisits(String patientId) async {
+    final cached = cacheService.getAs<List<Visit>>('visits_$patientId');
+    return cached ?? [];
+  }
+
+  @override
+  Future<void> saveLocalVisits(String patientId, List<Visit> visits) async {
+    cacheService.put('visits_$patientId', visits);
+  }
+
+  @override
+  Future<Visit?> getLocalVisitDetail(String id) async {
+    return cacheService.getAs<Visit>('visit_detail_$id');
+  }
+
+  @override
+  Future<void> saveLocalVisitDetail(Visit visit) async {
+    cacheService.put('visit_detail_${visit.id}', visit);
   }
 }
