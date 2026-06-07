@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tezocare_mobile/features/follow_up/domain/repositories/follow_up_repository.dart';
 import 'package:tezocare_mobile/features/visit/domain/repositories/visit_repository.dart';
 import '../../core/constants/api_constants.dart';
 import '../../features/auth/presentation/bloc/auth_form_bloc.dart';
@@ -170,8 +171,10 @@ class AppRouter {
                 builder: (context, state) => BlocProvider(
                   create: (_) => RefillBloc(
                     getDueRefillsUseCase: sl<GetDueRefillsUseCase>(),
-                    markRefillContactedUseCase: sl<MarkRefillContactedUseCase>(),
-                    markRefillFulfilledUseCase: sl<MarkRefillFulfilledUseCase>(),
+                    markRefillContactedUseCase:
+                        sl<MarkRefillContactedUseCase>(),
+                    markRefillFulfilledUseCase:
+                        sl<MarkRefillFulfilledUseCase>(),
                     createRefillsBatchUseCase: sl<CreateRefillsBatchUseCase>(),
                   ),
                   child: const DueRefillsPage(),
@@ -188,7 +191,7 @@ class AppRouter {
                   create: (_) => FollowUpBloc(
                     getDueFollowUpsUseCase: sl<GetDueFollowUpsUseCase>(),
                     markFollowUpDoneUseCase: sl<MarkFollowUpDoneUseCase>(),
-                    followUpRepository: sl<FollowUpRepositoryImpl>(),
+                    followUpRepository: sl<FollowUpRepository>(),
                   ),
                   child: const FollowUpPage(),
                 ),
