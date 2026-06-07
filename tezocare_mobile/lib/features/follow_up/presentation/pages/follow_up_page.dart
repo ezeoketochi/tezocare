@@ -9,8 +9,6 @@ import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../../dashboard/presentation/bloc/dashboard_event.dart';
-import '../../../visit/presentation/bloc/visit_bloc.dart';
-import '../../../visit/presentation/bloc/visit_event.dart';
 import '../bloc/follow_up_bloc.dart';
 import '../bloc/follow_up_event.dart';
 import '../bloc/follow_up_state.dart';
@@ -47,101 +45,101 @@ class _FollowUpPageState extends State<FollowUpPage> {
           try {
             context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
           } catch (_) {}
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.successMessage!)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.successMessage!)));
           context.read<FollowUpBloc>().add(const ClearFollowUpError());
         }
       },
       child: Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
-              child: Text(
-                'Due Follow-ups',
-                style: AppTextStyles.headlineMedium,
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),
+                child: Text(
+                  'Due Follow-ups',
+                  style: AppTextStyles.headlineMedium,
+                ),
               ),
-            ),
-            AppDayFilter(
-              selectedDays: _selectedDays,
-              onChanged: _onDaysChanged,
-            ),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  context.read<FollowUpBloc>().add(
-                    GetDueFollowUpsEvent(days: _selectedDays),
-                  );
-                },
-                child: BlocBuilder<FollowUpBloc, FollowUpState>(
-                  builder: (context, state) {
-                    if (state is FollowUpLoading) {
-                      return ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(20.w),
-                            child: AppLoading.shimmerList(),
-                          ),
-                        ],
-                      );
-                    }
-                    if (state is FollowUpError) {
-                      return ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          SizedBox(height: 80.h),
-                          AppEmptyState(
-                            icon: Icons.error_outline_rounded,
-                            title: 'Something went wrong',
-                            message: state.message,
-                            actionLabel: 'Retry',
-                            onAction: () => context.read<FollowUpBloc>().add(
-                              const GetDueFollowUpsEvent(),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                    if (state is FollowUpLoaded) {
-                      if (state.followUps.isEmpty) {
+              AppDayFilter(
+                selectedDays: _selectedDays,
+                onChanged: _onDaysChanged,
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<FollowUpBloc>().add(
+                      GetDueFollowUpsEvent(days: _selectedDays),
+                    );
+                  },
+                  child: BlocBuilder<FollowUpBloc, FollowUpState>(
+                    builder: (context, state) {
+                      if (state is FollowUpLoading) {
                         return ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           children: [
-                            SizedBox(height: 80.h),
-                            const AppEmptyState(
-                              icon: Icons.check_circle_outline,
-                              title: 'All caught up',
-                              message: 'No follow-ups due at this time',
+                            Padding(
+                              padding: EdgeInsets.all(20.w),
+                              child: AppLoading.shimmerList(),
                             ),
                           ],
                         );
                       }
-                      return ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.only(bottom: 20.h),
-                        children: [
-                          _buildSummaryRow(state),
-                          ...state.followUps.map(
-                            (fu) => Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20.w),
-                              child: _FollowUpCard(followUp: fu),
+                      if (state is FollowUpError) {
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            SizedBox(height: 80.h),
+                            AppEmptyState(
+                              icon: Icons.error_outline_rounded,
+                              title: 'Something went wrong',
+                              message: state.message,
+                              actionLabel: 'Retry',
+                              onAction: () => context.read<FollowUpBloc>().add(
+                                const GetDueFollowUpsEvent(),
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
+                          ],
+                        );
+                      }
+                      if (state is FollowUpLoaded) {
+                        if (state.followUps.isEmpty) {
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(height: 80.h),
+                              const AppEmptyState(
+                                icon: Icons.check_circle_outline,
+                                title: 'All caught up',
+                                message: 'No follow-ups due at this time',
+                              ),
+                            ],
+                          );
+                        }
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.only(bottom: 20.h),
+                          children: [
+                            _buildSummaryRow(state),
+                            ...state.followUps.map(
+                              (fu) => Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                child: _FollowUpCard(followUp: fu),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

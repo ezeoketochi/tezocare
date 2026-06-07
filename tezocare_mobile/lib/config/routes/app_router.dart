@@ -9,7 +9,6 @@ import '../../features/auth/presentation/bloc/auth_form_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/dashboard/domain/usecases/get_dashboard_stats_usecase.dart';
 import '../../features/follow_up/presentation/bloc/follow_up_bloc.dart';
-import '../../features/follow_up/data/repositories/follow_up_repository_impl.dart';
 import '../../features/follow_up/domain/usecases/get_due_follow_ups_usecase.dart';
 import '../../features/follow_up/domain/usecases/mark_follow_up_done_usecase.dart';
 import '../../features/follow_up/presentation/pages/follow_up_page.dart';
@@ -309,7 +308,7 @@ class AppRouter {
             getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
             getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
             deleteVisitUseCase: sl<DeleteVisitUseCase>(),
-            visitRepository: sl<VisitRepositoryImpl>(),
+            visitRepository: sl<VisitRepository>(),
           ),
           child: CreateVisitPage(
             patientId: state.uri.queryParameters['patientId'],
