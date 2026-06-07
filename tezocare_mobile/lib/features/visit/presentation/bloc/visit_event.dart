@@ -43,3 +43,7 @@ class DeleteVisitEvent extends VisitEvent {
   @override
   List<Object> get props => [id];
 }
+
+class ClearVisitError extends VisitEvent {
+  const ClearVisitError();
+}

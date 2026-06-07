@@ -189,14 +189,14 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
       markRefillFulfilledUseCase: di.sl<MarkRefillFulfilledUseCase>(),
       createRefillsBatchUseCase: di.sl<CreateRefillsBatchUseCase>(),
     );
-    _diagnosisController.addListener(_tryAutoSubmit);
+    // _diagnosisController.addListener(_tryAutoSubmit);
   }
 
-  void _tryAutoSubmit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      _onCreate();
-    }
-  }
+  // void _tryAutoSubmit() {
+  //   if (_formKey.currentState?.validate() ?? false) {
+  //     _onCreate();
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -485,7 +485,7 @@ class _CreateVisitPageState extends State<CreateVisitPage> {
                             validator: (v) => v == null || v.trim().isEmpty
                                 ? 'Complaint is required'
                                 : null,
-                            onChanged: (_) => _tryAutoSubmit(),
+                            onChanged: (_) => (),
                           ),
                         ),
                         SizedBox(width: 8.w),

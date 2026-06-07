@@ -43,3 +43,7 @@ class CreateRefillsBatch extends RefillEvent {
   @override
   List<Object> get props => [medications];
 }
+
+class ClearRefillError extends RefillEvent {
+  const ClearRefillError();
+}

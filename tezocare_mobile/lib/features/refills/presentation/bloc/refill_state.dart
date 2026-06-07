@@ -70,6 +70,7 @@ class RefillLoaded extends RefillState {
   final int outreach;
   final String? activeFilter;
   final int? activeDays;
+  final String? errorMessage;
 
   const RefillLoaded({
     required this.refills,
@@ -79,9 +80,9 @@ class RefillLoaded extends RefillState {
     this.outreach = 0,
     this.activeFilter,
     this.activeDays,
+    this.errorMessage,
   });
 
-  // Added copyWith for state preservation during single-item mutations
   RefillLoaded copyWith({
     List<DueRefill>? refills,
     int? total,
@@ -90,6 +91,7 @@ class RefillLoaded extends RefillState {
     int? outreach,
     String? activeFilter,
     int? activeDays,
+    String? errorMessage,
   }) {
     return RefillLoaded(
       refills: refills ?? this.refills,
@@ -99,6 +101,7 @@ class RefillLoaded extends RefillState {
       outreach: outreach ?? this.outreach,
       activeFilter: activeFilter ?? this.activeFilter,
       activeDays: activeDays ?? this.activeDays,
+      errorMessage: errorMessage,
     );
   }
 
@@ -111,5 +114,6 @@ class RefillLoaded extends RefillState {
     outreach,
     activeFilter,
     activeDays,
+    errorMessage,
   ];
 }

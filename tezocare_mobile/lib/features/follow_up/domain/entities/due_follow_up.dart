@@ -29,6 +29,36 @@ class DueFollowUp extends Equatable {
     this.attendingStaff,
   });
 
+  DueFollowUp copyWith({
+    String? patientId,
+    String? patientName,
+    String? patientPhone,
+    String? visitId,
+    DateTime? visitDate,
+    String? scheduledDate,
+    int? daysUntilFollowup,
+    String? followupStatus,
+    String? outcome,
+    String? suspectedDiagnosis,
+    List<MedicationDispensedInfo>? medicationsDispensed,
+    String? attendingStaff,
+  }) {
+    return DueFollowUp(
+      patientId: patientId ?? this.patientId,
+      patientName: patientName ?? this.patientName,
+      patientPhone: patientPhone ?? this.patientPhone,
+      visitId: visitId ?? this.visitId,
+      visitDate: visitDate ?? this.visitDate,
+      scheduledDate: scheduledDate ?? this.scheduledDate,
+      daysUntilFollowup: daysUntilFollowup ?? this.daysUntilFollowup,
+      followupStatus: followupStatus ?? this.followupStatus,
+      outcome: outcome ?? this.outcome,
+      suspectedDiagnosis: suspectedDiagnosis ?? this.suspectedDiagnosis,
+      medicationsDispensed: medicationsDispensed ?? this.medicationsDispensed,
+      attendingStaff: attendingStaff ?? this.attendingStaff,
+    );
+  }
+
   @override
   List<Object?> get props => [
         patientId,

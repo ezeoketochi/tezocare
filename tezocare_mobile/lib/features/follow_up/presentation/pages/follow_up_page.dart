@@ -40,21 +40,17 @@ class _FollowUpPageState extends State<FollowUpPage> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<FollowUpBloc, FollowUpState>(
-      listenWhen: (previous, current) => current is FollowUpMarkedDone,
+      listenWhen: (previous, current) =>
+          current is FollowUpLoaded && current.successMessage != null,
       listener: (context, state) {
-        if (state is FollowUpMarkedDone) {
+        if (state is FollowUpLoaded && state.successMessage != null) {
           try {
             context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
           } catch (_) {}
-          try {
-            context.read<VisitBloc>().add(GetVisitDetailEvent(id: state.visitId));
-          } catch (_) {}
-          try {
-            context.read<VisitBloc>().add(GetPatientVisitsEvent(patientId: state.patientId));
-          } catch (_) {}
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Follow-up marked as done')),
+            SnackBar(content: Text(state.successMessage!)),
           );
+          context.read<FollowUpBloc>().add(const ClearFollowUpError());
         }
       },
       child: Scaffold(

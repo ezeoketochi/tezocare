@@ -39,6 +39,9 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     try {
       final authState = context.read<AuthBloc>().state;
       if (authState is! AuthAuthenticated) return false;
+      print(
+        'Auth staff ID: ${authState.staff.id}, Visit staff ID: ${visit.staffId}',
+      );
       return authState.staff.id == visit.staffId;
     } catch (_) {
       return false;

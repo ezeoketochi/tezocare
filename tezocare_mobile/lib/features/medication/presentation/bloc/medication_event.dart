@@ -43,3 +43,7 @@ class DeactivateMedicationEvent extends MedicationEvent {
   @override
   List<Object> get props => [id];
 }
+
+class ClearMedicationError extends MedicationEvent {
+  const ClearMedicationError();
+}

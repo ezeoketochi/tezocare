@@ -18,11 +18,22 @@ class MedicationLoading extends MedicationState {
 
 class MedicationsLoaded extends MedicationState {
   final List<Medication> medications;
+  final String? errorMessage;
 
-  const MedicationsLoaded({required this.medications});
+  const MedicationsLoaded({required this.medications, this.errorMessage});
+
+  MedicationsLoaded copyWith({
+    List<Medication>? medications,
+    String? errorMessage,
+  }) {
+    return MedicationsLoaded(
+      medications: medications ?? this.medications,
+      errorMessage: errorMessage,
+    );
+  }
 
   @override
-  List<Object> get props => [medications];
+  List<Object?> get props => [medications, errorMessage];
 }
 
 class MedicationAdded extends MedicationState {

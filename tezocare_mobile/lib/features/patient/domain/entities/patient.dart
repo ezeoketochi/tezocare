@@ -48,6 +48,52 @@ class Patient extends Equatable {
   String get fullName => '$firstName $lastName';
   DateTime? get dob => dateOfBirth;
 
+  Patient copyWith({
+    String? id,
+    String? firstName,
+    String? lastName,
+    DateTime? dateOfBirth,
+    String? gender,
+    String? phone,
+    String? address,
+    String? state,
+    String? city,
+    String? occupation,
+    String? bloodGroup,
+    String? genotype,
+    List<String>? allergies,
+    List<String>? chronicConditions,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
+    String? registeredBy,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Patient(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      gender: gender ?? this.gender,
+      phone: phone ?? this.phone,
+      address: address ?? this.address,
+      state: state ?? this.state,
+      city: city ?? this.city,
+      occupation: occupation ?? this.occupation,
+      bloodGroup: bloodGroup ?? this.bloodGroup,
+      genotype: genotype ?? this.genotype,
+      allergies: allergies ?? this.allergies,
+      chronicConditions: chronicConditions ?? this.chronicConditions,
+      emergencyContactName: emergencyContactName ?? this.emergencyContactName,
+      emergencyContactPhone: emergencyContactPhone ?? this.emergencyContactPhone,
+      registeredBy: registeredBy ?? this.registeredBy,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,

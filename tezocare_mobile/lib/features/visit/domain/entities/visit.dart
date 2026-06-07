@@ -310,6 +310,50 @@ class Visit extends Equatable {
     return parts.isNotEmpty ? parts.join('\n') : null;
   }
 
+  Visit copyWith({
+    String? id,
+    String? patientId,
+    String? patientName,
+    String? staffId,
+    String? staffName,
+    String? visitNumber,
+    DateTime? visitDate,
+    String? status,
+    List<ChiefComplaintItem>? chiefComplaints,
+    MedicationHistoryData? medicationHistory,
+    VitalsData? vitals,
+    List<TestResultItem>? testResults,
+    ClinicalAssessmentData? clinicalAssessment,
+    List<MedicationDispensedData>? medicationsDispensed,
+    String? counsellingAdvice,
+    FollowUpData? followUp,
+    ReferralData? referral,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Visit(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      patientName: patientName ?? this.patientName,
+      staffId: staffId ?? this.staffId,
+      staffName: staffName ?? this.staffName,
+      visitNumber: visitNumber ?? this.visitNumber,
+      visitDate: visitDate ?? this.visitDate,
+      status: status ?? this.status,
+      chiefComplaints: chiefComplaints ?? this.chiefComplaints,
+      medicationHistory: medicationHistory ?? this.medicationHistory,
+      vitals: vitals ?? this.vitals,
+      testResults: testResults ?? this.testResults,
+      clinicalAssessment: clinicalAssessment ?? this.clinicalAssessment,
+      medicationsDispensed: medicationsDispensed ?? this.medicationsDispensed,
+      counsellingAdvice: counsellingAdvice ?? this.counsellingAdvice,
+      followUp: followUp ?? this.followUp,
+      referral: referral ?? this.referral,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,

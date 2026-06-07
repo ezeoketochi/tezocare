@@ -20,24 +20,51 @@ class PatientsLoaded extends PatientState {
   final List<Patient> patients;
   final int currentPage;
   final bool hasMorePages;
+  final String? errorMessage;
 
   const PatientsLoaded({
     required this.patients,
     this.currentPage = 1,
     this.hasMorePages = true,
+    this.errorMessage,
   });
 
+  PatientsLoaded copyWith({
+    List<Patient>? patients,
+    int? currentPage,
+    bool? hasMorePages,
+    String? errorMessage,
+  }) {
+    return PatientsLoaded(
+      patients: patients ?? this.patients,
+      currentPage: currentPage ?? this.currentPage,
+      hasMorePages: hasMorePages ?? this.hasMorePages,
+      errorMessage: errorMessage,
+    );
+  }
+
   @override
-  List<Object> get props => [patients, currentPage, hasMorePages];
+  List<Object?> get props => [patients, currentPage, hasMorePages, errorMessage];
 }
 
 class PatientDetailLoaded extends PatientState {
   final Patient patient;
+  final String? errorMessage;
 
-  const PatientDetailLoaded({required this.patient});
+  const PatientDetailLoaded({required this.patient, this.errorMessage});
+
+  PatientDetailLoaded copyWith({
+    Patient? patient,
+    String? errorMessage,
+  }) {
+    return PatientDetailLoaded(
+      patient: patient ?? this.patient,
+      errorMessage: errorMessage,
+    );
+  }
 
   @override
-  List<Object> get props => [patient];
+  List<Object?> get props => [patient, errorMessage];
 }
 
 class PatientCreated extends PatientState {

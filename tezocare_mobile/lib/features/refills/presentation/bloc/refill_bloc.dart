@@ -23,6 +23,7 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
     on<MarkAsContacted>(_onMarkAsContacted);
     on<MarkAsRefilled>(_onMarkAsRefilled);
     on<CreateRefillsBatch>(_onCreateRefillsBatch);
+    on<ClearRefillError>(_onClearRefillError);
   }
 
   Future<void> _onGetDueRefills(
@@ -87,38 +88,15 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
       MarkRefillContactedParams(refillId: event.refillId),
     );
 
-    result.fold(
-      (failure) {
-        // Revert if things went south on the server
-        emit(current.copyWith(refills: previousRefills));
-      },
-      (_) {
-        // Success! Do nothing because the UI is already in sync
-      },
-    );
+    result.fold((failure) {
+      emit(
+        current.copyWith(
+          refills: previousRefills,
+          errorMessage: _failureMessage(failure),
+        ),
+      );
+    }, (_) => null);
   }
-  // Future<void> _onMarkAsContacted(
-  //   MarkAsContacted event,
-  //   Emitter<RefillState> emit,
-  // ) async {
-  //   final current = state;
-  //   if (current is! RefillLoaded) return;
-  //   emit(const RefillLoading());
-  //   final result = await markRefillContactedUseCase(
-  //     MarkRefillContactedParams(refillId: event.refillId),
-  //   );
-  //   result.fold(
-  //     (failure) => emit(RefillError(message: _failureMessage(failure))),
-  //     (_) {
-  //       add(
-  //         GetDueRefillsEvent(
-  //           filter: current.activeFilter,
-  //           days: current.activeDays,
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
   Future<void> _onMarkAsRefilled(
     MarkAsRefilled event,
@@ -126,20 +104,28 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
   ) async {
     final current = state;
     if (current is! RefillLoaded) return;
-    emit(const RefillLoading());
+    final previousRefills = current.refills;
+    final updatedRefills = current.refills.map((refill) {
+      if (refill.refillId == event.refillId) {
+        return refill.copyWith(
+          refillStatus: 'fulfilled',
+          lastActionAt: DateTime.now(),
+        );
+      }
+      return refill;
+    }).toList();
+    emit(current.copyWith(refills: updatedRefills));
     final result = await markRefillFulfilledUseCase(
       MarkRefillFulfilledParams(refillId: event.refillId),
     );
     result.fold(
-      (failure) => emit(RefillError(message: _failureMessage(failure))),
-      (_) {
-        add(
-          GetDueRefillsEvent(
-            filter: current.activeFilter,
-            days: current.activeDays,
-          ),
-        );
-      },
+      (failure) => emit(
+        current.copyWith(
+          refills: previousRefills,
+          errorMessage: _failureMessage(failure),
+        ),
+      ),
+      (_) => null,
     );
   }
 
@@ -155,6 +141,13 @@ class RefillBloc extends Bloc<RefillEvent, RefillState> {
       (failure) => emit(RefillError(message: _failureMessage(failure))),
       (ids) => emit(RefillBatchCreated(refillIds: ids)),
     );
+  }
+
+  void _onClearRefillError(ClearRefillError event, Emitter<RefillState> emit) {
+    final current = state;
+    if (current is RefillLoaded) {
+      emit(current.copyWith(errorMessage: null));
+    }
   }
 
   String _failureMessage(Failure failure) {

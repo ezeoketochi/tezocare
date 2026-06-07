@@ -54,3 +54,7 @@ class SearchPatientsEvent extends PatientEvent {
   @override
   List<Object> get props => [query];
 }
+
+class ClearPatientError extends PatientEvent {
+  const ClearPatientError();
+}

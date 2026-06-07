@@ -35,6 +35,42 @@ class Medication extends Equatable {
     this.updatedAt,
   });
 
+  Medication copyWith({
+    String? id,
+    String? patientId,
+    String? patientName,
+    String? name,
+    String? dosage,
+    String? frequency,
+    String? duration,
+    String? route,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? prescribedBy,
+    String? notes,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Medication(
+      id: id ?? this.id,
+      patientId: patientId ?? this.patientId,
+      patientName: patientName ?? this.patientName,
+      name: name ?? this.name,
+      dosage: dosage ?? this.dosage,
+      frequency: frequency ?? this.frequency,
+      duration: duration ?? this.duration,
+      route: route ?? this.route,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      prescribedBy: prescribedBy ?? this.prescribedBy,
+      notes: notes ?? this.notes,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,

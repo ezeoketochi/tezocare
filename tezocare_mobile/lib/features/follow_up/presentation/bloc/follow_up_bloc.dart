@@ -15,6 +15,7 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
   }) : super(const FollowUpInitial()) {
     on<GetDueFollowUpsEvent>(_onGetDueFollowUps);
     on<MarkFollowUpDoneEvent>(_onMarkFollowUpDone);
+    on<ClearFollowUpError>(_onClearFollowUpError);
   }
 
   Future<void> _onGetDueFollowUps(
@@ -46,18 +47,28 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     MarkFollowUpDoneEvent event,
     Emitter<FollowUpState> emit,
   ) async {
-    emit(const FollowUpLoading());
+    final current = state;
+    if (current is! FollowUpLoaded) return;
+    final previousFollowUps = current.followUps;
+    final updatedFollowUps = current.followUps.where((f) => f.visitId != event.visitId).toList();
+    emit(current.copyWith(
+      followUps: updatedFollowUps,
+      total: current.total - 1,
+    ));
     final result = await markFollowUpDoneUseCase(
       MarkFollowUpDoneParams(visitId: event.visitId, outcome: event.outcome),
     );
     result.fold(
-      (failure) => emit(FollowUpError(message: _failureMessage(failure))),
-      (data) {
-        final patientId = data['patient_id'] as String;
-        emit(FollowUpMarkedDone(visitId: event.visitId, patientId: patientId));
-        add(const GetDueFollowUpsEvent());
-      },
+      (failure) => emit(current.copyWith(followUps: previousFollowUps, total: current.total, errorMessage: _failureMessage(failure))),
+      (_) => emit(current.copyWith(successMessage: 'Follow-up marked as done')),
     );
+  }
+
+  void _onClearFollowUpError(ClearFollowUpError event, Emitter<FollowUpState> emit) {
+    final current = state;
+    if (current is FollowUpLoaded) {
+      emit(current.copyWith(errorMessage: null, successMessage: null));
+    }
   }
 
   String _failureMessage(Failure failure) {

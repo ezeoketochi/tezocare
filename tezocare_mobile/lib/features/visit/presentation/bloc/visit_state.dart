@@ -18,11 +18,22 @@ class VisitLoading extends VisitState {
 
 class VisitsLoaded extends VisitState {
   final List<Visit> visits;
+  final String? errorMessage;
 
-  const VisitsLoaded({required this.visits});
+  const VisitsLoaded({required this.visits, this.errorMessage});
+
+  VisitsLoaded copyWith({
+    List<Visit>? visits,
+    String? errorMessage,
+  }) {
+    return VisitsLoaded(
+      visits: visits ?? this.visits,
+      errorMessage: errorMessage,
+    );
+  }
 
   @override
-  List<Object> get props => [visits];
+  List<Object?> get props => [visits, errorMessage];
 }
 
 class VisitDetailLoaded extends VisitState {

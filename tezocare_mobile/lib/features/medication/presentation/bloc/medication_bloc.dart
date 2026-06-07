@@ -23,6 +23,7 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
     on<GetPatientMedicationsEvent>(_onGetPatientMedications);
     on<UpdateMedicationEvent>(_onUpdateMedication);
     on<DeactivateMedicationEvent>(_onDeactivateMedication);
+    on<ClearMedicationError>(_onClearMedicationError);
   }
 
   Future<void> _onAddMedication(
@@ -57,13 +58,19 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
     UpdateMedicationEvent event,
     Emitter<MedicationState> emit,
   ) async {
-    emit(const MedicationLoading());
+    final current = state;
+    if (current is! MedicationsLoaded) return;
+    final previousMedications = current.medications;
+    final updatedMedications = current.medications.map((m) {
+      return m.id == event.medication.id ? event.medication : m;
+    }).toList();
+    emit(current.copyWith(medications: updatedMedications));
     final result = await updateMedicationUseCase(
       UpdateMedicationParams(medication: event.medication),
     );
     result.fold(
-      (failure) => emit(MedicationError(message: _failureMessage(failure))),
-      (medication) => emit(MedicationUpdated(medication: medication)),
+      (failure) => emit(current.copyWith(medications: previousMedications, errorMessage: _failureMessage(failure))),
+      (_) => null,
     );
   }
 
@@ -71,14 +78,25 @@ class MedicationBloc extends Bloc<MedicationEvent, MedicationState> {
     DeactivateMedicationEvent event,
     Emitter<MedicationState> emit,
   ) async {
-    emit(const MedicationLoading());
+    final current = state;
+    if (current is! MedicationsLoaded) return;
+    final previousMedications = current.medications;
+    final updatedMedications = current.medications.where((m) => m.id != event.id).toList();
+    emit(current.copyWith(medications: updatedMedications));
     final result = await deactivateMedicationUseCase(
       DeactivateMedicationParams(id: event.id),
     );
     result.fold(
-      (failure) => emit(MedicationError(message: _failureMessage(failure))),
-      (_) => emit(const MedicationDeactivated()),
+      (failure) => emit(current.copyWith(medications: previousMedications, errorMessage: _failureMessage(failure))),
+      (_) => null,
     );
+  }
+
+  void _onClearMedicationError(ClearMedicationError event, Emitter<MedicationState> emit) {
+    final current = state;
+    if (current is MedicationsLoaded) {
+      emit(current.copyWith(errorMessage: null));
+    }
   }
 
   String _failureMessage(Failure failure) {

@@ -25,3 +25,7 @@ class MarkFollowUpDoneEvent extends FollowUpEvent {
   @override
   List<Object> get props => [visitId, outcome];
 }
+
+class ClearFollowUpError extends FollowUpEvent {
+  const ClearFollowUpError();
+}

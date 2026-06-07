@@ -23,6 +23,7 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     on<GetPatientVisitsEvent>(_onGetPatientVisits);
     on<GetVisitDetailEvent>(_onGetVisitDetail);
     on<DeleteVisitEvent>(_onDeleteVisit);
+    on<ClearVisitError>(_onClearVisitError);
   }
 
   Future<void> _onCreateVisit(
@@ -71,14 +72,25 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     DeleteVisitEvent event,
     Emitter<VisitState> emit,
   ) async {
-    emit(const VisitLoading());
+    final current = state;
+    if (current is! VisitsLoaded) return;
+    final previousVisits = current.visits;
+    final updatedVisits = current.visits.where((v) => v.id != event.id).toList();
+    emit(current.copyWith(visits: updatedVisits));
     final result = await deleteVisitUseCase(
       DeleteVisitParams(id: event.id),
     );
     result.fold(
-      (failure) => emit(VisitError(message: _failureMessage(failure))),
-      (_) => emit(VisitDeleted(visitId: event.id)),
+      (failure) => emit(current.copyWith(visits: previousVisits, errorMessage: _failureMessage(failure))),
+      (_) => null,
     );
+  }
+
+  void _onClearVisitError(ClearVisitError event, Emitter<VisitState> emit) {
+    final current = state;
+    if (current is VisitsLoaded) {
+      emit(current.copyWith(errorMessage: null));
+    }
   }
 
   String _failureMessage(Failure failure) {
