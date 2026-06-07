@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tezocare_mobile/features/visit/domain/repositories/visit_repository.dart';
 import '../../core/constants/api_constants.dart';
 import '../../features/auth/presentation/bloc/auth_form_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
@@ -256,7 +257,7 @@ class AppRouter {
                 getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
                 getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
                 deleteVisitUseCase: sl<DeleteVisitUseCase>(),
-                visitRepository: sl<VisitRepositoryImpl>(),
+                visitRepository: sl<VisitRepository>(),
               ),
               child: VisitDetailPage(visitId: state.pathParameters['visitId']!),
             ),

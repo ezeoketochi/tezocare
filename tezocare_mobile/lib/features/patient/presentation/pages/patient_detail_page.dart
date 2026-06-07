@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tezocare_mobile/features/visit/domain/repositories/visit_repository.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../injection_container.dart' as inj;
@@ -718,8 +719,8 @@ class _PatientDetailPageState extends State<PatientDetailPage>
     return inj.sl<DeleteVisitUseCase>();
   }
 
-  VisitRepositoryImpl _getVisitRepository() {
-    return inj.sl<VisitRepositoryImpl>();
+  VisitRepository _getVisitRepository() {
+    return inj.sl<VisitRepository>();
   }
 
   int _calculateAge(DateTime dob) {

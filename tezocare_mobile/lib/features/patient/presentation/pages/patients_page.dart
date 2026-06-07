@@ -65,10 +65,6 @@ class _PatientsPageState extends State<PatientsPage> {
           Expanded(
             child: BlocBuilder<PatientBloc, PatientState>(
               builder: (context, state) {
-                context.read<PatientBloc>().add(const GetPatientsEvent());
-
-                debugPrint("patient state is: ${state.toString()}");
-
                 if (state is PatientLoading) {
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20.w),

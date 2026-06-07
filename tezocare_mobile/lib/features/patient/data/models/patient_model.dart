@@ -26,7 +26,7 @@ class PatientModel extends Patient {
 
   factory PatientModel.fromJson(Map<String, dynamic> json) {
     return PatientModel(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? '',
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',
       dateOfBirth: json['date_of_birth'] != null
@@ -63,7 +63,8 @@ class PatientModel extends Patient {
     return {
       'first_name': firstName,
       'last_name': lastName,
-      if (dateOfBirth != null) 'date_of_birth': dateOfBirth!.toIso8601String().split('T')[0],
+      if (dateOfBirth != null)
+        'date_of_birth': dateOfBirth!.toIso8601String().split('T')[0],
       'gender': gender,
       'phone': phone,
       'address': address,
