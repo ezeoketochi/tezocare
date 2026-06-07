@@ -86,6 +86,9 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
           }
         },
         builder: (context, state) {
+          final isDeleting =
+              state is VisitDetailLoaded && state.isBackgroundUpdating;
+
           if (state is VisitLoading) {
             return Center(child: AppLoading.fullScreen());
           }
@@ -100,38 +103,65 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               ),
             );
           }
+          if (state is VisitError) {
+            return AppEmptyState(
+              icon: Icons.error_outline_rounded,
+              title: 'Something went wrong',
+              message: state.message,
+              actionLabel: 'Retry',
+              onAction: () => context.read<VisitBloc>().add(
+                GetVisitDetailEvent(id: widget.visitId),
+              ),
+            );
+          }
+
           if (state is VisitDetailLoaded) {
             final visit = state.visit;
             try {
-              return SingleChildScrollView(
-                padding: EdgeInsets.all(20.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStatusHeader(visit),
-                    SizedBox(height: 12.h),
-                    _buildVisitStatusIndicator(visit.status),
-                    SizedBox(height: 20.h),
-                    _buildInfoCard(visit),
-                    if (visit.chiefComplaints.isNotEmpty) ...[
-                      SizedBox(height: 16.h),
-                      _buildComplaintsCard(visit),
+              return AbsorbPointer(
+                // 2. Automatically disables all user gestures on the screen when deleting is active
+                absorbing: isDeleting,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(20.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 3. Pass down the boolean to change the trash icon to a mini progress spinner
+                      _buildStatusHeader(visit, isDeleting: isDeleting),
+
+                      // 4. Inject a clean micro progress bar right beneath the header row
+                      if (isDeleting) ...[
+                        SizedBox(height: 8.h),
+                        const LinearProgressIndicator(
+                          color: Colors.red,
+                          backgroundColor: Colors.transparent,
+                        ),
+                      ],
+
+                      SizedBox(height: 12.h),
+                      _buildVisitStatusIndicator(visit.status),
+                      SizedBox(height: 20.h),
+                      _buildInfoCard(visit),
+                      if (visit.chiefComplaints.isNotEmpty) ...[
+                        SizedBox(height: 16.h),
+                        _buildComplaintsCard(visit),
+                      ],
+                      _buildAssessmentCard(visit),
+                      _buildVitalsCard(visit),
+                      if (visit.medicationsDispensed.isNotEmpty) ...[
+                        SizedBox(height: 16.h),
+                        _buildMedsCard(visit),
+                      ],
+                      if (visit.counsellingAdvice != null &&
+                          visit.counsellingAdvice!.isNotEmpty) ...[
+                        SizedBox(height: 16.h),
+                        _buildCounsellingCard(visit),
+                      ],
+                      _buildFollowUpCard(visit),
+                      _buildReferralCard(visit),
+                      SizedBox(height: 24.h),
                     ],
-                    _buildAssessmentCard(visit),
-                    _buildVitalsCard(visit),
-                    if (visit.medicationsDispensed.isNotEmpty) ...[
-                      SizedBox(height: 16.h),
-                      _buildMedsCard(visit),
-                    ],
-                    if (visit.counsellingAdvice != null &&
-                        visit.counsellingAdvice!.isNotEmpty) ...[
-                      SizedBox(height: 16.h),
-                      _buildCounsellingCard(visit),
-                    ],
-                    _buildFollowUpCard(visit),
-                    _buildReferralCard(visit),
-                    SizedBox(height: 24.h),
-                  ],
+                  ),
                 ),
               );
             } catch (e, stack) {
@@ -147,6 +177,53 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               );
             }
           }
+          // if (state is VisitDetailLoaded) {
+          //   final visit = state.visit;
+          //   try {
+          //     return SingleChildScrollView(
+          //       padding: EdgeInsets.all(20.w),
+          //       child: Column(
+          //         crossAxisAlignment: CrossAxisAlignment.start,
+          //         children: [
+          //           _buildStatusHeader(visit),
+          //           SizedBox(height: 12.h),
+          //           _buildVisitStatusIndicator(visit.status),
+          //           SizedBox(height: 20.h),
+          //           _buildInfoCard(visit),
+          //           if (visit.chiefComplaints.isNotEmpty) ...[
+          //             SizedBox(height: 16.h),
+          //             _buildComplaintsCard(visit),
+          //           ],
+          //           _buildAssessmentCard(visit),
+          //           _buildVitalsCard(visit),
+          //           if (visit.medicationsDispensed.isNotEmpty) ...[
+          //             SizedBox(height: 16.h),
+          //             _buildMedsCard(visit),
+          //           ],
+          //           if (visit.counsellingAdvice != null &&
+          //               visit.counsellingAdvice!.isNotEmpty) ...[
+          //             SizedBox(height: 16.h),
+          //             _buildCounsellingCard(visit),
+          //           ],
+          //           _buildFollowUpCard(visit),
+          //           _buildReferralCard(visit),
+          //           SizedBox(height: 24.h),
+          //         ],
+          //       ),
+          //     );
+          //   } catch (e, stack) {
+          //     debugPrint('[VisitDetailPage] build error: $e\n$stack');
+          //     return AppEmptyState(
+          //       icon: Icons.error_outline_rounded,
+          //       title: 'Something went wrong',
+          //       message: ' Failed to display visit: $e',
+          //       actionLabel: 'Retry',
+          //       onAction: () => context.read<VisitBloc>().add(
+          //         GetVisitDetailEvent(id: widget.visitId),
+          //       ),
+          //     );
+          //   }
+          // }
           return const SizedBox.shrink();
         },
       ),
@@ -213,28 +290,29 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     }
   }
 
-  Widget _buildStatusHeader(visit) {
+  Widget _buildStatusHeader(Visit visit, {bool isDeleting = false}) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _formatDate(visit.visitDate),
-                style: AppTextStyles.bodySmall,
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                visit.patientName ?? '',
-                style: AppTextStyles.titleMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+        Text('Visit Details', style: AppTextStyles.headlineMedium),
+        IconButton(
+          // Disable the icon click completely if background tasks are processing
+          onPressed: isDeleting
+              ? null
+              : () => context.read<VisitBloc>().add(
+                  DeleteVisitEvent(id: visit.id),
+                ),
+          icon: isDeleting
+              ? SizedBox(
+                  width: 20.w,
+                  height: 20.h,
+                  child: const CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.red,
+                  ),
+                )
+              : const Icon(Icons.delete_outline, color: Colors.red),
         ),
-        // StatusChip(text: visit.status, variant: _statusVariant(visit.status)),
       ],
     );
   }

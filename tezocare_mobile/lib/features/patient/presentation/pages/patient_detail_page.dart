@@ -20,7 +20,6 @@ import '../../../visit/domain/usecases/create_visit_usecase.dart';
 import '../../../visit/domain/usecases/get_patient_visits_usecase.dart';
 import '../../../visit/domain/usecases/get_visit_detail_usecase.dart';
 import '../../../visit/domain/usecases/delete_visit_usecase.dart';
-import '../../../visit/data/repositories/visit_repository_impl.dart';
 import '../../../visit/presentation/bloc/visit_bloc.dart';
 import '../../../visit/presentation/bloc/visit_event.dart';
 import '../../../visit/presentation/bloc/visit_state.dart';

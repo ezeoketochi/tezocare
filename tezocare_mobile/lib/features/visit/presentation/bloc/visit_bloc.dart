@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tezocare_mobile/features/visit/domain/repositories/visit_repository.dart';
 import '../../../../core/error/failures.dart';
@@ -147,22 +148,33 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     Emitter<VisitState> emit,
   ) async {
     final current = state;
-    if (current is! VisitsLoaded) return;
-    final previousVisits = current.visits;
-    final updatedVisits = current.visits
-        .where((v) => v.id != event.id)
-        .toList();
-    emit(current.copyWith(visits: updatedVisits));
-    final result = await deleteVisitUseCase(DeleteVisitParams(id: event.id));
-    result.fold(
-      (failure) => emit(
-        current.copyWith(
-          visits: previousVisits,
-          errorMessage: _failureMessage(failure),
-        ),
-      ),
-      (_) => null,
-    );
+    debugPrint('The visit state is: ${current.runtimeType.toString()}');
+
+    // 1. Guard against double-clicks if we are already deleting
+    if (current is VisitDetailLoaded && current.isBackgroundUpdating) return;
+
+    if (current is VisitDetailLoaded) {
+      // 2. Set background updating to true to disable UI delete buttons/show mini-spinner
+      emit(current.copyWith(isBackgroundUpdating: true));
+
+      final result = await deleteVisitUseCase(DeleteVisitParams(id: event.id));
+
+      result.fold(
+        (failure) {
+          // 3. Fallback: If network deletion fails, turn off the processing flag and pass the error message
+          emit(
+            current.copyWith(
+              isBackgroundUpdating: false,
+              backgroundError: _failureMessage(failure),
+            ),
+          );
+        },
+        (_) {
+          // 4. Success: Emit a distinct state that your UI listening layer uses to go back a screen
+          emit(VisitDeleted(visitId: event.id));
+        },
+      );
+    }
   }
 
   void _onClearVisitError(ClearVisitError event, Emitter<VisitState> emit) {
