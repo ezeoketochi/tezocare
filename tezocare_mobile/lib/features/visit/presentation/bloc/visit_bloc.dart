@@ -1,14 +1,25 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tezocare_mobile/features/visit/domain/repositories/visit_repository.dart';
 import '../../../../core/error/failures.dart';
+import '../../domain/entities/visit.dart';
 import '../../domain/usecases/create_visit_usecase.dart';
 import '../../domain/usecases/delete_visit_usecase.dart';
 import '../../domain/usecases/get_patient_visits_usecase.dart';
 import '../../domain/usecases/get_visit_detail_usecase.dart';
 import 'visit_event.dart';
 import 'visit_state.dart';
+
+class _VisitsUpdatedEvent extends VisitEvent {
+  final List<Visit> visits;
+
+  const _VisitsUpdatedEvent({required this.visits});
+
+  @override
+  List<Object> get props => [visits];
+}
 
 class VisitBloc extends Bloc<VisitEvent, VisitState> {
   final CreateVisitUseCase createVisitUseCase;
@@ -19,6 +30,7 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
 
   CancelToken? _visitsCancelToken;
   CancelToken? _detailCancelToken;
+  StreamSubscription<List<Visit>>? _visitsSubscription;
 
   VisitBloc({
     required this.createVisitUseCase,
@@ -32,6 +44,7 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     on<GetVisitDetailEvent>(_onGetVisitDetail);
     on<DeleteVisitEvent>(_onDeleteVisit);
     on<ClearVisitError>(_onClearVisitError);
+    on<_VisitsUpdatedEvent>(_onVisitsUpdated);
   }
 
   Future<void> _onCreateVisit(
@@ -54,6 +67,13 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
   ) async {
     _visitsCancelToken?.cancel();
     _visitsCancelToken = CancelToken();
+
+    await _visitsSubscription?.cancel();
+    _visitsSubscription = visitRepository
+        .watchPatientVisits(event.patientId)
+        .listen((visits) {
+          if (!isClosed) add(_VisitsUpdatedEvent(visits: visits));
+        });
 
     final current = state;
 
@@ -91,10 +111,24 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
         }
       },
       (freshVisits) {
-        visitRepository.saveLocalVisits(event.patientId, freshVisits);
-        emit(VisitsLoaded(visits: freshVisits, isBackgroundUpdating: false));
+        visitRepository.saveVisitsToLocalCache(event.patientId, freshVisits);
       },
     );
+  }
+
+  void _onVisitsUpdated(_VisitsUpdatedEvent event, Emitter<VisitState> emit) {
+    final current = state;
+    if (current is VisitsLoaded) {
+      emit(
+        VisitsLoaded(
+          visits: event.visits,
+          isBackgroundUpdating: false,
+          backgroundError: null,
+        ),
+      );
+    } else {
+      emit(VisitsLoaded(visits: event.visits));
+    }
   }
 
   Future<void> _onGetVisitDetail(
@@ -148,20 +182,16 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     Emitter<VisitState> emit,
   ) async {
     final current = state;
-    debugPrint('The visit state is: ${current.runtimeType.toString()}');
 
-    // 1. Guard against double-clicks if we are already deleting
     if (current is VisitDetailLoaded && current.isBackgroundUpdating) return;
 
     if (current is VisitDetailLoaded) {
-      // 2. Set background updating to true to disable UI delete buttons/show mini-spinner
       emit(current.copyWith(isBackgroundUpdating: true));
 
       final result = await deleteVisitUseCase(DeleteVisitParams(id: event.id));
 
       result.fold(
         (failure) {
-          // 3. Fallback: If network deletion fails, turn off the processing flag and pass the error message
           emit(
             current.copyWith(
               isBackgroundUpdating: false,
@@ -170,8 +200,17 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
           );
         },
         (_) {
-          // 4. Success: Emit a distinct state that your UI listening layer uses to go back a screen
-          emit(VisitDeleted(visitId: event.id));
+          visitRepository.getLocalVisits(event.patientId).then((visits) {
+            final updatedVisits = visits
+                .where((v) => v.id != event.id)
+                .toList();
+            visitRepository.saveVisitsToLocalCache(
+              event.patientId,
+              updatedVisits,
+            );
+          });
+          visitRepository.deleteLocalVisit(event.id);
+          emit(const VisitDeleteSuccess());
         },
       );
     }
@@ -197,6 +236,7 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
   Future<void> close() {
     _visitsCancelToken?.cancel();
     _detailCancelToken?.cancel();
+    _visitsSubscription?.cancel();
     return super.close();
   }
 }

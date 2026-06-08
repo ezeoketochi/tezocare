@@ -302,12 +302,20 @@ class _PatientDetailPageState extends State<PatientDetailPage>
         bloc.add(GetPatientVisitsEvent(patientId: widget.patientId));
         return bloc;
       },
-      child: Column(
-        children: [
-          Expanded(
-            child: BlocBuilder<VisitBloc, VisitState>(
-              builder: (context, state) {
-                if (state is VisitLoading) {
+      child: BlocListener<VisitBloc, VisitState>(
+        listener: (context, state) {
+          if (state is VisitDeleteSuccess) {
+            context.read<VisitBloc>().add(
+              GetPatientVisitsEvent(patientId: widget.patientId),
+            );
+          }
+        },
+        child: Column(
+          children: [
+            Expanded(
+              child: BlocBuilder<VisitBloc, VisitState>(
+                builder: (context, state) {
+                  if (state is VisitLoading) {
                   return Padding(
                     padding: EdgeInsets.all(20.w),
                     child: AppLoading.shimmerList(count: 3),
@@ -451,6 +459,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           ),
         ],
       ),
+    ),
     );
   }
 

@@ -96,6 +96,13 @@ class VisitDeleted extends VisitState {
   List<Object> get props => [visitId];
 }
 
+class VisitDeleteSuccess extends VisitState {
+  const VisitDeleteSuccess();
+
+  @override
+  List<Object> get props => [];
+}
+
 class VisitError extends VisitState {
   final String message;
 

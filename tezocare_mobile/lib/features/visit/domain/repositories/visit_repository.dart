@@ -25,6 +25,10 @@ abstract class VisitRepository {
 
   Future<List<Visit>> getLocalVisits(String patientId);
   Future<void> saveLocalVisits(String patientId, List<Visit> visits);
+  Future<void> saveVisitsToLocalCache(String patientId, List<Visit> visits);
   Future<Visit?> getLocalVisitDetail(String id);
   Future<void> saveLocalVisitDetail(Visit visit);
+  Future<void> deleteLocalVisit(String visitId);
+
+  Stream<List<Visit>> watchPatientVisits(String patientId);
 }

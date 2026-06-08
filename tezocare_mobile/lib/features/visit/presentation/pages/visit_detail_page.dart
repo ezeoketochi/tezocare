@@ -80,7 +80,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
       ),
       body: BlocConsumer<VisitBloc, VisitState>(
         listener: (context, state) {
-          if (state is VisitDeleted) {
+          if (state is VisitDeleteSuccess) {
             AppToast.success(context, title: 'Visit deleted');
             context.pop();
           }
@@ -285,7 +285,9 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
     );
     if (confirmed == true && mounted) {
       if (context.mounted) {
-        context.read<VisitBloc>().add(DeleteVisitEvent(id: visit.id));
+        context.read<VisitBloc>().add(
+          DeleteVisitEvent(id: visit.id, patientId: visit.patientId),
+        );
       }
     }
   }
@@ -300,7 +302,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
           onPressed: isDeleting
               ? null
               : () => context.read<VisitBloc>().add(
-                  DeleteVisitEvent(id: visit.id),
+                  DeleteVisitEvent(id: visit.id, patientId: visit.patientId),
                 ),
           icon: isDeleting
               ? SizedBox(

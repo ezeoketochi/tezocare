@@ -46,11 +46,12 @@ class GetVisitDetailEvent extends VisitEvent {
 
 class DeleteVisitEvent extends VisitEvent {
   final String id;
+  final String patientId;
 
-  const DeleteVisitEvent({required this.id});
+  const DeleteVisitEvent({required this.id, required this.patientId});
 
   @override
-  List<Object> get props => [id];
+  List<Object> get props => [id, patientId];
 }
 
 class ClearVisitError extends VisitEvent {

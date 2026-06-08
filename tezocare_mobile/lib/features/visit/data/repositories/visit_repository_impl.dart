@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/error/failures.dart';
@@ -200,6 +202,14 @@ class VisitRepositoryImpl implements VisitRepository {
   }
 
   @override
+  Future<void> saveVisitsToLocalCache(
+    String patientId,
+    List<Visit> visits,
+  ) async {
+    cacheService.put('visits_$patientId', visits);
+  }
+
+  @override
   Future<Visit?> getLocalVisitDetail(String id) async {
     return cacheService.getAs<Visit>('visit_detail_$id');
   }
@@ -207,5 +217,17 @@ class VisitRepositoryImpl implements VisitRepository {
   @override
   Future<void> saveLocalVisitDetail(Visit visit) async {
     cacheService.put('visit_detail_${visit.id}', visit);
+  }
+
+  @override
+  Future<void> deleteLocalVisit(String visitId) async {
+    cacheService.remove('visit_detail_$visitId');
+  }
+
+  @override
+  Stream<List<Visit>> watchPatientVisits(String patientId) {
+    return cacheService
+        .watch<List<Visit>>('visits_$patientId')
+        .map((data) => data ?? []);
   }
 }
