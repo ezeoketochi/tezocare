@@ -1,0 +1,38 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**" # Only trigger if files inside the backend folder change
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to AWS EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/tezocare/backend
+
+            # 1. Pull the latest changes safely
+            git fetch --all
+            git reset --hard origin/main
+
+            # 2. Activate Virtual Env and install packages
+            source venv/bin/activate
+            pip install -r requirements.txt
+
+            # 3. Apply any pending database migrations
+            # alembic upgrade head
+
+            # 4. Restart Systemd service or Uvicorn process safely
+            sudo systemctl restart nginx
+            sudo systemctl restart tezocare_backend.service || pm2 restart tezocare || pkill -f uvicorn && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --detach
