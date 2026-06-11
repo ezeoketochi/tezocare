@@ -17,7 +17,7 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     required this.getDueFollowUpsUseCase,
     required this.markFollowUpDoneUseCase,
     required this.followUpRepository,
-  }) : super(const FollowUpInitial()) {
+  }) : super(FollowUpStateContainer.initial()) {
     on<GetDueFollowUpsEvent>(_onGetDueFollowUps);
     on<MarkFollowUpDoneEvent>(_onMarkFollowUpDone);
     on<ClearFollowUpError>(_onClearFollowUpError);
@@ -30,33 +30,32 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     _followUpsCancelToken?.cancel();
     _followUpsCancelToken = event.cancelToken ?? CancelToken();
 
-    if (state is FollowUpLoaded) {
-      emit((state as FollowUpLoaded).copyWith(isBackgroundUpdating: true));
-    } else {
-      final localData = await followUpRepository.getLocalDueFollowUps();
-      if (localData.isNotEmpty) {
-        final overdue = localData
-            .where((f) => f.followupStatus == 'overdue')
-            .length;
-        final dueToday = localData
-            .where((f) => f.followupStatus == 'due_today')
-            .length;
-        final upcoming = localData
-            .where((f) => f.followupStatus == 'upcoming')
-            .length;
-        emit(
-          FollowUpLoaded(
-            followUps: localData,
-            total: localData.length,
-            overdue: overdue,
-            dueToday: dueToday,
-            upcoming: upcoming,
-            isBackgroundUpdating: true,
-          ),
-        );
-      }
+    // Safely cast once at the top
+    final current = state as FollowUpStateContainer;
+
+    // 1. Instantly show loading state
+    emit(current.copyWith(status: FollowUpStatus.loading));
+
+    // 2. Load local cache to keep UI responsive while network fetches
+    final localData = await followUpRepository.getLocalDueFollowUps();
+    if (localData.isNotEmpty) {
+      emit(
+        current.copyWith(
+          followUps: localData,
+          total: localData.length,
+          overdue: localData.where((f) => f.followupStatus == 'overdue').length,
+          dueToday: localData
+              .where((f) => f.followupStatus == 'due_today')
+              .length,
+          upcoming: localData
+              .where((f) => f.followupStatus == 'upcoming')
+              .length,
+          status: FollowUpStatus.loaded,
+        ),
+      );
     }
 
+    // 3. Hit your EC2 Backend server API
     final result = await getDueFollowUpsUseCase(
       GetDueFollowUpsParams(
         days: event.days,
@@ -67,36 +66,31 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     result.fold(
       (failure) {
         if (_followUpsCancelToken!.isCancelled) return;
-        if (state is FollowUpLoaded) {
-          emit(
-            (state as FollowUpLoaded).copyWith(
-              isBackgroundUpdating: false,
-              backgroundError: _failureMessage(failure),
-            ),
-          );
-        } else {
-          emit(FollowUpError(message: _failureMessage(failure)));
-        }
+        emit(
+          current.copyWith(
+            status: localData.isNotEmpty
+                ? FollowUpStatus.loaded
+                : FollowUpStatus.error,
+            errorMessage: () => _failureMessage(failure),
+          ),
+        );
       },
       (followUps) {
         if (_followUpsCancelToken!.isCancelled) return;
-        final overdue = followUps
-            .where((f) => f.followupStatus == 'overdue')
-            .length;
-        final dueToday = followUps
-            .where((f) => f.followupStatus == 'due_today')
-            .length;
-        final upcoming = followUps
-            .where((f) => f.followupStatus == 'upcoming')
-            .length;
         emit(
-          FollowUpLoaded(
+          current.copyWith(
             followUps: followUps,
             total: followUps.length,
-            overdue: overdue,
-            dueToday: dueToday,
-            upcoming: upcoming,
-            isBackgroundUpdating: false,
+            overdue: followUps
+                .where((f) => f.followupStatus == 'overdue')
+                .length,
+            dueToday: followUps
+                .where((f) => f.followupStatus == 'due_today')
+                .length,
+            upcoming: followUps
+                .where((f) => f.followupStatus == 'upcoming')
+                .length,
+            status: FollowUpStatus.loaded,
           ),
         );
       },
@@ -107,27 +101,62 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     MarkFollowUpDoneEvent event,
     Emitter<FollowUpState> emit,
   ) async {
-    final current = state;
-    if (current is! FollowUpLoaded) return;
-    final previousFollowUps = current.followUps;
-    final updatedFollowUps = current.followUps
+    if (state is! FollowUpStateContainer) return;
+    final previousState =
+        state as FollowUpStateContainer; // ◄ Cache the entire state snapshot
+
+    // Calculate new localized metric updates for the optimistic view
+    final updatedFollowUps = previousState.followUps
         .where((f) => f.visitId != event.visitId)
         .toList();
+
     emit(
-      current.copyWith(followUps: updatedFollowUps, total: current.total - 1),
+      previousState.copyWith(
+        followUps: updatedFollowUps,
+        total: previousState.total - 1,
+        overdue:
+            previousState.followUps
+                    .firstWhere((f) => f.visitId == event.visitId)
+                    .followupStatus ==
+                'overdue'
+            ? previousState.overdue - 1
+            : previousState.overdue,
+        dueToday:
+            previousState.followUps
+                    .firstWhere((f) => f.visitId == event.visitId)
+                    .followupStatus ==
+                'due_today'
+            ? previousState.dueToday - 1
+            : previousState.dueToday,
+        upcoming:
+            previousState.followUps
+                    .firstWhere((f) => f.visitId == event.visitId)
+                    .followupStatus ==
+                'upcoming'
+            ? previousState.upcoming - 1
+            : previousState.upcoming,
+        actionStatus: ActionStatus.loading,
+      ),
     );
+
     final result = await markFollowUpDoneUseCase(
       MarkFollowUpDoneParams(visitId: event.visitId, outcome: event.outcome),
     );
+
     result.fold(
+      // ◄ Error: Just emit the unchanged previousState snapshot! It resets everything instantly.
       (failure) => emit(
-        current.copyWith(
-          followUps: previousFollowUps,
-          total: current.total,
-          errorMessage: _failureMessage(failure),
+        previousState.copyWith(
+          actionStatus: ActionStatus.failure,
+          errorMessage: () => _failureMessage(failure),
         ),
       ),
-      (_) => emit(current.copyWith(successMessage: 'Follow-up marked as done')),
+      (update) => emit(
+        (state as FollowUpStateContainer).copyWith(
+          successMessage: () => 'Follow-up marked as done',
+          actionStatus: ActionStatus.success,
+        ),
+      ),
     );
   }
 
@@ -136,7 +165,7 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     Emitter<FollowUpState> emit,
   ) {
     final current = state;
-    if (current is FollowUpLoaded) {
+    if (current is FollowUpStateContainer) {
       emit(current.copyWith(errorMessage: null, successMessage: null));
     }
   }

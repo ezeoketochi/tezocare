@@ -1,5 +1,10 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/due_follow_up.dart';
+import 'package:tezocare_mobile/features/follow_up/domain/entities/due_follow_up.dart';
+
+// 1. Use an enum to manage action & initialization lifecycles cleanly
+enum FollowUpStatus { initial, loading, loaded, error }
+
+enum ActionStatus { idle, loading, success, failure }
 
 abstract class FollowUpState extends Equatable {
   const FollowUpState();
@@ -8,83 +13,76 @@ abstract class FollowUpState extends Equatable {
   List<Object?> get props => [];
 }
 
-class FollowUpInitial extends FollowUpState {
-  const FollowUpInitial();
-}
-
-class FollowUpLoading extends FollowUpState {
-  const FollowUpLoading();
-}
-
-class FollowUpLoaded extends FollowUpState {
+class FollowUpStateContainer extends FollowUpState {
   final List<DueFollowUp> followUps;
   final int total;
   final int overdue;
   final int dueToday;
   final int upcoming;
+
+  // Status controls
+  final FollowUpStatus status;
+  final ActionStatus actionStatus; // For marking done, editing, deleting, etc.
+
+  // Informational strings
   final String? errorMessage;
   final String? successMessage;
-  final bool isBackgroundUpdating;
-  final String? backgroundError;
 
-  const FollowUpLoaded({
-    required this.followUps,
+  const FollowUpStateContainer({
+    this.followUps = const [],
     this.total = 0,
     this.overdue = 0,
     this.dueToday = 0,
     this.upcoming = 0,
+    this.status = FollowUpStatus.initial,
+    this.actionStatus = ActionStatus.idle,
     this.errorMessage,
     this.successMessage,
-    this.isBackgroundUpdating = false,
-    this.backgroundError,
   });
 
-  FollowUpLoaded copyWith({
+  // Factory constructors keep your BLoC files readable and expressive
+  factory FollowUpStateContainer.initial() => const FollowUpStateContainer();
+
+  factory FollowUpStateContainer.loading() =>
+      const FollowUpStateContainer(status: FollowUpStatus.loading);
+
+  FollowUpStateContainer copyWith({
     List<DueFollowUp>? followUps,
     int? total,
     int? overdue,
     int? dueToday,
     int? upcoming,
-    String? errorMessage,
-    String? successMessage,
-    bool? isBackgroundUpdating,
-    String? backgroundError,
+    FollowUpStatus? status,
+    ActionStatus? actionStatus,
+    // Allows explicitly clearing out string notifications by passing null
+    String? Function()? errorMessage,
+    String? Function()? successMessage,
   }) {
-    return FollowUpLoaded(
+    return FollowUpStateContainer(
       followUps: followUps ?? this.followUps,
       total: total ?? this.total,
       overdue: overdue ?? this.overdue,
       dueToday: dueToday ?? this.dueToday,
       upcoming: upcoming ?? this.upcoming,
-      errorMessage: errorMessage,
-      successMessage: successMessage,
-      isBackgroundUpdating: isBackgroundUpdating ?? this.isBackgroundUpdating,
-      backgroundError: backgroundError,
+      status: status ?? this.status,
+      actionStatus: actionStatus ?? this.actionStatus,
+      errorMessage: errorMessage != null ? errorMessage() : this.errorMessage,
+      successMessage: successMessage != null
+          ? successMessage()
+          : this.successMessage,
     );
   }
 
   @override
   List<Object?> get props => [
-    followUps, total, overdue, dueToday, upcoming,
-    errorMessage, successMessage, isBackgroundUpdating, backgroundError,
+    followUps,
+    total,
+    overdue,
+    dueToday,
+    upcoming,
+    status,
+    actionStatus,
+    errorMessage,
+    successMessage,
   ];
-}
-
-class FollowUpMarkedDone extends FollowUpState {
-  final String visitId;
-  final String patientId;
-
-  const FollowUpMarkedDone({required this.visitId, required this.patientId});
-
-  @override
-  List<Object> get props => [visitId, patientId];
-}
-
-class FollowUpError extends FollowUpState {
-  final String message;
-
-  const FollowUpError({required this.message});
-
-  @override
-  List<Object> get props => [message];
 }

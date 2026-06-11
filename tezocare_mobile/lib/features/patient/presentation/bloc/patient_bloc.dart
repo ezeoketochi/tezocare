@@ -50,11 +50,13 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     );
 
     if (cached != null && cached.isNotEmpty) {
-      emit(PatientsLoaded(
-        patients: cached,
-        currentPage: event.page,
-        isBackgroundUpdating: true,
-      ));
+      emit(
+        PatientsLoaded(
+          patients: cached,
+          currentPage: event.page,
+          isBackgroundUpdating: true,
+        ),
+      );
     } else {
       emit(const PatientLoading());
     }
@@ -73,10 +75,12 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     result.fold(
       (failure) {
         if (state is PatientsLoaded) {
-          emit((state as PatientsLoaded).copyWith(
-            isBackgroundUpdating: false,
-            backgroundError: _failureMessage(failure),
-          ));
+          emit(
+            (state as PatientsLoaded).copyWith(
+              isBackgroundUpdating: false,
+              backgroundError: _failureMessage(failure),
+            ),
+          );
         } else {
           emit(PatientError(message: _failureMessage(failure)));
         }
@@ -88,11 +92,13 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
           status: event.status,
           patients: patients,
         );
-        emit(PatientsLoaded(
-          patients: patients,
-          currentPage: event.page,
-          isBackgroundUpdating: false,
-        ));
+        emit(
+          PatientsLoaded(
+            patients: patients,
+            currentPage: event.page,
+            isBackgroundUpdating: false,
+          ),
+        );
       },
     );
   }
@@ -105,22 +111,18 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     final cancelToken = CancelToken();
     _detailCancelToken = cancelToken;
 
-    final cached = getPatientDetailUseCase.repository.getCachedPatientDetail(event.id);
+    final cached = getPatientDetailUseCase.repository.getCachedPatientDetail(
+      event.id,
+    );
 
     if (cached != null) {
-      emit(PatientDetailLoaded(
-        patient: cached,
-        isBackgroundUpdating: true,
-      ));
+      emit(PatientDetailLoaded(patient: cached, isBackgroundUpdating: true));
     } else {
       emit(const PatientLoading());
     }
 
     final result = await getPatientDetailUseCase(
-      GetPatientDetailParams(
-        id: event.id,
-        cancelToken: cancelToken,
-      ),
+      GetPatientDetailParams(id: event.id, cancelToken: cancelToken),
     );
 
     if (cancelToken.isCancelled) return;
@@ -128,20 +130,24 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     result.fold(
       (failure) {
         if (state is PatientDetailLoaded) {
-          emit((state as PatientDetailLoaded).copyWith(
-            isBackgroundUpdating: false,
-            backgroundError: _failureMessage(failure),
-          ));
+          emit(
+            (state as PatientDetailLoaded).copyWith(
+              isBackgroundUpdating: false,
+              backgroundError: _failureMessage(failure),
+            ),
+          );
         } else {
           emit(PatientError(message: _failureMessage(failure)));
         }
       },
       (patient) {
-        getPatientDetailUseCase.repository.cachePatientDetail(event.id, patient);
-        emit(PatientDetailLoaded(
-          patient: patient,
-          isBackgroundUpdating: false,
-        ));
+        getPatientDetailUseCase.repository.cachePatientDetail(
+          event.id,
+          patient,
+        );
+        emit(
+          PatientDetailLoaded(patient: patient, isBackgroundUpdating: false),
+        );
       },
     );
   }
@@ -165,28 +171,99 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     Emitter<PatientState> emit,
   ) async {
     final current = state;
+
+    // ────────────────────────────────────────────────────────
+    // SCENARIO 1: Updating from a List Screen (PatientsLoaded)
+    // ────────────────────────────────────────────────────────
     if (current is PatientsLoaded) {
       final previousPatients = current.patients;
+
+      // Optimistically update the list locally
       final updatedPatients = current.patients.map((p) {
         return p.id == event.patient.id ? event.patient : p;
       }).toList();
-      emit(current.copyWith(patients: updatedPatients));
+
+      // Step 1: Turn background loader ON and apply optimistic list update immediately
+      emit(
+        current.copyWith(patients: updatedPatients, isBackgroundUpdating: true),
+      );
+
+      // Step 2: Call the backend API on your EC2 instance
       final result = await updatePatientUseCase(
         UpdatePatientParams(patient: event.patient),
       );
+
+      // Step 3: Evaluate the functional programming Either result cleanly
       result.fold(
-        (failure) => emit(current.copyWith(patients: previousPatients, errorMessage: _failureMessage(failure))),
-        (_) => null,
+        (failure) {
+          // API Failed: Roll back to previous list state, turn off loader, set error strings
+          emit(
+            current.copyWith(
+              patients: previousPatients,
+              errorMessage: _failureMessage(failure),
+              isBackgroundUpdating: false,
+              backgroundError: _failureMessage(failure),
+            ),
+          );
+        },
+        (successData) {
+          // API Succeeded: Keep the updated list, turn off loader, trip saveSuccess true
+          emit(
+            current.copyWith(
+              patients: updatedPatients,
+              isBackgroundUpdating: false,
+              saveSuccess: true,
+            ),
+          );
+        },
       );
+
+      // ────────────────────────────────────────────────────────
+      // SCENARIO 2: Updating from Form/Details Screen (PatientDetailLoaded)
+      // ────────────────────────────────────────────────────────
     } else if (current is PatientDetailLoaded) {
       final previousPatient = current.patient;
-      emit(current.copyWith(patient: event.patient));
+
+      // Step 1: Optimistically show the updated data on the form fields and turn loader ON
+      emit(
+        current.copyWith(
+          patient: event.patient,
+          isBackgroundUpdating: true,
+          saveSuccess:
+              false, // Ensure this is explicitly cleared out when starting a new save
+        ),
+      );
+
+      // Step 2: Call the backend API
       final result = await updatePatientUseCase(
         UpdatePatientParams(patient: event.patient),
       );
+
+      // Step 3: Evaluate the result before telling the UI everything is okay
       result.fold(
-        (failure) => emit(current.copyWith(patient: previousPatient, errorMessage: _failureMessage(failure))),
-        (_) => null,
+        (failure) {
+          // API Failed: Revert to the original database patient model row layout data
+          emit(
+            current.copyWith(
+              patient: previousPatient,
+              errorMessage: _failureMessage(failure),
+              isBackgroundUpdating: false,
+              backgroundError: _failureMessage(failure),
+              saveSuccess: false,
+            ),
+          );
+        },
+        (successData) {
+          // API Succeeded: Turn off loader, confirm saveSuccess true to trigger the UI Navigator.pop()
+          emit(
+            current.copyWith(
+              isBackgroundUpdating: false,
+              saveSuccess: true,
+              backgroundError: null,
+              errorMessage: null,
+            ),
+          );
+        },
       );
     }
   }
@@ -202,24 +279,22 @@ class PatientBloc extends Bloc<PatientEvent, PatientState> {
     emit(const PatientLoading());
 
     final result = await searchPatientsUseCase(
-      SearchPatientsParams(
-        query: event.query,
-        cancelToken: cancelToken,
-      ),
+      SearchPatientsParams(query: event.query, cancelToken: cancelToken),
     );
 
     if (cancelToken.isCancelled) return;
 
     result.fold(
       (failure) => emit(PatientError(message: _failureMessage(failure))),
-      (patients) => emit(PatientsLoaded(
-        patients: patients,
-        isBackgroundUpdating: false,
-      )),
+      (patients) =>
+          emit(PatientsLoaded(patients: patients, isBackgroundUpdating: false)),
     );
   }
 
-  void _onClearPatientError(ClearPatientError event, Emitter<PatientState> emit) {
+  void _onClearPatientError(
+    ClearPatientError event,
+    Emitter<PatientState> emit,
+  ) {
     final current = state;
     if (current is PatientsLoaded) {
       emit(current.copyWith(errorMessage: null, backgroundError: null));

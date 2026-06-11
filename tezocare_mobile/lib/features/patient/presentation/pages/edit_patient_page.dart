@@ -41,7 +41,14 @@ class _EditPatientPageState extends State<EditPatientPage> {
   List<String> _allergies = [];
 
   static const _bloodGroups = [
-    'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-',
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
   ];
 
   static const _genotypes = ['AA', 'AS', 'SS', 'AC', 'SC'];
@@ -80,10 +87,12 @@ class _EditPatientPageState extends State<EditPatientPage> {
     _occupationController.text = patient.occupation ?? '';
     _gender = patient.gender;
     _dateOfBirth = patient.dateOfBirth;
-    _bloodGroup = patient.bloodGroup != null && _bloodGroups.contains(patient.bloodGroup)
+    _bloodGroup =
+        patient.bloodGroup != null && _bloodGroups.contains(patient.bloodGroup)
         ? patient.bloodGroup
         : null;
-    _genotype = patient.genotype != null && _genotypes.contains(patient.genotype)
+    _genotype =
+        patient.genotype != null && _genotypes.contains(patient.genotype)
         ? patient.genotype
         : null;
     _allergies = List.from(patient.allergies);
@@ -122,6 +131,8 @@ class _EditPatientPageState extends State<EditPatientPage> {
     final state = context.read<PatientBloc>().state;
     if (state is! PatientDetailLoaded) return;
 
+    final isLoading = state.isBackgroundUpdating;
+
     final original = state.patient;
     final updated = Patient(
       id: original.id,
@@ -157,39 +168,41 @@ class _EditPatientPageState extends State<EditPatientPage> {
       registeredBy: original.registeredBy,
       isActive: original.isActive,
     );
-
-    context.read<PatientBloc>().add(UpdatePatientEvent(patient: updated));
+    try {
+      context.read<PatientBloc>().add(UpdatePatientEvent(patient: updated));
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<PatientBloc, PatientState>(
       listenWhen: (previous, current) =>
-          current is PatientUpdated || current is PatientError,
+          previous is PatientDetailLoaded && current is PatientDetailLoaded,
       listener: (context, state) {
-        if (state is PatientUpdated) {
-          try {
-            context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
-          } catch (_) {}
+        final currentState = state as PatientDetailLoaded;
+
+        // If the BLoC explicitly says the save was successful, pop the screen!
+        if (currentState.saveSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Patient updated successfully')),
+            const SnackBar(content: Text('Changes saved successfully!')),
           );
-          Navigator.of(context).pop(true);
-        } else if (state is PatientError) {
+          Navigator.pop(context);
+        }
+
+        if (!currentState.isBackgroundUpdating &&
+            currentState.backgroundError != null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            SnackBar(content: Text('Error: ${currentState.backgroundError}')),
           );
         }
       },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Edit Patient'),
-          actions: [
-            TextButton(
-              onPressed: _save,
-              child: const Text('Save'),
-            ),
-          ],
+          centerTitle: true,
+          // actions: [TextButton(onPressed: _save, child: const Text('Save'))],
         ),
         body: BlocBuilder<PatientBloc, PatientState>(
           builder: (context, state) {
@@ -211,120 +224,133 @@ class _EditPatientPageState extends State<EditPatientPage> {
   }
 
   Widget _buildForm() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(20.w),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionCard('Basic Information', [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _firstNameController,
-                      label: 'First Name',
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'Required' : null,
-                    ),
+    return BlocBuilder<PatientBloc, PatientState>(
+      builder: (context, state) {
+        // 1. Fallback handling if the state isn't loaded yet
+        if (state is! PatientDetailLoaded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // 2. Safely extract your background loading state flags
+        final isLoading = state.isBackgroundUpdating;
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(20.w),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionCard('Basic Information', [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _firstNameController,
+                          label: 'First Name',
+                          validator: (v) =>
+                              v == null || v.trim().isEmpty ? 'Required' : null,
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _lastNameController,
+                          label: 'Last Name',
+                          validator: (v) =>
+                              v == null || v.trim().isEmpty ? 'Required' : null,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _lastNameController,
-                      label: 'Last Name',
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'Required' : null,
-                    ),
+                  SizedBox(height: 16.h),
+                  _buildGenderField(),
+                  SizedBox(height: 16.h),
+                  _buildDateOfBirthField(),
+                  SizedBox(height: 16.h),
+                  _buildTextField(
+                    controller: _phoneController,
+                    label: 'Phone',
+                    keyboardType: TextInputType.phone,
                   ),
-                ],
-              ),
-              SizedBox(height: 16.h),
-              _buildGenderField(),
-              SizedBox(height: 16.h),
-              _buildDateOfBirthField(),
-              SizedBox(height: 16.h),
-              _buildTextField(
-                controller: _phoneController,
-                label: 'Phone',
-                keyboardType: TextInputType.phone,
-              ),
-            ]),
-            SizedBox(height: 16.h),
-            _buildSectionCard('Location & Occupation', [
-              _buildTextField(
-                controller: _addressController,
-                label: 'Address',
-                maxLines: 2,
-              ),
-              SizedBox(height: 16.h),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _stateController,
-                      label: 'State',
-                    ),
+                ]),
+                SizedBox(height: 16.h),
+                _buildSectionCard('Location & Occupation', [
+                  _buildTextField(
+                    controller: _addressController,
+                    label: 'Address',
+                    maxLines: 2,
                   ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _cityController,
-                      label: 'City',
-                    ),
+                  SizedBox(height: 16.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _stateController,
+                          label: 'State',
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _cityController,
+                          label: 'City',
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              SizedBox(height: 16.h),
-              _buildTextField(
-                controller: _occupationController,
-                label: 'Occupation',
-              ),
-            ]),
-            SizedBox(height: 16.h),
-            _buildSectionCard('Medical Info', [
-              _buildDropdownField(
-                label: 'Blood Group',
-                value: _bloodGroup,
-                items: _bloodGroups,
-                onChanged: (v) => setState(() => _bloodGroup = v),
-              ),
-              SizedBox(height: 16.h),
-              _buildDropdownField(
-                label: 'Genotype',
-                value: _genotype,
-                items: _genotypes,
-                onChanged: (v) => setState(() => _genotype = v),
-              ),
-            ]),
-            SizedBox(height: 16.h),
-            _buildAllergiesSection(),
-            SizedBox(height: 16.h),
-            _buildSectionCard('Emergency Contact', [
-              _buildTextField(
-                controller: _emergencyNameController,
-                label: 'Contact Name',
-              ),
-              SizedBox(height: 16.h),
-              _buildTextField(
-                controller: _emergencyPhoneController,
-                label: 'Contact Phone',
-                keyboardType: TextInputType.phone,
-              ),
-            ]),
-            SizedBox(height: 32.h),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                label: 'Save Changes',
-                onPressed: _save,
-              ),
+                  SizedBox(height: 16.h),
+                  _buildTextField(
+                    controller: _occupationController,
+                    label: 'Occupation',
+                  ),
+                ]),
+                SizedBox(height: 16.h),
+                _buildSectionCard('Medical Info', [
+                  _buildDropdownField(
+                    label: 'Blood Group',
+                    value: _bloodGroup,
+                    items: _bloodGroups,
+                    onChanged: (v) => setState(() => _bloodGroup = v),
+                  ),
+                  SizedBox(height: 16.h),
+                  _buildDropdownField(
+                    label: 'Genotype',
+                    value: _genotype,
+                    items: _genotypes,
+                    onChanged: (v) => setState(() => _genotype = v),
+                  ),
+                ]),
+                SizedBox(height: 16.h),
+                _buildAllergiesSection(),
+                SizedBox(height: 16.h),
+                _buildSectionCard('Emergency Contact', [
+                  _buildTextField(
+                    controller: _emergencyNameController,
+                    label: 'Contact Name',
+                  ),
+                  SizedBox(height: 16.h),
+                  _buildTextField(
+                    controller: _emergencyPhoneController,
+                    label: 'Contact Phone',
+                    keyboardType: TextInputType.phone,
+                  ),
+                ]),
+                SizedBox(height: 32.h),
+                SizedBox(
+                  width: double.infinity,
+                  child: AppButton(
+                    label: isLoading ? "Saving Changes..." : "Save Changes",
+                    // 3. Disable the button completely if isLoading is true to prevent double submissions
+                    onPressed: isLoading ? null : _save,
+                  ),
+                ),
+                SizedBox(height: 32.h),
+              ],
             ),
-            SizedBox(height: 32.h),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -409,7 +435,11 @@ class _EditPatientPageState extends State<EditPatientPage> {
                         : AppColors.textHint,
                   ),
                 ),
-                Icon(Icons.calendar_today, size: 18.sp, color: AppColors.textHint),
+                Icon(
+                  Icons.calendar_today,
+                  size: 18.sp,
+                  color: AppColors.textHint,
+                ),
               ],
             ),
           ),
@@ -439,9 +469,12 @@ class _EditPatientPageState extends State<EditPatientPage> {
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              hint: Text('Select $label', style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textHint,
-              )),
+              hint: Text(
+                'Select $label',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textHint,
+                ),
+              ),
               items: items.map((item) {
                 return DropdownMenuItem(value: item, child: Text(item));
               }).toList(),
@@ -469,11 +502,9 @@ class _EditPatientPageState extends State<EditPatientPage> {
         labelText: label,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: Colors.transparent),
         ),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: 12.w,
-          vertical: 12.h,
-        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       ),
     );
   }

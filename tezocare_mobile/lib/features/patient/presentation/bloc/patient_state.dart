@@ -23,6 +23,7 @@ class PatientsLoaded extends PatientState {
   final String? errorMessage;
   final bool isBackgroundUpdating;
   final String? backgroundError;
+  final bool saveSuccess;
 
   const PatientsLoaded({
     required this.patients,
@@ -31,6 +32,7 @@ class PatientsLoaded extends PatientState {
     this.errorMessage,
     this.isBackgroundUpdating = false,
     this.backgroundError,
+    this.saveSuccess = false,
   });
 
   PatientsLoaded copyWith({
@@ -40,6 +42,7 @@ class PatientsLoaded extends PatientState {
     String? errorMessage,
     bool? isBackgroundUpdating,
     String? backgroundError,
+    bool? saveSuccess,
   }) {
     return PatientsLoaded(
       patients: patients ?? this.patients,
@@ -48,13 +51,19 @@ class PatientsLoaded extends PatientState {
       errorMessage: errorMessage,
       isBackgroundUpdating: isBackgroundUpdating ?? this.isBackgroundUpdating,
       backgroundError: backgroundError,
+      saveSuccess: saveSuccess ?? this.saveSuccess,
     );
   }
 
   @override
   List<Object?> get props => [
-    patients, currentPage, hasMorePages, errorMessage,
-    isBackgroundUpdating, backgroundError,
+    patients,
+    currentPage,
+    hasMorePages,
+    errorMessage,
+    isBackgroundUpdating,
+    backgroundError,
+    saveSuccess,
   ];
 }
 
@@ -63,12 +72,14 @@ class PatientDetailLoaded extends PatientState {
   final String? errorMessage;
   final bool isBackgroundUpdating;
   final String? backgroundError;
+  final bool saveSuccess;
 
   const PatientDetailLoaded({
     required this.patient,
     this.errorMessage,
     this.isBackgroundUpdating = false,
     this.backgroundError,
+    this.saveSuccess = false,
   });
 
   PatientDetailLoaded copyWith({
@@ -76,18 +87,24 @@ class PatientDetailLoaded extends PatientState {
     String? errorMessage,
     bool? isBackgroundUpdating,
     String? backgroundError,
+    bool? saveSuccess,
   }) {
     return PatientDetailLoaded(
       patient: patient ?? this.patient,
       errorMessage: errorMessage,
       isBackgroundUpdating: isBackgroundUpdating ?? this.isBackgroundUpdating,
       backgroundError: backgroundError,
+      saveSuccess: saveSuccess ?? this.saveSuccess,
     );
   }
 
   @override
   List<Object?> get props => [
-    patient, errorMessage, isBackgroundUpdating, backgroundError,
+    patient,
+    errorMessage,
+    isBackgroundUpdating,
+    backgroundError,
+    saveSuccess,
   ];
 }
 
