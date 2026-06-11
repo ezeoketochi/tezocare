@@ -29,3 +29,5 @@ alembic/versions/*.pyc
 
 # Project specific
 test_*.db
+
+tezocare-firebase-adminsdk-fbsvc-7b874a5167.json
