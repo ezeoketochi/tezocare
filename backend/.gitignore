@@ -30,4 +30,8 @@ alembic/versions/*.pyc
 # Project specific
 test_*.db
 
+# Target the specific path explicitly
 backend/firebase-service-account.json
+
+# Or block any fallback credentials inside the project
+*.json
