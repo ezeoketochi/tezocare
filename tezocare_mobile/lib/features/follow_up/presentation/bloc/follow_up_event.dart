@@ -9,13 +9,14 @@ abstract class FollowUpEvent extends Equatable {
 }
 
 class GetDueFollowUpsEvent extends FollowUpEvent {
+  final String? filter;
   final int? days;
   final CancelToken? cancelToken;
 
-  const GetDueFollowUpsEvent({this.days, this.cancelToken});
+  const GetDueFollowUpsEvent({this.filter, this.days, this.cancelToken});
 
   @override
-  List<Object?> get props => [days, cancelToken];
+  List<Object?> get props => [filter, days, cancelToken];
 }
 
 class MarkFollowUpDoneEvent extends FollowUpEvent {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
 
 class AppSectionHeader extends StatelessWidget {
@@ -24,9 +23,10 @@ class AppSectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'Satoshi',
               color: AppColors.textPrimary,
             ),
           ),
@@ -35,9 +35,10 @@ class AppSectionHeader extends StatelessWidget {
               onTap: onAction,
               child: Text(
                 actionLabel!,
-                style: GoogleFonts.poppins(
+                style: TextStyle(
                   fontSize: 13.sp,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Satoshi',
                   color: AppColors.primary,
                 ),
               ),

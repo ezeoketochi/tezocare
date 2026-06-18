@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
 
 enum StatusChipVariant { active, completed, followUpPending, referred }
@@ -25,9 +24,10 @@ class StatusChip extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: GoogleFonts.inter(
+        style: TextStyle(
           fontSize: 11.sp,
           fontWeight: FontWeight.w500,
+          fontFamily: 'Satoshi',
           color: _textColor,
         ),
       ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
 
 enum AppButtonVariant { primary, outline, destructive }
@@ -38,7 +37,7 @@ class _AppButtonState extends State<AppButton> {
 
   @override
   Widget build(BuildContext context) {
-    final height = widget.height ?? 48.h;
+    final height = widget.height ?? 45.h;
     final width = widget.width ?? double.infinity;
 
     return GestureDetector(
@@ -67,7 +66,15 @@ class _AppButtonState extends State<AppButton> {
       height: height,
       decoration: BoxDecoration(
         color: widget.isDisabled ? const Color(0xFFC7C8FE) : AppColors.primary,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 4,
+            offset: const Offset(0, -1),
+            blurStyle: BlurStyle.inner,
+          ),
+        ],
       ),
       child: _buildButtonContent(textColor: AppColors.white),
     );
@@ -79,7 +86,7 @@ class _AppButtonState extends State<AppButton> {
       height: height,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: widget.isDisabled ? const Color(0xFFC7C8FE) : AppColors.primary,
           width: 1.5,
@@ -97,7 +104,7 @@ class _AppButtonState extends State<AppButton> {
       height: height,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(
           color: widget.isDisabled ? const Color(0xFFC7C8FE) : AppColors.danger,
           width: 1.5,
@@ -127,12 +134,13 @@ class _AppButtonState extends State<AppButton> {
                   widget.prefixIcon!,
                   const SizedBox(width: 8),
                 ],
-                widget.child ??
+                    widget.child ??
                     Text(
                       widget.label ?? '',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w600,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Satoshi',
                         color: textColor,
                       ),
                     ),

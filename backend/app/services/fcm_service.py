@@ -51,7 +51,7 @@ async def send_staff_notification(
     await db.commit()
 
     if ok:
-        logger.info("Notification sent to staff %s: %s", staff_id, title)
+        logger.info("Notification successfully sent to staff %s: %s", staff_id, title)
     else:
         logger.warning("Notification failed for staff %s: %s", staff_id, title)
 

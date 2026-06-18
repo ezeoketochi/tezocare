@@ -7,6 +7,8 @@ import 'package:tezocare_mobile/features/auth/presentation/bloc/auth_event.dart'
 import 'package:tezocare_mobile/firebase_options.dart';
 import 'config/routes/app_router.dart';
 import 'config/themes/app_theme.dart';
+import 'config/themes/app_colors.dart';
+import 'core/network/dio_client.dart';
 import 'core/services/notification_service.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/domain/usecases/login_usecase.dart';
@@ -25,6 +27,7 @@ void main() async {
   debugPrint('Firebase initialized successfully, DI is next');
 
   await di.init();
+  di.sl<DioClient>(); // ensure baseUrl + auth interceptors are set on shared Dio
   di.sl<NotificationService>().initialize();
   runApp(const TezoCareApp());
 }
@@ -51,11 +54,16 @@ class TezoCareApp extends StatelessWidget {
         designSize: const Size(375, 812),
         minTextAdapt: true,
         splitScreenMode: true,
-        builder: (_, _) => MaterialApp.router(
-          title: 'TezoCare',
-          theme: AppTheme.lightTheme,
-          routerConfig: appRouter.router,
-          debugShowCheckedModeBanner: false,
+        builder: (_, _) => Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.backgroundGradient,
+          ),
+          child: MaterialApp.router(
+            title: 'TezoCare',
+            theme: AppTheme.lightTheme,
+            routerConfig: appRouter.router,
+            debugShowCheckedModeBanner: false,
+          ),
         ),
       ),
     );

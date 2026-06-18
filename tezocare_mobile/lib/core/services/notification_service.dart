@@ -39,19 +39,25 @@ class NotificationService {
   Future<String?> getToken() async {
     try {
       return await _messaging.getToken();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[FCM] getToken failed: $e');
       return null;
     }
   }
 
   Future<void> uploadToken(String token) async {
     debugPrint('[FCM DEBUG TOKEN] ---> $token');
+    final deviceType = defaultTargetPlatform == TargetPlatform.iOS
+        ? 'ios'
+        : 'android';
     try {
       await _dio.patch(
         ApiConstants.fcmToken,
-        data: {'fcm_token': token, 'device_type': 'android'},
+        data: {'fcm_token': token, 'device_type': deviceType},
       );
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[FCM] uploadToken failed: $e');
+    }
   }
 
   Future<void> initialize() async {
@@ -84,9 +90,31 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
+    // Capture notification that launched the app from a terminated state
+    try {
+      final initialMessage = await _messaging.getInitialMessage();
+      if (initialMessage != null && initialMessage.data.isNotEmpty) {
+        debugPrint('[FCM] App launched from terminated notification: ${initialMessage.data}');
+        _pendingNavigationData = initialMessage.data;
+      }
+    } catch (e) {
+      debugPrint('[FCM] getInitialMessage failed: $e');
+    }
+
+    // Listen for notification taps that open app from background
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      debugPrint('[FCM] App opened from background notification: ${message.data}');
       _pendingNavigationData = message.data;
     });
+
+    // Re-upload FCM token whenever it refreshes
+    _messaging.onTokenRefresh.listen((t) {
+      debugPrint('[FCM] Token refreshed, re-uploading');
+      uploadToken(t);
+    });
+
+    // Show local notification for foreground messages
+    FirebaseMessaging.onMessage.listen(_showLocalNotification);
   }
 
   Future<void> handlePostLogin() async {
@@ -99,8 +127,6 @@ class NotificationService {
     if (token != null) {
       await uploadToken(token);
     }
-    _messaging.onTokenRefresh.listen((t) => uploadToken(t));
-    FirebaseMessaging.onMessage.listen(_showLocalNotification);
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
@@ -140,4 +166,9 @@ class NotificationService {
 }
 
 @pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // The backend always includes a notification payload (title + body),
+  // so the system displays it automatically. This handler is kept for
+  // future data-only push support.
+  debugPrint('[FCM] Background message: ${message.messageId}');
+}

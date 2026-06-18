@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
+import '../../../../shared/widgets/app_tab_filter.dart';
 import '../../../../shared/widgets/app_day_filter.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_loading.dart';
@@ -22,7 +23,11 @@ class FollowUpPage extends StatefulWidget {
 }
 
 class _FollowUpPageState extends State<FollowUpPage> {
+  String? _activeFilter;
   int? _selectedDays;
+
+  static const _filters = <String?>[null, 'pending_contact', 'due', 'overdue'];
+  static const _filterLabels = ['All', 'Pending', 'Due', 'Overdue'];
 
   @override
   void initState() {
@@ -30,9 +35,38 @@ class _FollowUpPageState extends State<FollowUpPage> {
     context.read<FollowUpBloc>().add(const GetDueFollowUpsEvent());
   }
 
+  void _onFilterChanged(int index) {
+    final filter = _filters[index];
+    if (filter == _activeFilter) return;
+    setState(() => _activeFilter = filter);
+    _fetch();
+  }
+
   void _onDaysChanged(int? days) {
     setState(() => _selectedDays = days);
-    context.read<FollowUpBloc>().add(GetDueFollowUpsEvent(days: days));
+    _fetch();
+  }
+
+  void _fetch() {
+    context.read<FollowUpBloc>().add(
+      GetDueFollowUpsEvent(days: _selectedDays),
+    );
+  }
+
+  List<DueFollowUp> _filteredFollowUps(List<DueFollowUp> followUps) {
+    if (_activeFilter == null) return followUps;
+    return followUps.where((f) {
+      switch (_activeFilter) {
+        case 'pending':
+          return f.followupStatus == 'upcoming';
+        case 'due':
+          return f.followupStatus == 'due_today';
+        case 'overdue':
+          return f.followupStatus == 'overdue';
+        default:
+          return true;
+      }
+    }).toList();
   }
 
   @override
@@ -66,6 +100,11 @@ class _FollowUpPageState extends State<FollowUpPage> {
                   style: AppTextStyles.headlineMedium,
                 ),
               ),
+              AppTabFilter(
+                labels: _filterLabels,
+                selectedIndex: _filters.indexOf(_activeFilter),
+                onChanged: _onFilterChanged,
+              ),
               AppDayFilter(
                 selectedDays: _selectedDays,
                 onChanged: _onDaysChanged,
@@ -86,7 +125,7 @@ class _FollowUpPageState extends State<FollowUpPage> {
                           children: [
                             Padding(
                               padding: EdgeInsets.all(20.w),
-                              child: AppLoading.shimmerList(),
+                              child: AppLoading.followUpListShimmer(),
                             ),
                           ],
                         );
@@ -103,7 +142,7 @@ class _FollowUpPageState extends State<FollowUpPage> {
                               message: state.errorMessage!,
                               actionLabel: 'Retry',
                               onAction: () => context.read<FollowUpBloc>().add(
-                                const GetDueFollowUpsEvent(),
+                                GetDueFollowUpsEvent(days: _selectedDays),
                               ),
                             ),
                           ],
@@ -111,7 +150,8 @@ class _FollowUpPageState extends State<FollowUpPage> {
                       }
                       if (state is FollowUpStateContainer &&
                           state.status == FollowUpStatus.loaded) {
-                        if (state.followUps.isEmpty) {
+                        final filtered = _filteredFollowUps(state.followUps);
+                        if (filtered.isEmpty) {
                           return ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
                             children: [
@@ -128,8 +168,8 @@ class _FollowUpPageState extends State<FollowUpPage> {
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: EdgeInsets.only(bottom: 20.h),
                           children: [
-                            _buildSummaryRow(state),
-                            ...state.followUps.map(
+                            _buildSummaryRow(state, filtered),
+                            ...filtered.map(
                               (fu) => Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                                 child: _FollowUpCard(followUp: fu),
@@ -150,33 +190,36 @@ class _FollowUpPageState extends State<FollowUpPage> {
     );
   }
 
-  Widget _buildSummaryRow(FollowUpStateContainer state) {
+  Widget _buildSummaryRow(FollowUpStateContainer state, List<DueFollowUp> filtered) {
+    final overdue = filtered.where((f) => f.followupStatus == 'overdue').length;
+    final dueToday = filtered.where((f) => f.followupStatus == 'due_today').length;
+    final upcoming = filtered.where((f) => f.followupStatus == 'upcoming').length;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
       child: Row(
         children: [
           _summaryChip(
-            '${state.overdue}',
+            '$overdue',
             'Overdue',
             AppColors.dangerLight,
             AppColors.danger,
           ),
           SizedBox(width: 8.w),
           _summaryChip(
-            '${state.dueToday}',
+            '$dueToday',
             'Due Today',
             AppColors.warningLight,
             AppColors.warning,
           ),
           SizedBox(width: 8.w),
           _summaryChip(
-            '${state.upcoming}',
+            '$upcoming',
             'Upcoming',
             AppColors.infoLight,
             AppColors.primary,
           ),
           const Spacer(),
-          Text('${state.total} total', style: AppTextStyles.bodySmall),
+          Text('${filtered.length} total', style: AppTextStyles.bodySmall),
         ],
       ),
     );
@@ -384,18 +427,17 @@ class _FollowUpCard extends StatelessWidget {
   }
 
   void _showFollowUpDetail(BuildContext context) {
-    // 1. Capture the active BLoC instance BEFORE entering the sheet route
     final followUpBloc = context.read<FollowUpBloc>();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (modalRouteContext) {
-        // 2. Wrap the entire modal tree in a .value provider constructor
-        // This bridges our captured BLoC over to the brand-new sheet route context branch!
         return BlocProvider.value(
           value: followUpBloc,
           child: StatefulBuilder(
@@ -403,7 +445,6 @@ class _FollowUpCard extends StatelessWidget {
               final formKey = GlobalKey<FormState>();
               final outcomeController = TextEditingController();
 
-              // 1. ADD A BLOCLISTENER HERE TO CONTROL CLEAN POPPING
               return BlocListener<FollowUpBloc, FollowUpState>(
                 listenWhen: (previous, current) =>
                     previous is FollowUpStateContainer &&
@@ -412,7 +453,6 @@ class _FollowUpCard extends StatelessWidget {
                 listener: (listenerContext, state) {
                   if (state is FollowUpStateContainer &&
                       state.actionStatus == ActionStatus.success) {
-                    // 2. The BLoC confirmed success! Now it is completely safe to close the sheet.
                     Navigator.pop(sheetContext);
                   }
                 },
@@ -423,106 +463,169 @@ class _FollowUpCard extends StatelessWidget {
                         state is FollowUpStateContainer &&
                         state.actionStatus == ActionStatus.loading;
 
-                    return Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        20.w,
-                        12.h,
-                        20.w,
-                        MediaQuery.of(sheetContext).viewInsets.bottom + 20.h,
+                    return Container(
+                      decoration: const BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(28),
+                          topRight: Radius.circular(28),
+                        ),
                       ),
-                      child: Form(
-                        key: formKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Center(
-                              child: Container(
-                                width: 40.w,
-                                height: 4.h,
-                                decoration: BoxDecoration(
-                                  color: AppColors.border,
-                                  borderRadius: BorderRadius.circular(2.r),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 16.h),
-                            Text(
-                              'Follow-up Detail',
-                              style: AppTextStyles.headlineSmall,
-                            ),
-                            SizedBox(height: 12.h),
-                            _detailRow('Patient', followUp.patientName),
-                            _detailRow('Scheduled', followUp.scheduledDate),
-                            if (followUp.suspectedDiagnosis != null)
-                              _detailRow(
-                                'Diagnosis',
-                                followUp.suspectedDiagnosis!,
-                              ),
-                            if (followUp.attendingStaff != null)
-                              _detailRow('Staff', followUp.attendingStaff!),
-                            SizedBox(height: 16.h),
-                            TextFormField(
-                              controller: outcomeController,
-                              enabled: !isSaving,
-                              decoration: InputDecoration(
-                                labelText: 'Outcome',
-                                hintText: 'Enter follow-up outcome',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                              ),
-                              maxLines: 3,
-                              validator: (value) =>
-                                  value == null || value.trim().isEmpty
-                                  ? 'Please provide an update outcome'
-                                  : null,
-                            ),
-                            SizedBox(height: 16.h),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: AppColors.white,
-                                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12.r),
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+                        ),
+                        child: Form(
+                          key: formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 12.h),
+                              Center(
+                                child: Container(
+                                  width: 40.w,
+                                  height: 4.h,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.border,
+                                    borderRadius: BorderRadius.circular(2.r),
                                   ),
                                 ),
-                                onPressed: isSaving
-                                    ? null
-                                    : () {
-                                        if (formKey.currentState!.validate()) {
-                                          // 3. CRITICAL CHANGE: Use 'blocContext' instead of standard 'context'
-                                          // This targets the specific tree layer beneath our newly created wrapper!
-                                          blocContext.read<FollowUpBloc>().add(
-                                            MarkFollowUpDoneEvent(
-                                              visitId: followUp.visitId,
-                                              outcome: outcomeController.text
-                                                  .trim(),
-                                            ),
-                                          );
-
-                                          // Navigator.pop(sheetContext);
-                                        }
-                                      },
-                                child: isSaving
-                                    ? SizedBox(
-                                        height: 20.h,
-                                        width: 20.w,
-                                        child: const CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : Text(
-                                        'Mark as Done',
-                                        style: AppTextStyles.labelLarge,
-                                      ),
                               ),
-                            ),
-                          ],
+                              SizedBox(height: 16.h),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Follow-up Detail',
+                                      style: AppTextStyles.headlineSmall,
+                                    ),
+                                    GestureDetector(
+                                      onTap: () => Navigator.pop(sheetContext),
+                                      child: Container(
+                                        width: 32.w,
+                                        height: 32.w,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.primaryLight,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.close_rounded,
+                                          size: 18.sp,
+                                          color: AppColors.textDark,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 16.h),
+                              Flexible(
+                                child: SingleChildScrollView(
+                                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                  physics: const BouncingScrollPhysics(),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      _detailRow('Patient', followUp.patientName),
+                                      _detailRow('Scheduled', followUp.scheduledDate),
+                                      if (followUp.suspectedDiagnosis != null)
+                                        _detailRow(
+                                          'Diagnosis',
+                                          followUp.suspectedDiagnosis!,
+                                        ),
+                                      if (followUp.attendingStaff != null)
+                                        _detailRow('Staff', followUp.attendingStaff!),
+                                      SizedBox(height: 16.h),
+                                      TextFormField(
+                                        controller: outcomeController,
+                                        enabled: !isSaving,
+                                        decoration: InputDecoration(
+                                          labelText: 'Outcome',
+                                          hintText: 'Enter follow-up outcome',
+                                          filled: true,
+                                          fillColor: AppColors.inputFill,
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(8.r),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.border,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(8.r),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.border,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(8.r),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.primary,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                        ),
+                                        maxLines: 3,
+                                        validator: (value) =>
+                                            value == null || value.trim().isEmpty
+                                            ? 'Please provide an update outcome'
+                                            : null,
+                                      ),
+                                      SizedBox(height: 16.h),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 32.h),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 45.h,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: AppColors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10.r),
+                                      ),
+                                      elevation: 0,
+                                      shadowColor: Colors.transparent,
+                                    ),
+                                    onPressed: isSaving
+                                        ? null
+                                        : () {
+                                            if (formKey.currentState!.validate()) {
+                                              blocContext.read<FollowUpBloc>().add(
+                                                MarkFollowUpDoneEvent(
+                                                  visitId: followUp.visitId,
+                                                  outcome: outcomeController.text
+                                                      .trim(),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                    child: isSaving
+                                        ? SizedBox(
+                                            height: 20.h,
+                                            width: 20.w,
+                                            child: const CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : Text(
+                                            'Mark as Done',
+                                            style: AppTextStyles.labelLarge,
+                                          ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );

@@ -24,7 +24,7 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ?? 16.r;
+    final radius = borderRadius ?? 15.r;
     final effectivePadding = padding ?? EdgeInsets.all(16.w);
 
     Widget card = Container(

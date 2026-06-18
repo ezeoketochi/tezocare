@@ -82,7 +82,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        gradient: AppColors.dashboardHeaderGradient,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(24),
           bottomRight: Radius.circular(24),
@@ -101,14 +101,14 @@ class _DashboardPageState extends State<DashboardPage> {
                   Text(
                     greeting,
                     style: AppTextStyles.bodySmall.copyWith(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: AppColors.textDark.withValues(alpha: 0.7),
                     ),
                   ),
                   SizedBox(height: 2.h),
                   Text(
                     staff?.name ?? 'Welcome',
                     style: AppTextStyles.headlineSmall.copyWith(
-                      color: AppColors.textOnDark,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -119,13 +119,13 @@ class _DashboardPageState extends State<DashboardPage> {
                   width: 40.w,
                   height: 40.w,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.notifications_outlined,
                     size: 20.sp,
-                    color: AppColors.white,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -137,10 +137,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildLoadingState() {
-    return Padding(
-      padding: EdgeInsets.all(20.w),
-      child: Column(children: [AppLoading.shimmerList(count: 4)]),
-    );
+    return AppLoading.dashboard();
   }
 
   Widget _buildErrorState(DashboardError state) {
@@ -192,10 +189,14 @@ class _DashboardPageState extends State<DashboardPage> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: 4,
             itemBuilder: (context, index) {
+              final variant = index.isEven
+                  ? AppStatCardVariant.primary
+                  : AppStatCardVariant.light;
               return AppStatCard(
                 value: statValues[index],
                 label: statLabels[index],
                 icon: statIcons[index],
+                variant: variant,
               );
             },
           ),

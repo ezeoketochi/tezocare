@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
 import '../../config/themes/app_text_styles.dart';
 
@@ -56,8 +55,9 @@ class _AppTextFieldState extends State<AppTextField> {
           maxLines: widget.maxLines,
           onTap: widget.onTap,
           onChanged: widget.onChanged,
-          style: GoogleFonts.inter(
+          style: TextStyle(
             fontSize: 14.sp,
+            fontFamily: 'Satoshi',
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
@@ -71,43 +71,43 @@ class _AppTextFieldState extends State<AppTextField> {
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
                       size: 20.sp,
-                      color: AppColors.textSecondary,
+                      color: AppColors.iconInactive,
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   )
                 : widget.suffixIcon,
             filled: true,
-            fillColor: AppColors.white,
+            fillColor: AppColors.inputFill,
             isDense: true,
             contentPadding: EdgeInsets.symmetric(
-              horizontal: 14.w,
-              vertical: 10.h,
+              horizontal: 15.w,
+              vertical: 14.h,
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(8.r),
               borderSide: const BorderSide(
                 color: AppColors.border,
                 width: 1.5,
               ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(8.r),
               borderSide: const BorderSide(
                 color: AppColors.border,
                 width: 1.5,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              borderRadius: BorderRadius.circular(8.r),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(8.r),
               borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.r),
-              borderSide: const BorderSide(color: AppColors.danger, width: 2),
+              borderRadius: BorderRadius.circular(8.r),
+              borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
             ),
             hintStyle: AppTextStyles.bodySmall,
             labelStyle: AppTextStyles.bodySmall,

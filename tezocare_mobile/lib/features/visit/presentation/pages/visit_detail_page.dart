@@ -90,7 +90,7 @@ class _VisitDetailPageState extends State<VisitDetailPage> {
               state is VisitDetailLoaded && state.isBackgroundUpdating;
 
           if (state is VisitLoading) {
-            return Center(child: AppLoading.fullScreen());
+            return AppLoading.visitDetail();
           }
           if (state is VisitError) {
             return AppEmptyState(

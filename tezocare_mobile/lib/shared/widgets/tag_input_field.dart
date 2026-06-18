@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
 import '../../config/themes/app_text_styles.dart';
 import 'app_button.dart';
@@ -73,8 +72,9 @@ class _TagInputFieldState extends State<TagInputField> {
             Expanded(
               child: TextFormField(
                 controller: _controller,
-                style: GoogleFonts.inter(
+                style: TextStyle(
                   fontSize: 14.sp,
+                  fontFamily: 'Satoshi',
                   color: AppColors.textPrimary,
                 ),
                 decoration: InputDecoration(
@@ -142,9 +142,10 @@ class _TagInputFieldState extends State<TagInputField> {
                   children: [
                     Text(
                       tag,
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
+                        fontFamily: 'Satoshi',
                         color: AppColors.primary,
                       ),
                     ),

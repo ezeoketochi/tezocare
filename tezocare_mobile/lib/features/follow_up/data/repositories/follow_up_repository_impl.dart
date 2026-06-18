@@ -20,12 +20,12 @@ class FollowUpRepositoryImpl implements FollowUpRepository {
   });
 
   @override
-  Future<Either<Failure, List<DueFollowUp>>> getDueFollowUps({int? days, CancelToken? cancelToken}) async {
+  Future<Either<Failure, List<DueFollowUp>>> getDueFollowUps({String? filter, int? days, CancelToken? cancelToken}) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final result = await remoteDataSource.getDueFollowUps(days: days, cancelToken: cancelToken);
+      final result = await remoteDataSource.getDueFollowUps(filter: filter, days: days, cancelToken: cancelToken);
       await saveLocalDueFollowUps(result);
       return Right(result);
     } catch (e) {

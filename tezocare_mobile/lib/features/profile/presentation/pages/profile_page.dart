@@ -7,6 +7,7 @@ import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/widgets/app_avatar.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_loading.dart';
 import '../../../auth/domain/entities/staff.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -21,7 +22,7 @@ class ProfilePage extends StatelessWidget {
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is AuthLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return AppLoading.profile();
           }
           final staff = state is AuthAuthenticated ? state.staff : null;
           return SingleChildScrollView(

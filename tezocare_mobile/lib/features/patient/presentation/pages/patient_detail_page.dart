@@ -61,7 +61,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
       body: BlocBuilder<PatientBloc, PatientState>(
         builder: (context, state) {
           if (state is PatientLoading) {
-            return Center(child: AppLoading.fullScreen());
+            return AppLoading.patientDetail();
           }
           if (state is PatientError) {
             return AppEmptyState(
@@ -316,150 +316,158 @@ class _PatientDetailPageState extends State<PatientDetailPage>
               child: BlocBuilder<VisitBloc, VisitState>(
                 builder: (context, state) {
                   if (state is VisitLoading) {
-                  return Padding(
-                    padding: EdgeInsets.all(20.w),
-                    child: AppLoading.shimmerList(count: 3),
-                  );
-                }
-                if (state is VisitError) {
-                  return AppEmptyState(
-                    icon: Icons.error_outline_rounded,
-                    title: 'Failed to load visits',
-                    message: state.message,
-                    actionLabel: 'Retry',
-                    onAction: () => context.read<VisitBloc>().add(
-                      GetPatientVisitsEvent(patientId: widget.patientId),
-                    ),
-                  );
-                }
-                if (state is VisitsLoaded) {
-                  final visits = state.visits;
-                  if (visits.isEmpty) {
+                    return AppLoading.visitListShimmer();
+                  }
+                  if (state is VisitError) {
                     return AppEmptyState(
-                      icon: Icons.medical_services_outlined,
-                      title: 'No Visits',
-                      message: 'No visits recorded for this patient',
-                      actionLabel: 'Create New Visit',
-                      onAction: () => context.push(
-                        '/visits/create?patientId=${widget.patientId}',
+                      icon: Icons.error_outline_rounded,
+                      title: 'Failed to load visits',
+                      message: state.message,
+                      actionLabel: 'Retry',
+                      onAction: () => context.read<VisitBloc>().add(
+                        GetPatientVisitsEvent(patientId: widget.patientId),
                       ),
                     );
                   }
-                  final sorted = List.from(visits)
-                    ..sort((a, b) => b.visitDate.compareTo(a.visitDate));
-                  return ListView.builder(
-                    padding: EdgeInsets.all(20.w),
-                    itemCount: sorted.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == sorted.length) {
+                  if (state is VisitsLoaded) {
+                    final visits = state.visits;
+                    if (visits.isEmpty) {
+                      return AppEmptyState(
+                        icon: Icons.medical_services_outlined,
+                        title: 'No Visits',
+                        message: 'No visits recorded for this patient',
+                        actionLabel: 'Create New Visit',
+                        onAction: () => context.push(
+                          '/visits/create?patientId=${widget.patientId}',
+                        ),
+                      );
+                    }
+                    final sorted = List.from(visits)
+                      ..sort((a, b) => b.visitDate.compareTo(a.visitDate));
+                    return ListView.builder(
+                      padding: EdgeInsets.all(20.w),
+                      itemCount: sorted.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == sorted.length) {
+                          return Padding(
+                            padding: EdgeInsets.only(top: 12.h),
+                            child: AppButton(
+                              label: 'New Visit',
+                              onPressed: () => context.push(
+                                '/visits/create?patientId=${widget.patientId}',
+                              ),
+                            ),
+                          );
+                        }
+                        final visit = sorted[index];
                         return Padding(
-                          padding: EdgeInsets.only(top: 12.h),
-                          child: AppButton(
-                            label: 'New Visit',
-                            onPressed: () => context.push(
-                              '/visits/create?patientId=${widget.patientId}',
+                          padding: EdgeInsets.only(bottom: 12.h),
+                          child: AppCard(
+                            onTap: () => context.push(
+                              '/patients/${widget.patientId}/visits/${visit.id}',
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 44.w,
+                                  height: 44.w,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryLight,
+                                    borderRadius: BorderRadius.circular(12.r),
+                                  ),
+                                  child: Icon(
+                                    Icons.medical_services_outlined,
+                                    size: 20.sp,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                SizedBox(width: 12.w),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Visit ${visit.visitNumber}',
+                                            style: AppTextStyles.titleMedium,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          StatusChip(
+                                            text: visit.status,
+                                            variant: _statusVariant(
+                                              visit.status,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (visit.reason != null) ...[
+                                        SizedBox(height: 4.h),
+                                        Wrap(
+                                          spacing: 6.w,
+                                          runSpacing: 4.h,
+                                          children: visit.reason!
+                                              .map<Widget>(
+                                                (r) => Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 10.w,
+                                                    vertical: 4.h,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        AppColors.primaryLight,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20.r,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    r,
+                                                    style: AppTextStyles
+                                                        .labelMedium
+                                                        .copyWith(
+                                                          color:
+                                                              AppColors.primary,
+                                                        ),
+                                                  ),
+                                                ),
+                                              )
+                                              .toList(),
+                                        ),
+                                      ],
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        _formatDate(visit.visitDate),
+                                        style: AppTextStyles.caption,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                SizedBox(width: 4.w),
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 20.sp,
+                                  color: AppColors.textHint,
+                                ),
+                              ],
                             ),
                           ),
                         );
-                      }
-                      final visit = sorted[index];
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 12.h),
-                        child: AppCard(
-                          onTap: () => context.push(
-                            '/patients/${widget.patientId}/visits/${visit.id}',
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44.w,
-                                height: 44.w,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryLight,
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                                child: Icon(
-                                  Icons.medical_services_outlined,
-                                  size: 20.sp,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Visit ${visit.visitNumber}',
-                                      style: AppTextStyles.titleMedium,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    if (visit.reason != null) ...[
-                                      SizedBox(height: 4.h),
-                                      Wrap(
-                                        spacing: 6.w,
-                                        runSpacing: 4.h,
-                                        children: visit.reason!
-                                            .map<Widget>(
-                                              (r) => Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 10.w,
-                                                  vertical: 4.h,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.primaryLight,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        20.r,
-                                                      ),
-                                                ),
-                                                child: Text(
-                                                  r,
-                                                  style: AppTextStyles
-                                                      .labelMedium
-                                                      .copyWith(
-                                                        color:
-                                                            AppColors.primary,
-                                                      ),
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                      ),
-                                    ],
-                                    SizedBox(height: 2.h),
-                                    Text(
-                                      _formatDate(visit.visitDate),
-                                      style: AppTextStyles.caption,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              StatusChip(
-                                text: visit.status,
-                                variant: _statusVariant(visit.status),
-                              ),
-                              SizedBox(width: 4.w),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 20.sp,
-                                color: AppColors.textHint,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
-              },
+                      },
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -479,10 +487,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
       child: BlocBuilder<MedicationBloc, MedicationState>(
         builder: (context, state) {
           if (state is MedicationLoading) {
-            return Padding(
-              padding: EdgeInsets.all(20.w),
-              child: AppLoading.shimmerList(count: 3),
-            );
+            return AppLoading.medicationListShimmer();
           }
           if (state is MedicationError) {
             return AppEmptyState(

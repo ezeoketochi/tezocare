@@ -47,7 +47,7 @@ class _MedicationsOverviewPageState extends State<MedicationsOverviewPage> {
                   if (state is DashboardLoading) {
                     return Padding(
                       padding: EdgeInsets.all(20.w),
-                      child: AppLoading.shimmerList(),
+                      child: AppLoading.refillListShimmer(),
                     );
                   }
                   if (state is DashboardError) {

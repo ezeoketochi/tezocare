@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../config/themes/app_colors.dart';
 
 class AppSearchBar extends StatefulWidget {
@@ -48,14 +47,16 @@ class _AppSearchBarState extends State<AppSearchBar> {
               controller: widget.controller,
               onChanged: widget.onChanged,
               onSubmitted: (_) => widget.onSubmitted?.call(),
-              style: GoogleFonts.inter(
+              style: TextStyle(
                 fontSize: 13.sp,
+                fontFamily: 'Satoshi',
                 color: AppColors.textPrimary,
               ),
               decoration: InputDecoration(
                 hintText: widget.hint ?? 'Search...',
-                hintStyle: GoogleFonts.inter(
+                hintStyle: TextStyle(
                   fontSize: 13.sp,
+                  fontFamily: 'Satoshi',
                   color: AppColors.textHint,
                 ),
                 border: InputBorder.none,

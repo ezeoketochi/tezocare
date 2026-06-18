@@ -68,7 +68,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 if (state is PatientLoading) {
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    child: AppLoading.shimmerList(),
+                    child: AppLoading.patientListShimmer(),
                   );
                 }
                 if (state is PatientError) {

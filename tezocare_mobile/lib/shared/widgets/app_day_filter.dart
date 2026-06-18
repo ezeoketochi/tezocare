@@ -23,7 +23,7 @@ class AppDayFilter extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.date_range, size: 16.sp, color: AppColors.textSecondary),
+              Icon(Icons.date_range, size: 16.sp, color: AppColors.iconInactive),
               SizedBox(width: 8.w),
               Text('Next:', style: AppTextStyles.bodySmall),
               SizedBox(width: 8.w),
@@ -37,18 +37,32 @@ class AppDayFilter extends StatelessWidget {
                   ),
                   child: Text(
                     'All',
-                    style: AppTextStyles.labelSmall.copyWith(
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: _isAll ? FontWeight.w700 : FontWeight.w500,
+                      fontFamily: 'Satoshi',
                       color: _isAll ? AppColors.white : AppColors.primary,
-                      fontWeight: _isAll ? FontWeight.w600 : FontWeight.w500,
                     ),
                   ),
                 ),
               ),
               if (!_isAll) ...[
                 SizedBox(width: 4.w),
-                Text(
-                  '$selectedDays day${selectedDays! > 1 ? 's' : ''}',
-                  style: AppTextStyles.labelSmall.copyWith(color: AppColors.primary),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    '$selectedDays day${selectedDays! > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Satoshi',
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -60,7 +74,7 @@ class AppDayFilter extends StatelessWidget {
                 trackHeight: 4.h,
                 thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8.r),
                 activeTrackColor: _isAll ? AppColors.border : AppColors.primary,
-                inactiveTrackColor: _isAll ? AppColors.primarySurface : AppColors.primarySurface,
+                inactiveTrackColor: AppColors.primaryLight,
                 thumbColor: _isAll ? AppColors.textHint : AppColors.primary,
                 overlayColor: AppColors.primary.withValues(alpha: 0.12),
               ),

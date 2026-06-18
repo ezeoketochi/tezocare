@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_tab_filter.dart';
 import '../../../../shared/widgets/app_day_filter.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_loading.dart';
@@ -24,8 +25,8 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
   String? _activeFilter;
   int? _selectedDays;
 
-  static const _filters = <String?>[null, 'pending_contact', 'due_overdue'];
-  static const _filterLabels = ['All', 'Pending Contact', 'Due & Overdue'];
+  static const _filters = <String?>[null, 'pending_contact', 'due', 'overdue'];
+  static const _filterLabels = ['All', 'Pending', 'Due', 'Overdue'];
 
   @override
   void initState() {
@@ -47,8 +48,24 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
 
   Future<void> _fetch() async {
     context.read<RefillBloc>().add(
-      GetDueRefillsEvent(filter: _activeFilter, days: _selectedDays),
+      GetDueRefillsEvent(days: _selectedDays),
     );
+  }
+
+  List<DueRefill> _filteredRefills(List<DueRefill> refills) {
+    if (_activeFilter == null) return refills;
+    return refills.where((r) {
+      switch (_activeFilter) {
+        case 'pending':
+          return r.escalatedStatus == 'Phase 1 (Outreach)';
+        case 'due':
+          return r.escalatedStatus == 'Phase 2 (Due Today)';
+        case 'overdue':
+          return r.escalatedStatus == 'Phase 3 (Overdue)';
+        default:
+          return true;
+      }
+    }).toList();
   }
 
   @override
@@ -59,12 +76,13 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 12.h),
+              padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
               child: Text('Due Refills', style: AppTextStyles.headlineMedium),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: _buildSegmentedFilter(),
+            AppTabFilter(
+              labels: _filterLabels,
+              selectedIndex: _filters.indexOf(_activeFilter),
+              onChanged: _onFilterChanged,
             ),
             AppDayFilter(
               selectedDays: _selectedDays,
@@ -81,7 +99,7 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                         children: [
                           Padding(
                             padding: EdgeInsets.all(20.w),
-                            child: AppLoading.shimmerList(),
+                            child: AppLoading.refillListShimmer(),
                           ),
                         ],
                       );
@@ -102,7 +120,8 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                       );
                     }
                     if (state is RefillLoaded) {
-                      if (state.refills.isEmpty) {
+                      final filtered = _filteredRefills(state.refills);
+                      if (filtered.isEmpty) {
                         return ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           children: [
@@ -116,7 +135,7 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                         );
                       }
                       final groupedRefills = <String, List<DueRefill>>{};
-                      for (final r in state.refills) {
+                      for (final r in filtered) {
                         groupedRefills
                             .putIfAbsent(r.patientName, () => [])
                             .add(r);
@@ -124,8 +143,8 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
                       return ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: EdgeInsets.only(bottom: 20.h),
-                        children: [
-                          _buildSummaryRow(state),
+                          children: [
+                          _buildSummaryRow(filtered, state),
                           for (final entry in groupedRefills.entries) ...[
                             _buildPatientHeader(entry.key, entry.value.length),
                             for (final r in entry.value)
@@ -158,80 +177,36 @@ class _DueRefillsPageState extends State<DueRefillsPage> {
     );
   }
 
-  Widget _buildSegmentedFilter() {
-    final selectedIndex = _filters.indexOf(_activeFilter);
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primarySurface,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      padding: EdgeInsets.all(4.w),
-      child: Row(
-        children: List.generate(_filterLabels.length, (i) {
-          final isSelected = i == selectedIndex;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => _onFilterChanged(i),
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 10.h),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10.r),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Text(
-                  _filterLabels[i],
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildSummaryRow(RefillLoaded state) {
+  Widget _buildSummaryRow(List<DueRefill> filtered, RefillLoaded state) {
+    final overdue = filtered.where((r) => r.escalatedStatus == 'Phase 3 (Overdue)').length;
+    final dueToday = filtered.where((r) => r.escalatedStatus == 'Phase 2 (Due Today)').length;
+    final outreach = filtered.where((r) => r.escalatedStatus == 'Phase 1 (Outreach)').length;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
       child: Row(
         children: [
           _summaryChip(
-            '${state.outreach}',
+            '$outreach',
             'Outreach',
             AppColors.warningLight,
             AppColors.warning,
           ),
           SizedBox(width: 8.w),
           _summaryChip(
-            '${state.dueToday}',
+            '$dueToday',
             'Due Today',
             AppColors.chipActiveBg,
             AppColors.chipActiveText,
           ),
           SizedBox(width: 8.w),
           _summaryChip(
-            '${state.overdue}',
+            '$overdue',
             'Overdue',
             AppColors.dangerLight,
             AppColors.danger,
           ),
           const Spacer(),
-          Text('${state.total} total', style: AppTextStyles.bodySmall),
+          Text('${filtered.length} total', style: AppTextStyles.bodySmall),
         ],
       ),
     );

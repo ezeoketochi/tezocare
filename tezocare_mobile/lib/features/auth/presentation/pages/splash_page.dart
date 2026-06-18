@@ -46,56 +46,56 @@ class _SplashPageState extends State<SplashPage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        decoration: const BoxDecoration(gradient: AppColors.splashGradient),
         child: SafeArea(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 100.w,
-                  height: 100.w,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.local_pharmacy_rounded,
-                    size: 48.sp,
-                    color: AppColors.primaryLight,
-                  ),
-                )
-                    .animate()
-                    .fadeIn(duration: 600.ms)
-                    .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
-                SizedBox(height: 24.h),
-                Text('TezoCare', style: AppTextStyles.displayLarge.copyWith(
-                  color: AppColors.white,
-                ))
-                    .animate()
-                    .fadeIn(duration: 600.ms, delay: 200.ms)
-                    .slideY(begin: 0.2, end: 0),
-                SizedBox(height: 8.h),
-                Text(
-                  'Pharmacy Management',
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                )
-                    .animate()
-                    .fadeIn(duration: 600.ms, delay: 400.ms)
-                    .slideY(begin: 0.2, end: 0),
-                SizedBox(height: 60.h),
-                SizedBox(
-                  width: 32.w,
-                  height: 32.w,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.primary.withValues(alpha: 0.8),
+                  Container(
+                    width: 100.w,
+                    height: 100.w,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
                     ),
-                  ),
-                ).animate().fadeIn(duration: 400.ms, delay: 600.ms),
+                    child: Icon(
+                      Icons.local_pharmacy_rounded,
+                      size: 48.sp,
+                      color: AppColors.primary,
+                    ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 600.ms)
+                      .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
+                  SizedBox(height: 24.h),
+                  Text('TezoCare', style: AppTextStyles.displayLarge.copyWith(
+                    color: AppColors.textPrimary,
+                  ))
+                      .animate()
+                      .fadeIn(duration: 600.ms, delay: 200.ms)
+                      .slideY(begin: 0.2, end: 0),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Pharmacy Management',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textDark,
+                    ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 600.ms, delay: 400.ms)
+                      .slideY(begin: 0.2, end: 0),
+                  SizedBox(height: 60.h),
+                  SizedBox(
+                    width: 32.w,
+                    height: 32.w,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 600.ms),
               ],
             ),
           ),

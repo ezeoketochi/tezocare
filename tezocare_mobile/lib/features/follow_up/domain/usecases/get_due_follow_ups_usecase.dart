@@ -13,16 +13,21 @@ class GetDueFollowUpsUseCase implements UseCase<List<DueFollowUp>, GetDueFollowU
 
   @override
   Future<Either<Failure, List<DueFollowUp>>> call(GetDueFollowUpsParams params) {
-    return repository.getDueFollowUps(days: params.days, cancelToken: params.cancelToken);
+    return repository.getDueFollowUps(
+      filter: params.filter,
+      days: params.days,
+      cancelToken: params.cancelToken,
+    );
   }
 }
 
 class GetDueFollowUpsParams extends Equatable {
+  final String? filter;
   final int? days;
   final CancelToken? cancelToken;
 
-  const GetDueFollowUpsParams({this.days, this.cancelToken});
+  const GetDueFollowUpsParams({this.filter, this.days, this.cancelToken});
 
   @override
-  List<Object?> get props => [days, cancelToken];
+  List<Object?> get props => [filter, days, cancelToken];
 }

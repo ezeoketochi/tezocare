@@ -64,7 +64,7 @@ class _AppShellState extends State<AppShell> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Container(
-          height: 64.h,
+          height: 65.h,
           decoration: BoxDecoration(
             color: AppColors.dark,
             borderRadius: BorderRadius.only(
@@ -73,9 +73,10 @@ class _AppShellState extends State<AppShell> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 12,
-                offset: const Offset(0, -4),
+                color: Colors.black.withValues(alpha: 0.20),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+                spreadRadius: 1,
               ),
             ],
           ),
@@ -118,18 +119,18 @@ class _AppShellState extends State<AppShell> {
               AppAvatar(name: staffName, size: AvatarSize.small)
             else
               Container(
-                width: 40.w,
-                height: 40.w,
+                width: 45.w,
+                height: 45.w,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? AppColors.primary.withValues(alpha: 0.2)
+                      ? AppColors.primary.withValues(alpha: 0.25)
                       : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
                   size: 22.sp,
-                  color: isActive ? AppColors.white : AppColors.textSecondary,
+                  color: isActive ? AppColors.white : AppColors.iconInactive,
                 ),
               ),
             SizedBox(height: 2.h),
@@ -138,7 +139,8 @@ class _AppShellState extends State<AppShell> {
               style: TextStyle(
                 fontSize: 10.sp,
                 fontWeight: FontWeight.w500,
-                color: isActive ? AppColors.white : AppColors.textSecondary,
+                fontFamily: 'Satoshi',
+                color: isActive ? AppColors.white : AppColors.iconInactive,
               ),
             ),
           ],

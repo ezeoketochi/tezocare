@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
@@ -20,8 +19,7 @@ class AppTheme {
       surface: AppColors.surface,
       error: AppColors.danger,
     ),
-    scaffoldBackgroundColor: AppColors.background,
-    textTheme: GoogleFonts.poppinsTextTheme(),
+    scaffoldBackgroundColor: Colors.transparent,
 
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
@@ -40,7 +38,7 @@ class AppTheme {
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(15.r),
       ),
     ),
 
@@ -51,13 +49,13 @@ class AppTheme {
         elevation: 0,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(10.r),
         ),
         padding: EdgeInsets.symmetric(
           horizontal: 24.w,
           vertical: 12.h,
         ),
-        minimumSize: Size(double.infinity, 48.h),
+        minimumSize: Size(double.infinity, 45.h),
         textStyle: AppTextStyles.labelLarge,
       ),
     ),
@@ -70,56 +68,56 @@ class AppTheme {
           width: 1.5,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(10.r),
         ),
         padding: EdgeInsets.symmetric(
           horizontal: 24.w,
           vertical: 12.h,
         ),
-        minimumSize: Size(double.infinity, 48.h),
+        minimumSize: Size(double.infinity, 45.h),
       ),
     ),
 
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.white,
+      fillColor: AppColors.inputFill,
       contentPadding: EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: 12.h,
+        horizontal: 15.w,
+        vertical: 14.h,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(8.r),
         borderSide: const BorderSide(
-          color: AppColors.divider,
+          color: AppColors.border,
           width: 1.5,
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(8.r),
         borderSide: const BorderSide(
-          color: AppColors.divider,
+          color: AppColors.border,
           width: 1.5,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(8.r),
         borderSide: const BorderSide(
           color: AppColors.primary,
-          width: 2,
+          width: 1.5,
         ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(8.r),
         borderSide: const BorderSide(
           color: AppColors.danger,
           width: 1.5,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(8.r),
         borderSide: const BorderSide(
           color: AppColors.danger,
-          width: 2,
+          width: 1.5,
         ),
       ),
       hintStyle: AppTextStyles.bodySmall,
@@ -129,7 +127,7 @@ class AppTheme {
         fontWeight: FontWeight.w600,
       ),
       prefixIconColor: AppColors.primary,
-      suffixIconColor: AppColors.textHint,
+      suffixIconColor: AppColors.textSecondary,
       errorStyle: AppTextStyles.caption.copyWith(
         color: AppColors.danger,
       ),
@@ -156,16 +154,18 @@ class AppTheme {
     ),
 
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: AppColors.white,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textHint,
+      backgroundColor: AppColors.dark,
+      selectedItemColor: AppColors.white,
+      unselectedItemColor: AppColors.iconInactive,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
       selectedLabelStyle: AppTextStyles.caption.copyWith(
-        color: AppColors.primary,
-        fontWeight: FontWeight.w600,
+        color: AppColors.white,
+        fontWeight: FontWeight.w700,
       ),
-      unselectedLabelStyle: AppTextStyles.caption,
+      unselectedLabelStyle: AppTextStyles.caption.copyWith(
+        color: AppColors.iconInactive,
+      ),
     ),
   );
 }

@@ -58,6 +58,7 @@ class FollowUpBloc extends Bloc<FollowUpEvent, FollowUpState> {
     // 3. Hit your EC2 Backend server API
     final result = await getDueFollowUpsUseCase(
       GetDueFollowUpsParams(
+        filter: event.filter,
         days: event.days,
         cancelToken: _followUpsCancelToken,
       ),

@@ -5,6 +5,7 @@ import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_loading.dart';
 import '../../../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../../../features/dashboard/presentation/bloc/dashboard_event.dart';
 import '../../domain/entities/patient.dart';
@@ -207,7 +208,7 @@ class _EditPatientPageState extends State<EditPatientPage> {
         body: BlocBuilder<PatientBloc, PatientState>(
           builder: (context, state) {
             if (state is PatientLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return AppLoading.editPatientForm();
             }
             if (state is PatientError) {
               return Center(child: Text(state.message));
@@ -228,7 +229,7 @@ class _EditPatientPageState extends State<EditPatientPage> {
       builder: (context, state) {
         // 1. Fallback handling if the state isn't loaded yet
         if (state is! PatientDetailLoaded) {
-          return const Center(child: CircularProgressIndicator());
+          return AppLoading.editPatientForm();
         }
 
         // 2. Safely extract your background loading state flags
