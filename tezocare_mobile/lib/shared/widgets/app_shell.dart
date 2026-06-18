@@ -61,36 +61,27 @@ class _AppShellState extends State<AppShell> {
         },
         child: widget.navigationShell,
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Container(
-          height: 65.h,
-          decoration: BoxDecoration(
-            color: AppColors.dark,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(20.r),
-              bottomRight: Radius.circular(20.r),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.20),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.w),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(_tabs.length, (index) {
-                  final isActive = index == widget.navigationShell.currentIndex;
-                  return _buildTabItem(index, isActive, staffName);
-                }),
-              ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_tabs.length, (index) {
+                final isActive = index == widget.navigationShell.currentIndex;
+                return _buildTabItem(index, isActive, staffName);
+              }),
             ),
           ),
         ),
@@ -110,27 +101,40 @@ class _AppShellState extends State<AppShell> {
       },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 64.w,
+        width: 56.w,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (index == 4)
-              AppAvatar(name: staffName, size: AvatarSize.small)
+              Container(
+                width: 44.w,
+                height: 44.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: isActive
+                      ? Border.all(color: AppColors.primary, width: 2)
+                      : Border.all(color: Colors.transparent, width: 2),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(6.w),
+                  child: AppAvatar(name: staffName, size: AvatarSize.small),
+                ),
+              )
             else
               Container(
-                width: 45.w,
-                height: 45.w,
+                width: 44.w,
+                height: 44.w,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? AppColors.primary.withValues(alpha: 0.25)
+                      ? AppColors.primaryLight
                       : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
                   size: 22.sp,
-                  color: isActive ? AppColors.white : AppColors.iconInactive,
+                  color: isActive ? AppColors.primary : AppColors.textSecondary,
                 ),
               ),
             SizedBox(height: 2.h),
@@ -138,9 +142,9 @@ class _AppShellState extends State<AppShell> {
               label,
               style: TextStyle(
                 fontSize: 10.sp,
-                fontWeight: FontWeight.w500,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                 fontFamily: 'Satoshi',
-                color: isActive ? AppColors.white : AppColors.iconInactive,
+                color: isActive ? AppColors.primary : AppColors.textSecondary,
               ),
             ),
           ],
