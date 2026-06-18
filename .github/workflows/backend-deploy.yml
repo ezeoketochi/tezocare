@@ -24,7 +24,7 @@ jobs:
 
             # 1. Pull the latest changes safely
             git fetch --all
-            git reset --hard origin/main
+            git reset --hard origin/master
 
             # 2. Activate Virtual Env and install packages
             source venv/bin/activate
