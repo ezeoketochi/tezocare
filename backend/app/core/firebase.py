@@ -24,7 +24,7 @@ def init_firebase():
         return None
 
     try:
-        base_dir = Path(__file__).resolve().parent.parent
+        base_dir = Path(__file__).resolve().parent.parent.parent
         absolute_cred_path = (base_dir / cred_path).resolve()
         if not absolute_cred_path.exists():
             logger.error("Firebase credentials file not found at %s", absolute_cred_path)
