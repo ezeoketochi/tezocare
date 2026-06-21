@@ -35,4 +35,4 @@ jobs:
 
             # 4. Restart Systemd service or Uvicorn process safely
             sudo systemctl restart nginx
-            sudo systemctl restart tezocare_backend.service || pm2 restart tezocare || pkill -f uvicorn && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --detach
+            sudo systemctl restart tezocare.service
