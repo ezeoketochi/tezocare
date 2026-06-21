@@ -49,6 +49,7 @@ async def check_due_refills():
         logger.exception("Error in check_due_refills")
 
 
+
 async def check_due_followups():
     try:
         logger.info("Running due follow-ups notification check")
@@ -91,6 +92,7 @@ async def check_due_followups():
             logger.info("Due follow-ups check complete, %d notifications sent", sent)
     except Exception:
         logger.exception("Error in check_due_followups")
+
 
 
 def start_scheduler():
