@@ -101,7 +101,7 @@ async def create_patient(
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Patient with phone {payload.phone} already exists",
+            detail=f"A Patient exits with phone {payload.phone} already exists",
         )
     data = payload.model_dump()
     data["registered_by"] = current_staff.id

@@ -1,5 +1,6 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
+from pathlib import Path
 from app.core.config import settings
 from app.utils.logger import logger
 
@@ -12,15 +13,25 @@ def init_firebase():
         logger.info("Firebase app already initialized")
         return _firebase_app
 
+    if firebase_admin._apps:
+        _firebase_app = list(firebase_admin._apps.values())[0]
+        logger.info("Firebase app already initialized (discovered from SDK)")
+        return _firebase_app
+
     cred_path = settings.FIREBASE_CREDENTIALS_PATH
     if not cred_path:
         logger.warning("FIREBASE_CREDENTIALS_PATH not set; firebase not initialized")
         return None
 
     try:
-        cred = credentials.Certificate(cred_path)
+        base_dir = Path(__file__).resolve().parent.parent
+        absolute_cred_path = (base_dir / cred_path).resolve()
+        if not absolute_cred_path.exists():
+            logger.error("Firebase credentials file not found at %s", absolute_cred_path)
+            return None
+        cred = credentials.Certificate(str(absolute_cred_path))
         _firebase_app = firebase_admin.initialize_app(cred)
-        logger.info("Firebase Admin SDK initialized from %s", cred_path)
+        logger.info("Firebase Admin SDK initialized from %s", absolute_cred_path)
     except Exception:
         logger.exception("Failed to initialize Firebase Admin SDK")
         _firebase_app = None

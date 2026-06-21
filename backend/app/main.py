@@ -1,16 +1,13 @@
 import json
-import os
 from contextlib import asynccontextmanager
-from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
-import firebase_admin
-from firebase_admin import credentials
 
 from app.core.config import settings
+from app.core.firebase import init_firebase
 from app.api.v1 import api_router
 from app.tasks.reminder_tasks import start_scheduler as start_reminder_scheduler, scheduler as reminder_scheduler
 from app.core.scheduler import start_scheduler as start_notification_scheduler, scheduler as notification_scheduler
@@ -22,26 +19,8 @@ from mangum import Mangum
 async def lifespan(app: FastAPI):
     logger.info("Starting tezoCare application")
     
-    # ─── 1. SECURE FIREBASE ADMIN SDK INITIALIZATION ───
-    cred_path_string = os.getenv("FIREBASE_APPLICATION_CREDENTIALS")
-    if cred_path_string:
-        try:
-            # Safely resolve relative paths (like "./firebase-service-account.json") 
-            # to survive on your local machine and your AWS EC2 instance environment.
-            base_dir = Path(__file__).resolve().parent
-            absolute_cred_path = (base_dir / cred_path_string).resolve()
-            
-            if absolute_cred_path.exists():
-                if not firebase_admin._apps:
-                    cred = credentials.Certificate(str(absolute_cred_path))
-                    firebase_admin.initialize_app(cred)
-                    logger.info("Firebase Admin SDK successfully initialized.")
-            else:
-                logger.error(f"Firebase credentials file not found at: {absolute_cred_path}")
-        except Exception as e:
-            logger.exception(f"Failed to initialize Firebase Admin SDK: {e}")
-    else:
-        logger.warning("FIREBASE_APPLICATION_CREDENTIALS env variable is missing. Notifications will fail.")
+    # ─── 1. INITIALIZE FIREBASE ADMIN SDK ───
+    init_firebase()
 
     # ─── 2. START CRON SCHEDULERS ───
     start_reminder_scheduler()

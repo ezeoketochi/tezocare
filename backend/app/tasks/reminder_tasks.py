@@ -1,33 +1,13 @@
-from datetime import datetime, timezone, timedelta, date
+from datetime import date, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from sqlalchemy import select, and_
-from sqlalchemy.ext.asyncio import AsyncSession
-import httpx
-from app.core.config import settings
+from sqlalchemy import select
 from app.core.database import get_session_factory
 from app.models.visit import Visit
-from app.models.notification import Notification, NotificationType, NotificationStatus
+from app.models.notification import Notification, NotificationType
 from app.utils.logger import logger
 
 scheduler = AsyncIOScheduler()
-
-
-async def send_fcm_push(title: str, body: str) -> bool:
-    if not settings.FCM_SERVER_KEY:
-        return False
-    url = "https://fcm.googleapis.com/fcm/send"
-    headers = {
-        "Authorization": f"key={settings.FCM_SERVER_KEY}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "to": "/topics/refill_reminders",
-        "notification": {"title": title, "body": body},
-    }
-    async with httpx.AsyncClient() as client:
-        response = await client.post(url, json=payload, headers=headers, timeout=15)
-        return response.is_success
 
 
 async def check_refill_needs():
@@ -67,22 +47,8 @@ async def check_refill_needs():
                         type=NotificationType.push,
                         title="Refill Reminder",
                         message=f"Your medication {drug_name} ({dose}) is due for refill tomorrow.",
-                        status=NotificationStatus.pending,
                     )
                     db.add(notification)
-                    await db.flush()
-
-                    fcm_ok = await send_fcm_push(
-                        title="Refill Reminder",
-                        body=f"{drug_name} ({dose}) refill due tomorrow.",
-                    )
-                    if fcm_ok:
-                        notification.status = NotificationStatus.sent
-                        notification.sent_at = datetime.now(timezone.utc)
-                        logger.info("FCM push sent for refill: %s", drug_name)
-                    else:
-                        notification.status = NotificationStatus.failed
-                        logger.warning("FCM push failed for refill: %s", drug_name)
 
                     notifications_created += 1
 
