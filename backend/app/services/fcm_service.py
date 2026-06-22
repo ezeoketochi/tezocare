@@ -1,5 +1,5 @@
 from datetime import date
-from sqlalchemy import select, and_
+from sqlalchemy import Date, select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.firebase import send_push_notification
 from app.models.staff import Staff
@@ -31,7 +31,7 @@ async def send_staff_notification(
             NotificationLog.type == ntype,
             NotificationLog.reference_id == reference_id,
             NotificationLog.days_before == days_before,
-            NotificationLog.sent_at.cast(date) == date.today(),
+            NotificationLog.sent_at.cast(Date) == date.today(),
         )
     )
     if existing.scalar_one_or_none():
