@@ -1,4 +1,5 @@
-from datetime import datetime, timezone, timedelta, date
+from datetime import datetime, timedelta, date
+from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy import select
@@ -13,13 +14,14 @@ from app.services.fcm_service import (
 )
 from app.utils.logger import logger
 
+TZ = ZoneInfo("Africa/Lagos")
 scheduler = AsyncIOScheduler()
 
 
 async def check_due_refills():
     try:
         logger.info("Running due refills notification check")
-        today = date.today()
+        today = datetime.now(TZ).date()
         targets = [today + timedelta(days=d) for d in (3, 1, 0)]
 
         async with get_session_factory()() as db:
@@ -53,7 +55,7 @@ async def check_due_refills():
 async def check_due_followups():
     try:
         logger.info("Running due follow-ups notification check")
-        today = date.today()
+        today = datetime.now(TZ).date()
         targets = [today + timedelta(days=d) for d in (3, 1, 0)]
 
         async with get_session_factory()() as db:
@@ -97,8 +99,8 @@ async def check_due_followups():
 
 def start_scheduler():
     init_firebase()
-    trigger = CronTrigger(hour=8, minute=0)
+    trigger = CronTrigger(hour=8, minute=45, timezone=TZ)
     scheduler.add_job(check_due_refills, trigger=trigger, id="daily_due_refills")
     scheduler.add_job(check_due_followups, trigger=trigger, id="daily_due_followups")
     scheduler.start()
-    logger.info("Notification scheduler started with daily jobs at 08:00")
+    logger.info("Notification scheduler started with daily jobs at 08:45 Africa/Lagos")

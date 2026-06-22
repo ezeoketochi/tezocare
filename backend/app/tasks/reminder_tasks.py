@@ -1,4 +1,5 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy import select
@@ -7,13 +8,14 @@ from app.models.visit import Visit
 from app.models.notification import Notification, NotificationType
 from app.utils.logger import logger
 
+TZ = ZoneInfo("Africa/Lagos")
 scheduler = AsyncIOScheduler()
 
 
 async def check_refill_needs():
     try:
         logger.info("Running daily refill reminder check")
-        tomorrow = date.today() + timedelta(days=1)
+        tomorrow = datetime.now(TZ).date() + timedelta(days=1)
 
         async with get_session_factory()() as db:
             result = await db.execute(
@@ -59,6 +61,6 @@ async def check_refill_needs():
 
 
 def start_scheduler():
-    trigger = CronTrigger(hour=8, minute=0)
+    trigger = CronTrigger(hour=8, minute=45, timezone=TZ)
     scheduler.add_job(check_refill_needs, trigger=trigger, id="daily_refill_check")
     scheduler.start()
