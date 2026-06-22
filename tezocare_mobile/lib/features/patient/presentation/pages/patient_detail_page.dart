@@ -20,6 +20,7 @@ import '../../../visit/domain/usecases/create_visit_usecase.dart';
 import '../../../visit/domain/usecases/get_patient_visits_usecase.dart';
 import '../../../visit/domain/usecases/get_visit_detail_usecase.dart';
 import '../../../visit/domain/usecases/delete_visit_usecase.dart';
+import '../../../visit/domain/usecases/update_visit_usecase.dart';
 import '../../../visit/presentation/bloc/visit_bloc.dart';
 import '../../../visit/presentation/bloc/visit_event.dart';
 import '../../../visit/presentation/bloc/visit_state.dart';
@@ -297,6 +298,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
           getPatientVisitsUseCase: _getPatientVisitsUseCase(),
           getVisitDetailUseCase: _getVisitDetailUseCase(),
           deleteVisitUseCase: _getDeleteVisitUseCase(),
+          updateVisitUseCase: _getUpdateVisitUseCase(),
           visitRepository: _getVisitRepository(),
         );
         bloc.add(GetPatientVisitsEvent(patientId: widget.patientId));
@@ -730,6 +732,10 @@ class _PatientDetailPageState extends State<PatientDetailPage>
 
   DeleteVisitUseCase _getDeleteVisitUseCase() {
     return inj.sl<DeleteVisitUseCase>();
+  }
+
+  UpdateVisitUseCase _getUpdateVisitUseCase() {
+    return inj.sl<UpdateVisitUseCase>();
   }
 
   VisitRepository _getVisitRepository() {

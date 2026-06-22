@@ -9,6 +9,7 @@ import '../../domain/usecases/create_visit_usecase.dart';
 import '../../domain/usecases/delete_visit_usecase.dart';
 import '../../domain/usecases/get_patient_visits_usecase.dart';
 import '../../domain/usecases/get_visit_detail_usecase.dart';
+import '../../domain/usecases/update_visit_usecase.dart';
 import 'visit_event.dart';
 import 'visit_state.dart';
 
@@ -26,6 +27,7 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
   final GetPatientVisitsUseCase getPatientVisitsUseCase;
   final GetVisitDetailUseCase getVisitDetailUseCase;
   final DeleteVisitUseCase deleteVisitUseCase;
+  final UpdateVisitUseCase updateVisitUseCase;
   final VisitRepository visitRepository;
 
   CancelToken? _visitsCancelToken;
@@ -37,9 +39,11 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     required this.getPatientVisitsUseCase,
     required this.getVisitDetailUseCase,
     required this.deleteVisitUseCase,
+    required this.updateVisitUseCase,
     required this.visitRepository,
   }) : super(const VisitInitial()) {
     on<CreateVisitEvent>(_onCreateVisit);
+    on<UpdateVisitEvent>(_onUpdateVisit);
     on<GetPatientVisitsEvent>(_onGetPatientVisits);
     on<GetVisitDetailEvent>(_onGetVisitDetail);
     on<DeleteVisitEvent>(_onDeleteVisit);
@@ -58,6 +62,20 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     result.fold(
       (failure) => emit(VisitError(message: _failureMessage(failure))),
       (visit) => emit(VisitCreated(visit: visit)),
+    );
+  }
+
+  Future<void> _onUpdateVisit(
+    UpdateVisitEvent event,
+    Emitter<VisitState> emit,
+  ) async {
+    emit(const VisitLoading());
+    final result = await updateVisitUseCase(
+      UpdateVisitParams(id: event.id, visit: event.visit),
+    );
+    result.fold(
+      (failure) => emit(VisitError(message: _failureMessage(failure))),
+      (visit) => emit(VisitUpdated(visit: visit)),
     );
   }
 

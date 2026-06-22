@@ -16,6 +16,7 @@ class RouteNames {
 
   static const String createVisit = '/visits/create';
   static const String visitDetail = '/patients/:patientId/visits/:visitId';
+  static const String editVisit = '/patients/:patientId/visits/:visitId/edit';
 
   static const String medicationsOverview = '/medications';
   static const String dueRefills = '/refills';

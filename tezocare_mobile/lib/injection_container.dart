@@ -59,6 +59,7 @@ import 'features/visit/domain/usecases/create_visit_usecase.dart';
 import 'features/visit/domain/usecases/delete_visit_usecase.dart';
 import 'features/visit/domain/usecases/get_patient_visits_usecase.dart';
 import 'features/visit/domain/usecases/get_visit_detail_usecase.dart';
+import 'features/visit/domain/usecases/update_visit_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -171,6 +172,7 @@ void _initVisit() {
   sl.registerFactory(() => GetPatientVisitsUseCase(repository: sl()));
   sl.registerFactory(() => GetVisitDetailUseCase(repository: sl()));
   sl.registerFactory(() => DeleteVisitUseCase(repository: sl()));
+  sl.registerFactory(() => UpdateVisitUseCase(repository: sl()));
 }
 
 void _initMedication() {

@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tezocare_mobile/features/follow_up/domain/repositories/follow_up_repository.dart';
 import 'package:tezocare_mobile/features/visit/domain/repositories/visit_repository.dart';
+import 'package:tezocare_mobile/features/visit/domain/usecases/update_visit_usecase.dart';
 import '../../core/constants/api_constants.dart';
 import '../../features/auth/presentation/bloc/auth_form_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
@@ -51,6 +52,7 @@ import '../../features/profile/presentation/pages/change_password_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/visit/presentation/pages/create_visit_page.dart';
 import '../../features/visit/presentation/pages/visit_detail_page.dart';
+import '../../features/visit/presentation/pages/edit_visit_page.dart';
 import '../../shared/widgets/app_shell.dart';
 import '../../injection_container.dart';
 import 'not_found_page.dart';
@@ -258,10 +260,23 @@ class AppRouter {
                 getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
                 getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
                 deleteVisitUseCase: sl<DeleteVisitUseCase>(),
+                updateVisitUseCase: sl<UpdateVisitUseCase>(),
                 visitRepository: sl<VisitRepository>(),
               ),
               child: VisitDetailPage(visitId: state.pathParameters['visitId']!),
             ),
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'editVisit',
+                builder: (context, state) => BlocProvider.value(
+                  value: context.read<VisitBloc>(),
+                  child: EditVisitPage(
+                    visitId: state.pathParameters['visitId']!,
+                  ),
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: 'medications',
@@ -307,6 +322,7 @@ class AppRouter {
             getPatientVisitsUseCase: sl<GetPatientVisitsUseCase>(),
             getVisitDetailUseCase: sl<GetVisitDetailUseCase>(),
             deleteVisitUseCase: sl<DeleteVisitUseCase>(),
+            updateVisitUseCase: sl<UpdateVisitUseCase>(),
             visitRepository: sl<VisitRepository>(),
           ),
           child: CreateVisitPage(

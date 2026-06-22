@@ -44,6 +44,16 @@ class GetVisitDetailEvent extends VisitEvent {
   List<Object> get props => [id];
 }
 
+class UpdateVisitEvent extends VisitEvent {
+  final String id;
+  final Visit visit;
+
+  const UpdateVisitEvent({required this.id, required this.visit});
+
+  @override
+  List<Object?> get props => [id, visit];
+}
+
 class DeleteVisitEvent extends VisitEvent {
   final String id;
   final String patientId;
