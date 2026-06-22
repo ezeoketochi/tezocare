@@ -99,8 +99,18 @@ async def check_due_followups():
 
 def start_scheduler():
     init_firebase()
-    trigger = CronTrigger(hour=11, minute=0, timezone=TZ)
+    trigger = CronTrigger(minute="*/5", timezone=TZ)
     scheduler.add_job(check_due_refills, trigger=trigger, id="daily_due_refills")
     scheduler.add_job(check_due_followups, trigger=trigger, id="daily_due_followups")
     scheduler.start()
-    logger.info("Notification scheduler started with daily jobs at 11:00 Africa/Lagos")
+    logger.info("Notification scheduler started with jobs every 5 minutes")
+
+    # Fire once immediately on startup for quick testing
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            asyncio.ensure_future(check_due_refills())
+            asyncio.ensure_future(check_due_followups())
+    except RuntimeError:
+        pass

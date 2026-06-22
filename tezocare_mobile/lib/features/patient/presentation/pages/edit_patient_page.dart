@@ -6,8 +6,6 @@ import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_loading.dart';
-import '../../../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
-import '../../../../features/dashboard/presentation/bloc/dashboard_event.dart';
 import '../../domain/entities/patient.dart';
 import '../bloc/patient_bloc.dart';
 import '../bloc/patient_event.dart';
@@ -132,7 +130,7 @@ class _EditPatientPageState extends State<EditPatientPage> {
     final state = context.read<PatientBloc>().state;
     if (state is! PatientDetailLoaded) return;
 
-    final isLoading = state.isBackgroundUpdating;
+    // final isLoading = state.isBackgroundUpdating;
 
     final original = state.patient;
     final updated = Patient(
