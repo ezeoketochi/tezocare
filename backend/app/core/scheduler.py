@@ -62,7 +62,7 @@ async def check_due_followups():
             result = await db.execute(
                 select(Visit, Patient)
                 .join(Patient, Visit.patient_id == Patient.id)
-                .where(Visit.status == VisitStatus.follow_up_pending)
+                .where(Visit.status.in_([VisitStatus.follow_up_pending, VisitStatus.active]))
             )
             rows = result.all()
             sent = 0
