@@ -61,6 +61,6 @@ async def check_refill_needs():
 
 
 def start_scheduler():
-    trigger = CronTrigger(hour=8, minute=45, timezone=TZ)
+    trigger = CronTrigger(hour=9, minute=5, timezone=TZ)
     scheduler.add_job(check_refill_needs, trigger=trigger, id="daily_refill_check")
     scheduler.start()

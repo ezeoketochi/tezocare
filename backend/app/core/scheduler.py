@@ -99,7 +99,7 @@ async def check_due_followups():
 
 def start_scheduler():
     init_firebase()
-    trigger = CronTrigger(hour=8, minute=45, timezone=TZ)
+    trigger = CronTrigger(hour=9, minute=5, timezone=TZ)
     scheduler.add_job(check_due_refills, trigger=trigger, id="daily_due_refills")
     scheduler.add_job(check_due_followups, trigger=trigger, id="daily_due_followups")
     scheduler.start()
