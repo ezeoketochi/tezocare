@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 enum NotificationType { refill, followup, test, other }
 
-enum NotificationStatus { sent, pending, failed }
+enum NotificationStatus { sent, pending, failed, read }
 
 class StaffNotification extends Equatable {
   final String id;

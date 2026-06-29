@@ -39,10 +39,7 @@ class _NotificationsPageState extends State<NotificationsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Notifications',
-          style: AppTextStyles.headlineMedium,
-        ),
+        title: Text('Notifications', style: AppTextStyles.headlineMedium),
         centerTitle: false,
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,
@@ -55,20 +52,20 @@ class _NotificationsPageState extends State<NotificationsPage>
           labelStyle: AppTextStyles.titleMedium,
           unselectedLabelStyle: AppTextStyles.bodyMedium,
           tabs: const [
-            Tab(text: 'Active'),
-            Tab(text: 'History'),
+            Tab(text: 'Un-read'),
+            Tab(text: 'Read'),
           ],
         ),
       ),
       body: BlocConsumer<NotificationBloc, NotificationState>(
         listener: (context, state) {
           if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+            context.read<NotificationBloc>().add(
+              const ClearNotificationMessages(),
             );
-            context
-                .read<NotificationBloc>()
-                .add(const ClearNotificationMessages());
           }
         },
         builder: (context, state) {
@@ -77,10 +74,9 @@ class _NotificationsPageState extends State<NotificationsPage>
           }
           if (state.status == NotificationLoadStatus.error) {
             return _ErrorState(
-              onRetry: () =>
-                  context.read<NotificationBloc>().add(
-                    const GetNotificationsEvent(),
-                  ),
+              onRetry: () => context.read<NotificationBloc>().add(
+                const GetNotificationsEvent(),
+              ),
             );
           }
           if (state.status == NotificationLoadStatus.loaded) {
@@ -93,6 +89,11 @@ class _NotificationsPageState extends State<NotificationsPage>
                   emptyIcon: Icons.notifications_off_outlined,
                   showStatus: false,
                   onDismiss: (n) {
+                    context.read<NotificationBloc>().add(
+                      MarkAsReadEvent(notificationId: n.id),
+                    );
+                  },
+                  onRead: (n) {
                     context.read<NotificationBloc>().add(
                       MarkAsReadEvent(notificationId: n.id),
                     );
@@ -121,9 +122,7 @@ class _LoadingState extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: EdgeInsets.all(20.w),
-      children: [
-        AppLoading.followUpListShimmer(),
-      ],
+      children: [AppLoading.followUpListShimmer()],
     );
   }
 }
@@ -153,6 +152,7 @@ class _NotificationList extends StatelessWidget {
   final IconData emptyIcon;
   final bool showStatus;
   final void Function(StaffNotification)? onDismiss;
+  final void Function(StaffNotification)? onRead;
 
   const _NotificationList({
     required this.notifications,
@@ -160,17 +160,14 @@ class _NotificationList extends StatelessWidget {
     required this.emptyIcon,
     required this.showStatus,
     this.onDismiss,
+    this.onRead,
   });
 
   @override
   Widget build(BuildContext context) {
     if (notifications.isEmpty) {
       return Center(
-        child: AppEmptyState(
-          icon: emptyIcon,
-          title: emptyMessage,
-          message: '',
-        ),
+        child: AppEmptyState(icon: emptyIcon, title: emptyMessage, message: ''),
       );
     }
 
@@ -188,12 +185,13 @@ class _NotificationList extends StatelessWidget {
           final card = _NotificationCard(
             notification: notification,
             showStatus: showStatus,
+            onRead: onRead != null ? () => onRead!(notification) : null,
           );
 
           if (onDismiss != null) {
             return Dismissible(
               key: ValueKey(notification.id),
-              direction: DismissDirection.endToStart,
+              direction: DismissDirection.horizontal,
               background: Container(
                 alignment: Alignment.centerRight,
                 padding: EdgeInsets.only(right: 20.w),
@@ -222,10 +220,12 @@ class _NotificationList extends StatelessWidget {
 class _NotificationCard extends StatelessWidget {
   final StaffNotification notification;
   final bool showStatus;
+  final VoidCallback? onRead;
 
   const _NotificationCard({
     required this.notification,
     required this.showStatus,
+    this.onRead,
   });
 
   @override
@@ -306,10 +306,7 @@ class _NotificationCard extends StatelessWidget {
                           color: AppColors.textHint,
                         ),
                         SizedBox(width: 4.w),
-                        Text(
-                          timeAgo,
-                          style: AppTextStyles.caption,
-                        ),
+                        Text(timeAgo, style: AppTextStyles.caption),
                         if (notification.patientName != null) ...[
                           SizedBox(width: 12.w),
                           Icon(
@@ -342,8 +339,8 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  void _showDetail(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showDetail(BuildContext context) async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -353,6 +350,7 @@ class _NotificationCard extends StatelessWidget {
       ),
       builder: (ctx) => _NotificationDetailSheet(notification: notification),
     );
+    onRead?.call();
   }
 
   IconData _iconForType(NotificationType type) {
@@ -407,6 +405,8 @@ class _StatusBadge extends StatelessWidget {
         return StatusChip(text: 'Pending', variant: StatusChipVariant.active);
       case NotificationStatus.failed:
         return StatusChip(text: 'Failed', variant: StatusChipVariant.referred);
+      case NotificationStatus.read:
+        return StatusChip(text: 'Read', variant: StatusChipVariant.completed);
     }
   }
 }

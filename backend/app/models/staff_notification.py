@@ -10,6 +10,7 @@ class StaffNotificationStatus(str, enum.Enum):
     sent = "sent"
     pending = "pending"
     failed = "failed"
+    read = "read"
 
 
 class StaffNotification(Base):

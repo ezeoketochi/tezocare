@@ -61,6 +61,7 @@ class StaffNotificationService:
         if not notification:
             return None
         notification.read_at = datetime.now(timezone.utc)
+        notification.status = StaffNotificationStatus.read
         await db.commit()
         await db.refresh(notification)
         return notification

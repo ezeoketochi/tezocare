@@ -66,6 +66,8 @@ class NotificationModel extends StaffNotification {
         return NotificationStatus.pending;
       case 'failed':
         return NotificationStatus.failed;
+      case 'read':
+        return NotificationStatus.read;
       default:
         return NotificationStatus.sent;
     }
