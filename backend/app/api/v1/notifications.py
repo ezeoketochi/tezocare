@@ -14,6 +14,22 @@ from app.utils.logger import logger
 router = APIRouter()
 
 
+@router.get("/unread-count", response_model=APIResponse)
+async def get_unread_count(
+    current_staff: Staff = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    count = await StaffNotificationService.get_unread_count(
+        db=db,
+        staff_id=str(current_staff.id),
+    )
+    return APIResponse(
+        success=True,
+        message="Unread count retrieved",
+        data={"unread_count": count},
+    )
+
+
 @router.get("", response_model=APIResponse)
 async def get_notifications(
     skip: int = Query(0, ge=0),

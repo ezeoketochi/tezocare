@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/routes/route_names.dart';
+import '../../../../core/usecases/usecase.dart';
+import '../../../../injection_container.dart';
 import '../../../auth/domain/entities/staff.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -13,6 +15,7 @@ import '../../../../shared/widgets/app_stat_card.dart';
 import '../../../../shared/widgets/app_avatar.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
+import '../../../notifications/domain/usecases/get_unread_count_usecase.dart';
 import '../../../patient/domain/entities/patient.dart';
 import '../../../patient/presentation/bloc/patient_bloc.dart';
 import '../../../patient/presentation/bloc/patient_event.dart';
@@ -29,11 +32,25 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  int _unreadCount = 0;
+
   @override
   void initState() {
     super.initState();
     context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
     context.read<PatientBloc>().add(const GetPatientsEvent());
+    _fetchUnreadCount();
+  }
+
+  Future<void> _fetchUnreadCount() async {
+    final useCase = sl<GetUnreadCountUseCase>();
+    final result = await useCase(const NoParams());
+    result.fold(
+      (_) {},
+      (count) {
+        if (mounted) setState(() => _unreadCount = count);
+      },
+    );
   }
 
   @override
@@ -53,6 +70,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   const GetDashboardStatsEvent(),
                 );
                 context.read<PatientBloc>().add(const GetPatientsEvent());
+                _fetchUnreadCount();
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -116,17 +134,53 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               GestureDetector(
                 onTap: () => context.push(RouteNames.notifications),
-                child: Container(
+                child: SizedBox(
                   width: 40.w,
                   height: 40.w,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    size: 20.sp,
-                    color: AppColors.primary,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40.w,
+                          height: 40.w,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.notifications_outlined,
+                            size: 20.sp,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      if (_unreadCount > 0)
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(4.w),
+                            decoration: const BoxDecoration(
+                              color: AppColors.danger,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: 18.w,
+                              minHeight: 18.w,
+                            ),
+                            child: Text(
+                              _unreadCount > 99 ? '99+' : '$_unreadCount',
+                              style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),

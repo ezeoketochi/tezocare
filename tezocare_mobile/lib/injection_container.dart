@@ -56,6 +56,7 @@ import 'features/notifications/data/datasources/notification_remote_datasource.d
 import 'features/notifications/data/repositories/notification_repository_impl.dart';
 import 'features/notifications/domain/repositories/notification_repository.dart';
 import 'features/notifications/domain/usecases/get_notifications_usecase.dart';
+import 'features/notifications/domain/usecases/get_unread_count_usecase.dart';
 import 'features/notifications/domain/usecases/mark_notification_read_usecase.dart';
 import 'features/visit/data/datasources/visit_remote_datasource.dart';
 import 'features/visit/data/repositories/visit_repository_impl.dart';
@@ -240,5 +241,6 @@ void _initNotifications() {
     ),
   );
   sl.registerFactory(() => GetNotificationsUseCase(repository: sl()));
+  sl.registerFactory(() => GetUnreadCountUseCase(repository: sl()));
   sl.registerFactory(() => MarkNotificationReadUseCase(repository: sl()));
 }
