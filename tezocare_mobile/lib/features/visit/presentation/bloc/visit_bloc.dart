@@ -56,12 +56,33 @@ class VisitBloc extends Bloc<VisitEvent, VisitState> {
     Emitter<VisitState> emit,
   ) async {
     emit(const VisitLoading());
+
+    final patientId = event.visit.patientId;
+
+    visitRepository.getLocalVisits(patientId).then((visits) {
+      final updated = [...visits, event.visit];
+      visitRepository.saveVisitsToLocalCache(patientId, updated);
+    });
+
     final result = await createVisitUseCase(
       CreateVisitParams(visit: event.visit),
     );
     result.fold(
-      (failure) => emit(VisitError(message: _failureMessage(failure))),
-      (visit) => emit(VisitCreated(visit: visit)),
+      (failure) {
+        visitRepository.getLocalVisits(patientId).then((visits) {
+          final updated = visits.where((v) => v.id.isNotEmpty).toList();
+          visitRepository.saveVisitsToLocalCache(patientId, updated);
+        });
+        emit(VisitError(message: _failureMessage(failure)));
+      },
+      (visit) {
+        visitRepository.getLocalVisits(patientId).then((visits) {
+          final updated = visits.where((v) => v.id.isNotEmpty).toList();
+          updated.add(visit);
+          visitRepository.saveVisitsToLocalCache(patientId, updated);
+        });
+        emit(VisitCreated(visit: visit));
+      },
     );
   }
 

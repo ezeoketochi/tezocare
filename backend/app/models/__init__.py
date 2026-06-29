@@ -5,10 +5,12 @@ from app.models.notification import Notification
 from app.models.password_reset import PasswordResetToken
 from app.models.refill import Refill, ContactStatus, RefillStatus
 from app.models.notification_log import NotificationLog, NotificationLogType
+from app.models.staff_notification import StaffNotification, StaffNotificationStatus
 
 __all__ = [
     "Staff", "Patient", "Visit",
     "Notification", "PasswordResetToken",
     "Refill", "ContactStatus", "RefillStatus",
     "NotificationLog", "NotificationLogType",
+    "StaffNotification", "StaffNotificationStatus",
 ]

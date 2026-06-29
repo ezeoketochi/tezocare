@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.firebase import send_push_notification
 from app.models.staff import Staff
 from app.models.notification_log import NotificationLog, NotificationLogType
+from app.models.staff_notification import StaffNotificationStatus
+from app.services.staff_notification_service import StaffNotificationService
 from app.utils.logger import logger
 
 
@@ -48,7 +50,17 @@ async def send_staff_notification(
         days_before=days_before,
     )
     db.add(log)
-    await db.commit()
+
+    status = StaffNotificationStatus.sent if ok else StaffNotificationStatus.failed
+    await StaffNotificationService.create(
+        db=db,
+        staff_id=str(staff_id),
+        patient_id=str(patient_id) if patient_id else None,
+        type=ntype.value,
+        title=title,
+        message=body,
+        status=status,
+    )
 
     if ok:
         logger.info("Notification sent to staff %s: %s", staff_id, title)

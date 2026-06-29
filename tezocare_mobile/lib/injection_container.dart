@@ -52,6 +52,11 @@ import 'features/patient/domain/usecases/get_patient_detail_usecase.dart';
 import 'features/patient/domain/usecases/get_patients_usecase.dart';
 import 'features/patient/domain/usecases/search_patients_usecase.dart';
 import 'features/patient/domain/usecases/update_patient_usecase.dart';
+import 'features/notifications/data/datasources/notification_remote_datasource.dart';
+import 'features/notifications/data/repositories/notification_repository_impl.dart';
+import 'features/notifications/domain/repositories/notification_repository.dart';
+import 'features/notifications/domain/usecases/get_notifications_usecase.dart';
+import 'features/notifications/domain/usecases/mark_notification_read_usecase.dart';
 import 'features/visit/data/datasources/visit_remote_datasource.dart';
 import 'features/visit/data/repositories/visit_repository_impl.dart';
 import 'features/visit/domain/repositories/visit_repository.dart';
@@ -73,6 +78,7 @@ Future<void> init() async {
   _initDashboard();
   _initFollowUp();
   _initRefills();
+  _initNotifications();
 }
 
 Future<void> _initExternalDependencies() async {
@@ -220,4 +226,19 @@ void _initRefills() {
   sl.registerFactory(() => MarkRefillContactedUseCase(repository: sl()));
   sl.registerFactory(() => MarkRefillFulfilledUseCase(repository: sl()));
   sl.registerFactory(() => CreateRefillsBatchUseCase(repository: sl()));
+}
+
+void _initNotifications() {
+  sl.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSourceImpl(dioClient: sl()),
+  );
+  sl.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(
+      remoteDataSource: sl(),
+      networkInfo: sl(),
+      cacheService: sl(),
+    ),
+  );
+  sl.registerFactory(() => GetNotificationsUseCase(repository: sl()));
+  sl.registerFactory(() => MarkNotificationReadUseCase(repository: sl()));
 }

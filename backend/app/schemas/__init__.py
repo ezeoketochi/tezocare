@@ -9,6 +9,7 @@ from app.schemas.visit import (
     ReferPatientRequest, FollowUpDoneRequest,
 )
 from app.schemas.refill import RefillResponse, RefillContactResponse, RefillFulfillResponse
+from app.schemas.notification import StaffNotificationResponse
 
 __all__ = [
     "PaginationMeta", "APIResponse",
@@ -18,4 +19,5 @@ __all__ = [
     "VisitCreate", "VisitUpdate", "VisitResponse",
     "ReferPatientRequest", "FollowUpDoneRequest",
     "RefillResponse", "RefillContactResponse", "RefillFulfillResponse",
+    "StaffNotificationResponse",
 ]

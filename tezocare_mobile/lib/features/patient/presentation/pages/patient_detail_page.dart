@@ -367,6 +367,7 @@ class _PatientDetailPageState extends State<PatientDetailPage>
                           child: AppCard(
                             onTap: () => context.push(
                               '/patients/${widget.patientId}/visits/${visit.id}',
+                              extra: sorted.length - index,
                             ),
                             child: Row(
                               children: [

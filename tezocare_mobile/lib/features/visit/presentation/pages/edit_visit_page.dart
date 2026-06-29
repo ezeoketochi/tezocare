@@ -35,18 +35,37 @@ class TestResultEntry {
 const sigFrequencyCodes = ['OD', 'BD', 'TDS', 'QDS', 'PRN', 'STAT', 'ON', 'OM'];
 const sigDoseUnits = ['tablet', 'mg', 'ml', 'capsule', 'drop', 'puff'];
 const sigRoutes = [
-  'orally', 'topical', 'IV', 'IM', 'sublingual', 'inhaled', 'rectal', 'vaginal',
+  'orally',
+  'topical',
+  'IV',
+  'IM',
+  'sublingual',
+  'inhaled',
+  'rectal',
+  'vaginal',
 ];
 const sigDurationUnits = ['days', 'weeks', 'months'];
 
 const sigFrequencyMap = {
-  'OD': 'once daily', 'BD': 'twice daily', 'TDS': 'three times daily',
-  'QDS': 'four times daily', 'PRN': 'as needed', 'STAT': 'immediately',
-  'ON': 'once nightly', 'OM': 'once morning',
+  'OD': 'once daily',
+  'BD': 'twice daily',
+  'TDS': 'three times daily',
+  'QDS': 'four times daily',
+  'PRN': 'as needed',
+  'STAT': 'immediately',
+  'ON': 'once nightly',
+  'OM': 'once morning',
 };
 
 const sigMultiplierMap = {
-  'OD': 1, 'BD': 2, 'TDS': 3, 'QDS': 4, 'PRN': null, 'STAT': 1, 'ON': 1, 'OM': 1,
+  'OD': 1,
+  'BD': 2,
+  'TDS': 3,
+  'QDS': 4,
+  'PRN': null,
+  'STAT': 1,
+  'ON': 1,
+  'OM': 1,
 };
 
 class DispensedMedication {
@@ -176,10 +195,12 @@ class _EditVisitPageState extends State<EditVisitPage> {
     _complaints.clear();
     if (visit.chiefComplaints.isNotEmpty) {
       for (final c in visit.chiefComplaints) {
-        _complaints.add(ComplaintEntry(
-          complaint: c.complaint ?? '',
-          duration: c.duration ?? '',
-        ));
+        _complaints.add(
+          ComplaintEntry(
+            complaint: c.complaint ?? '',
+            duration: c.duration ?? '',
+          ),
+        );
       }
     } else {
       _complaints.add(ComplaintEntry());
@@ -214,10 +235,9 @@ class _EditVisitPageState extends State<EditVisitPage> {
     _testResults.clear();
     if (visit.testResults.isNotEmpty) {
       for (final t in visit.testResults) {
-        _testResults.add(TestResultEntry(
-          name: t.testName ?? '',
-          result: t.result ?? '',
-        ));
+        _testResults.add(
+          TestResultEntry(name: t.testName ?? '', result: t.result ?? ''),
+        );
       }
     } else {
       _testResults.add(TestResultEntry());
@@ -233,22 +253,24 @@ class _EditVisitPageState extends State<EditVisitPage> {
     _dispensedMeds.clear();
     if (visit.medicationsDispensed.isNotEmpty) {
       for (final m in visit.medicationsDispensed) {
-        _dispensedMeds.add(DispensedMedication(
-          drugName: m.drugName ?? '',
-          doseAmount: m.doseAmount?.toString() ?? '',
-          doseUnit: m.doseUnit ?? 'tablet',
-          route: m.route ?? 'orally',
-          frequencyCode: m.frequencyCode ?? 'BD',
-          frequency: m.frequency ?? '',
-          durationAmount: m.durationAmount?.toString() ?? '',
-          durationUnit: m.durationUnit ?? 'days',
-          instructions: m.instructions ?? '',
-          dateDispensed: m.dateDispensed,
-          needsRefill: m.refillDate != null,
-          refillDate: m.refillDate,
-          isRecurrent: m.isRecurrent,
-          recurrenceIntervalDays: m.recurrenceIntervalDays,
-        ));
+        _dispensedMeds.add(
+          DispensedMedication(
+            drugName: m.drugName ?? '',
+            doseAmount: m.doseAmount?.toString() ?? '',
+            doseUnit: m.doseUnit ?? 'tablet',
+            route: m.route ?? 'orally',
+            frequencyCode: m.frequencyCode ?? 'BD',
+            frequency: m.frequency ?? '',
+            durationAmount: m.durationAmount?.toString() ?? '',
+            durationUnit: m.durationUnit ?? 'days',
+            instructions: m.instructions ?? '',
+            dateDispensed: m.dateDispensed,
+            needsRefill: m.refillDate != null,
+            refillDate: m.refillDate,
+            isRecurrent: m.isRecurrent,
+            recurrenceIntervalDays: m.recurrenceIntervalDays,
+          ),
+        );
       }
     } else {
       _dispensedMeds.add(DispensedMedication());
@@ -271,7 +293,7 @@ class _EditVisitPageState extends State<EditVisitPage> {
       _referralReasonController.text = ref.reason ?? '';
     }
 
-    setState(() {});
+    // setState(() {});
   }
 
   @override
@@ -311,28 +333,30 @@ class _EditVisitPageState extends State<EditVisitPage> {
 
     final chiefComplaints = _complaints
         .where((c) => c.complaintController.text.isNotEmpty)
-        .map((c) => ChiefComplaintItemModel(
-              complaint: c.complaintController.text,
-              duration: c.durationController.text.isNotEmpty
-                  ? c.durationController.text
-                  : null,
-            ))
+        .map(
+          (c) => ChiefComplaintItemModel(
+            complaint: c.complaintController.text,
+            duration: c.durationController.text.isNotEmpty
+                ? c.durationController.text
+                : null,
+          ),
+        )
         .toList();
 
-    final medicationHistory = _pastMeds.isNotEmpty ||
-            _currentMeds.isNotEmpty || _adherence != null
+    final medicationHistory =
+        _pastMeds.isNotEmpty || _currentMeds.isNotEmpty || _adherence != null
         ? MedicationHistoryDataModel(
             pastMedications: _pastMeds,
             currentMedications: _currentMeds,
             adherence: _adherence,
-            nonAdherenceReason:
-                _adherence == 'No' ? _nonAdherenceReason : null,
+            nonAdherenceReason: _adherence == 'No' ? _nonAdherenceReason : null,
           )
         : null;
 
     final bpSys = int.tryParse(_bpSystolicController.text);
     final bpDia = int.tryParse(_bpDiastolicController.text);
-    final vitals = (bpSys != null ||
+    final vitals =
+        (bpSys != null ||
             bpDia != null ||
             _heartRateController.text.isNotEmpty ||
             _temperatureController.text.isNotEmpty ||
@@ -360,15 +384,18 @@ class _EditVisitPageState extends State<EditVisitPage> {
 
     final testResults = _testResults
         .where((t) => t.nameController.text.isNotEmpty)
-        .map((t) => TestResultItemModel(
-              testName: t.nameController.text,
-              result: t.resultController.text.isNotEmpty
-                  ? t.resultController.text
-                  : null,
-            ))
+        .map(
+          (t) => TestResultItemModel(
+            testName: t.nameController.text,
+            result: t.resultController.text.isNotEmpty
+                ? t.resultController.text
+                : null,
+          ),
+        )
         .toList();
 
-    final clinicalAssessment = _diagnosisController.text.isNotEmpty ||
+    final clinicalAssessment =
+        _diagnosisController.text.isNotEmpty ||
             _severity != null ||
             _pharmacistNotesController.text.isNotEmpty
         ? ClinicalAssessmentDataModel(
@@ -406,10 +433,12 @@ class _EditVisitPageState extends State<EditVisitPage> {
             dateDispensed: m.dateDispensed,
             refillDate: m.needsRefill ? m.refillDate : null,
             isRecurrent: m.needsRefill ? m.isRecurrent : false,
-            recurrenceIntervalDays:
-                m.needsRefill ? m.recurrenceIntervalDays : null,
+            recurrenceIntervalDays: m.needsRefill
+                ? m.recurrenceIntervalDays
+                : null,
           );
-        }).toList();
+        })
+        .toList();
 
     final followUp = _followUpRequired
         ? FollowUpDataModel(
@@ -456,17 +485,15 @@ class _EditVisitPageState extends State<EditVisitPage> {
       referral: referral,
     );
 
-    context
-        .read<VisitBloc>()
-        .add(UpdateVisitEvent(id: widget.visitId, visit: updated));
+    context.read<VisitBloc>().add(
+      UpdateVisitEvent(id: widget.visitId, visit: updated),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Visit'),
-      ),
+      appBar: AppBar(title: const Text('Edit Visit')),
       body: BlocConsumer<VisitBloc, VisitState>(
         listener: (context, state) {
           if (state is VisitUpdated) {
@@ -489,9 +516,9 @@ class _EditVisitPageState extends State<EditVisitPage> {
                   SizedBox(height: 16.h),
                   AppButton(
                     label: 'Retry',
-                    onPressed: () => context
-                        .read<VisitBloc>()
-                        .add(GetVisitDetailEvent(id: widget.visitId)),
+                    onPressed: () => context.read<VisitBloc>().add(
+                      GetVisitDetailEvent(id: widget.visitId),
+                    ),
                   ),
                 ],
               ),
@@ -543,7 +570,8 @@ class _EditVisitPageState extends State<EditVisitPage> {
                                   controller: c.complaintController,
                                   hint: 'e.g. headache',
                                   label: 'Complaint',
-                                  validator: (v) => v == null || v.trim().isEmpty
+                                  validator: (v) =>
+                                      v == null || v.trim().isEmpty
                                       ? 'Required'
                                       : null,
                                 ),
@@ -559,10 +587,12 @@ class _EditVisitPageState extends State<EditVisitPage> {
                               ),
                               if (_complaints.length > 1)
                                 IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline,
-                                      color: AppColors.danger),
-                                  onPressed: () => setState(
-                                      () => _complaints.removeAt(i)),
+                                  icon: const Icon(
+                                    Icons.remove_circle_outline,
+                                    color: AppColors.danger,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => _complaints.removeAt(i)),
                                 ),
                             ],
                           ),
@@ -599,7 +629,9 @@ class _EditVisitPageState extends State<EditVisitPage> {
                           DropdownMenuItem(value: 'Yes', child: Text('Yes')),
                           DropdownMenuItem(value: 'No', child: Text('No')),
                           DropdownMenuItem(
-                              value: 'Partial', child: Text('Partial')),
+                            value: 'Partial',
+                            child: Text('Partial'),
+                          ),
                         ],
                         onChanged: (v) => setState(() => _adherence = v),
                       ),
@@ -654,8 +686,9 @@ class _EditVisitPageState extends State<EditVisitPage> {
                               controller: _temperatureController,
                               hint: 'e.g. 36.5',
                               label: 'Temperature (°C)',
-                              keyboardType:
-                                  TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
                             ),
                           ),
                         ],
@@ -690,8 +723,9 @@ class _EditVisitPageState extends State<EditVisitPage> {
                               controller: _weightController,
                               hint: 'e.g. 70',
                               label: 'Weight (kg)',
-                              keyboardType:
-                                  TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
                               onChanged: (_) => _calculateBmi(),
                             ),
                           ),
@@ -701,8 +735,9 @@ class _EditVisitPageState extends State<EditVisitPage> {
                               controller: _heightController,
                               hint: 'e.g. 175',
                               label: 'Height (cm)',
-                              keyboardType:
-                                  TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
                               onChanged: (_) => _calculateBmi(),
                             ),
                           ),
@@ -712,7 +747,8 @@ class _EditVisitPageState extends State<EditVisitPage> {
                         SizedBox(height: 8.h),
                         AppTextField(
                           controller: TextEditingController(
-                              text: _bmi!.toStringAsFixed(1)),
+                            text: _bmi!.toStringAsFixed(1),
+                          ),
                           label: 'BMI (auto-calc)',
                           isReadOnly: true,
                         ),
@@ -725,8 +761,9 @@ class _EditVisitPageState extends State<EditVisitPage> {
                               controller: _glucoseController,
                               hint: 'e.g. 5.5',
                               label: 'Blood Glucose',
-                              keyboardType:
-                                  TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
                             ),
                           ),
                           SizedBox(width: 8.w),
@@ -736,12 +773,17 @@ class _EditVisitPageState extends State<EditVisitPage> {
                               decoration: _dropdownDecoration('Type'),
                               items: const [
                                 DropdownMenuItem(
-                                    value: 'Fasting', child: Text('Fasting')),
+                                  value: 'Fasting',
+                                  child: Text('Fasting'),
+                                ),
                                 DropdownMenuItem(
-                                    value: 'Random', child: Text('Random')),
+                                  value: 'Random',
+                                  child: Text('Random'),
+                                ),
                               ],
                               onChanged: (v) => setState(
-                                  () => _glucoseTypeFasting = v == 'Fasting'),
+                                () => _glucoseTypeFasting = v == 'Fasting',
+                              ),
                             ),
                           ),
                         ],
@@ -777,10 +819,12 @@ class _EditVisitPageState extends State<EditVisitPage> {
                               ),
                               if (_testResults.length > 1)
                                 IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline,
-                                      color: AppColors.danger),
-                                  onPressed: () => setState(
-                                      () => _testResults.removeAt(i)),
+                                  icon: const Icon(
+                                    Icons.remove_circle_outline,
+                                    color: AppColors.danger,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => _testResults.removeAt(i)),
                                 ),
                             ],
                           ),
@@ -808,12 +852,15 @@ class _EditVisitPageState extends State<EditVisitPage> {
                         value: _severity,
                         decoration: _dropdownDecoration('Severity'),
                         items: const [
+                          DropdownMenuItem(value: 'Mild', child: Text('Mild')),
                           DropdownMenuItem(
-                              value: 'Mild', child: Text('Mild')),
+                            value: 'Moderate',
+                            child: Text('Moderate'),
+                          ),
                           DropdownMenuItem(
-                              value: 'Moderate', child: Text('Moderate')),
-                          DropdownMenuItem(
-                              value: 'Severe', child: Text('Severe')),
+                            value: 'Severe',
+                            child: Text('Severe'),
+                          ),
                         ],
                         onChanged: (v) => setState(() => _severity = v),
                       ),
@@ -837,8 +884,9 @@ class _EditVisitPageState extends State<EditVisitPage> {
                       AppButton(
                         label: 'Add Medication',
                         variant: AppButtonVariant.outline,
-                        onPressed: () =>
-                            setState(() => _dispensedMeds.add(DispensedMedication())),
+                        onPressed: () => setState(
+                          () => _dispensedMeds.add(DispensedMedication()),
+                        ),
                         height: 36.h,
                       ),
                       SizedBox(height: 24.h),
@@ -858,8 +906,10 @@ class _EditVisitPageState extends State<EditVisitPage> {
                       SizedBox(height: 12.h),
                       Row(
                         children: [
-                          Text('Follow-up required',
-                              style: AppTextStyles.titleSmall),
+                          Text(
+                            'Follow-up required',
+                            style: AppTextStyles.titleSmall,
+                          ),
                           Spacer(),
                           Switch(
                             value: _followUpRequired,
@@ -874,22 +924,23 @@ class _EditVisitPageState extends State<EditVisitPage> {
                         _buildDatePickerGeneric(
                           label: 'Follow-up Date',
                           date: _followUpDate,
-                          onPicked: (d) =>
-                              setState(() => _followUpDate = d),
+                          onPicked: (d) => setState(() => _followUpDate = d),
                         ),
                         SizedBox(height: 12.h),
                         Row(
                           children: [
-                            Text('Recurrent follow-up',
-                                style: AppTextStyles.titleSmall),
+                            Text(
+                              'Recurrent follow-up',
+                              style: AppTextStyles.titleSmall,
+                            ),
                             Spacer(),
                             Switch(
                               value: _followUpRecurrent,
                               activeThumbColor: AppColors.primary,
                               onChanged: (v) => setState(() {
-                                    _followUpRecurrent = v;
-                                    if (v) _followUpIntervalDays = 30;
-                                  }),
+                                _followUpRecurrent = v;
+                                if (v) _followUpIntervalDays = 30;
+                              }),
                             ),
                           ],
                         ),
@@ -902,24 +953,38 @@ class _EditVisitPageState extends State<EditVisitPage> {
                               fillColor: AppColors.white,
                               isDense: true,
                               contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 14.w, vertical: 10.h),
+                                horizontal: 14.w,
+                                vertical: 10.h,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10.r),
                                 borderSide: const BorderSide(
-                                    color: AppColors.border, width: 1.5),
+                                  color: AppColors.border,
+                                  width: 1.5,
+                                ),
                               ),
                             ),
-                            hint: Text('Select interval',
-                                style: AppTextStyles.bodySmall),
+                            hint: Text(
+                              'Select interval',
+                              style: AppTextStyles.bodySmall,
+                            ),
                             items: const [
                               DropdownMenuItem(
-                                  value: 7, child: Text('Every 7 days')),
+                                value: 7,
+                                child: Text('Every 7 days'),
+                              ),
                               DropdownMenuItem(
-                                  value: 14, child: Text('Every 14 days')),
+                                value: 14,
+                                child: Text('Every 14 days'),
+                              ),
                               DropdownMenuItem(
-                                  value: 30, child: Text('Every 30 days')),
+                                value: 30,
+                                child: Text('Every 30 days'),
+                              ),
                               DropdownMenuItem(
-                                  value: 90, child: Text('Every 90 days')),
+                                value: 90,
+                                child: Text('Every 90 days'),
+                              ),
                             ],
                             onChanged: (v) {
                               if (v != null)
@@ -935,14 +1000,15 @@ class _EditVisitPageState extends State<EditVisitPage> {
                       SizedBox(height: 12.h),
                       Row(
                         children: [
-                          Text('Refer patient',
-                              style: AppTextStyles.titleSmall),
+                          Text(
+                            'Refer patient',
+                            style: AppTextStyles.titleSmall,
+                          ),
                           Spacer(),
                           Switch(
                             value: _referPatient,
                             activeThumbColor: AppColors.primary,
-                            onChanged: (v) =>
-                                setState(() => _referPatient = v),
+                            onChanged: (v) => setState(() => _referPatient = v),
                           ),
                         ],
                       ),
@@ -1009,8 +1075,7 @@ class _EditVisitPageState extends State<EditVisitPage> {
             controller: m.drugNameController,
             hint: 'Drug name',
             label: 'Drug Name',
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Required' : null,
+            validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
           ),
           SizedBox(height: 8.h),
           Row(
@@ -1021,13 +1086,12 @@ class _EditVisitPageState extends State<EditVisitPage> {
                   controller: m.doseAmountController,
                   hint: 'e.g. 1',
                   label: 'Dose',
-                  keyboardType:
-                      TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: 5.w),
               Expanded(
-                flex: 2,
+                flex: 3,
                 child: DropdownButtonFormField<String>(
                   value: m.doseUnit,
                   decoration: _dropdownDecoration('Unit'),
@@ -1039,7 +1103,7 @@ class _EditVisitPageState extends State<EditVisitPage> {
                   },
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: 5.w),
               Expanded(
                 flex: 3,
                 child: DropdownButtonFormField<String>(
@@ -1053,7 +1117,7 @@ class _EditVisitPageState extends State<EditVisitPage> {
                   },
                 ),
               ),
-              SizedBox(width: 8.w),
+              SizedBox(width: 5.w),
               Expanded(
                 flex: 2,
                 child: DropdownButtonFormField<String>(
@@ -1075,7 +1139,7 @@ class _EditVisitPageState extends State<EditVisitPage> {
               ),
             ],
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 5.h),
           Row(
             children: [
               Expanded(
@@ -1087,7 +1151,7 @@ class _EditVisitPageState extends State<EditVisitPage> {
               ),
             ],
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 5.h),
           Row(
             children: [
               Expanded(
@@ -1119,7 +1183,8 @@ class _EditVisitPageState extends State<EditVisitPage> {
             SizedBox(height: 8.h),
             AppTextField(
               controller: TextEditingController(
-                  text: m.totalQuantity.toString()),
+                text: m.totalQuantity.toString(),
+              ),
               label: 'Total Quantity (auto-calc)',
               isReadOnly: true,
             ),
@@ -1133,19 +1198,20 @@ class _EditVisitPageState extends State<EditVisitPage> {
           SizedBox(height: 8.h),
           Row(
             children: [
-              Text('Needs Refill',
-                  style: AppTextStyles.titleSmall.copyWith(fontSize: 12.sp)),
+              Text(
+                'Needs Refill',
+                style: AppTextStyles.titleSmall.copyWith(fontSize: 12.sp),
+              ),
               Spacer(),
               Switch(
                 value: m.needsRefill,
                 activeThumbColor: AppColors.primary,
                 onChanged: (v) => setState(() {
-                      m.needsRefill = v;
-                      if (v && m.refillDate == null) {
-                        m.refillDate =
-                            DateTime.now().add(const Duration(days: 30));
-                      }
-                    }),
+                  m.needsRefill = v;
+                  if (v && m.refillDate == null) {
+                    m.refillDate = DateTime.now().add(const Duration(days: 30));
+                  }
+                }),
               ),
             ],
           ),
@@ -1155,17 +1221,18 @@ class _EditVisitPageState extends State<EditVisitPage> {
             SizedBox(height: 8.h),
             Row(
               children: [
-                Text('Recurrent refill',
-                    style:
-                        AppTextStyles.titleSmall.copyWith(fontSize: 12.sp)),
+                Text(
+                  'Recurrent refill',
+                  style: AppTextStyles.titleSmall.copyWith(fontSize: 12.sp),
+                ),
                 Spacer(),
                 Switch(
                   value: m.isRecurrent,
                   activeThumbColor: AppColors.primary,
                   onChanged: (v) => setState(() {
-                        m.isRecurrent = v;
-                        if (v) m.recurrenceIntervalDays = 30;
-                      }),
+                    m.isRecurrent = v;
+                    if (v) m.recurrenceIntervalDays = 30;
+                  }),
                 ),
               ],
             ),
@@ -1178,28 +1245,26 @@ class _EditVisitPageState extends State<EditVisitPage> {
                   fillColor: AppColors.white,
                   isDense: true,
                   contentPadding: EdgeInsets.symmetric(
-                      horizontal: 14.w, vertical: 10.h),
+                    horizontal: 14.w,
+                    vertical: 10.h,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.r),
                     borderSide: const BorderSide(
-                        color: AppColors.border, width: 1.5),
+                      color: AppColors.border,
+                      width: 1.5,
+                    ),
                   ),
                 ),
-                hint: Text('Select interval',
-                    style: AppTextStyles.bodySmall),
+                hint: Text('Select interval', style: AppTextStyles.bodySmall),
                 items: const [
-                  DropdownMenuItem(
-                      value: 7, child: Text('Every 7 days')),
-                  DropdownMenuItem(
-                      value: 14, child: Text('Every 14 days')),
-                  DropdownMenuItem(
-                      value: 30, child: Text('Every 30 days')),
-                  DropdownMenuItem(
-                      value: 90, child: Text('Every 90 days')),
+                  DropdownMenuItem(value: 7, child: Text('Every 7 days')),
+                  DropdownMenuItem(value: 14, child: Text('Every 14 days')),
+                  DropdownMenuItem(value: 30, child: Text('Every 30 days')),
+                  DropdownMenuItem(value: 90, child: Text('Every 90 days')),
                 ],
                 onChanged: (v) {
-                  if (v != null)
-                    setState(() => m.recurrenceIntervalDays = v);
+                  if (v != null) setState(() => m.recurrenceIntervalDays = v);
                 },
               ),
             ],
@@ -1214,11 +1279,13 @@ class _EditVisitPageState extends State<EditVisitPage> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () =>
-                    setState(() => _dispensedMeds.removeAt(index)),
-                child: Text('Remove',
-                    style: AppTextStyles.labelMedium.copyWith(
-                        color: AppColors.danger)),
+                onPressed: () => setState(() => _dispensedMeds.removeAt(index)),
+                child: Text(
+                  'Remove',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: AppColors.danger,
+                  ),
+                ),
               ),
             ),
         ],
@@ -1255,10 +1322,14 @@ class _EditVisitPageState extends State<EditVisitPage> {
       child: AbsorbPointer(
         child: AppTextField(
           controller: TextEditingController(
-              text: DateFormat('yyyy-MM-dd').format(_visitDate)),
+            text: DateFormat('yyyy-MM-dd').format(_visitDate),
+          ),
           label: 'Visit Date',
-          suffixIcon: Icon(Icons.calendar_today_outlined,
-              size: 18.sp, color: AppColors.primary),
+          suffixIcon: Icon(
+            Icons.calendar_today_outlined,
+            size: 18.sp,
+            color: AppColors.primary,
+          ),
         ),
       ),
     );
@@ -1282,10 +1353,14 @@ class _EditVisitPageState extends State<EditVisitPage> {
       child: AbsorbPointer(
         child: AppTextField(
           controller: TextEditingController(
-              text: DateFormat('yyyy-MM-dd').format(date)),
+            text: DateFormat('yyyy-MM-dd').format(date),
+          ),
           label: label,
-          suffixIcon: Icon(Icons.calendar_today_outlined,
-              size: 18.sp, color: AppColors.primary),
+          suffixIcon: Icon(
+            Icons.calendar_today_outlined,
+            size: 18.sp,
+            color: AppColors.primary,
+          ),
         ),
       ),
     );
@@ -1309,12 +1384,14 @@ class _EditVisitPageState extends State<EditVisitPage> {
       child: AbsorbPointer(
         child: AppTextField(
           controller: TextEditingController(
-              text: date != null
-                  ? DateFormat('yyyy-MM-dd').format(date)
-                  : ''),
+            text: date != null ? DateFormat('yyyy-MM-dd').format(date) : '',
+          ),
           label: label,
-          suffixIcon: Icon(Icons.calendar_today_outlined,
-              size: 18.sp, color: AppColors.primary),
+          suffixIcon: Icon(
+            Icons.calendar_today_outlined,
+            size: 18.sp,
+            color: AppColors.primary,
+          ),
         ),
       ),
     );
@@ -1334,12 +1411,16 @@ class _EditVisitPageState extends State<EditVisitPage> {
       child: AbsorbPointer(
         child: AppTextField(
           controller: TextEditingController(
-              text: m.refillDate != null
-                  ? DateFormat('yyyy-MM-dd').format(m.refillDate!)
-                  : ''),
+            text: m.refillDate != null
+                ? DateFormat('yyyy-MM-dd').format(m.refillDate!)
+                : '',
+          ),
           label: 'Refill Date',
-          suffixIcon: Icon(Icons.calendar_today_outlined,
-              size: 18.sp, color: AppColors.primary),
+          suffixIcon: Icon(
+            Icons.calendar_today_outlined,
+            size: 18.sp,
+            color: AppColors.primary,
+          ),
         ),
       ),
     );

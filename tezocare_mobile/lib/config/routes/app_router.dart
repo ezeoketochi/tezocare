@@ -44,6 +44,8 @@ import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/medication/presentation/pages/add_medication_page.dart';
 import '../../features/medication/presentation/pages/medications_page.dart';
+import '../../features/notifications/presentation/bloc/notification_bloc.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/patient/presentation/pages/create_patient_page.dart';
 import '../../features/patient/presentation/pages/edit_patient_page.dart';
 import '../../features/patient/presentation/pages/patient_detail_page.dart';
@@ -263,14 +265,16 @@ class AppRouter {
                 updateVisitUseCase: sl<UpdateVisitUseCase>(),
                 visitRepository: sl<VisitRepository>(),
               ),
-              child: VisitDetailPage(visitId: state.pathParameters['visitId']!),
+              child: VisitDetailPage(
+                    visitId: state.pathParameters['visitId']!,
+                  ),
             ),
             routes: [
               GoRoute(
                 path: 'edit',
                 name: 'editVisit',
                 builder: (context, state) => BlocProvider.value(
-                  value: context.read<VisitBloc>(),
+                  value: state.extra as VisitBloc,
                   child: EditVisitPage(
                     visitId: state.pathParameters['visitId']!,
                   ),
@@ -334,6 +338,17 @@ class AppRouter {
         path: RouteNames.changePassword,
         name: 'changePassword',
         builder: (context, state) => const ChangePasswordPage(),
+      ),
+      GoRoute(
+        path: RouteNames.notifications,
+        name: 'notifications',
+        builder: (context, state) => BlocProvider(
+          create: (_) => NotificationBloc(
+            getNotificationsUseCase: sl(),
+            markNotificationReadUseCase: sl(),
+          ),
+          child: const NotificationsPage(),
+        ),
       ),
     ],
   );

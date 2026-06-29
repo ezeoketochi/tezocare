@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../config/routes/route_names.dart';
 import '../../../auth/domain/entities/staff.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -114,7 +115,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ],
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () => context.push(RouteNames.notifications),
                 child: Container(
                   width: 40.w,
                   height: 40.w,
