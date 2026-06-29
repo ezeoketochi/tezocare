@@ -136,6 +136,6 @@ def _to_response(notification) -> dict:
         "status": notification.status.value if hasattr(notification.status, 'value') else notification.status,
         "patient_id": str(notification.patient_id) if notification.patient_id else None,
         "patient_name": None,
-        "created_at": notification.created_at.isoformat(),
+        "created_at": notification.created_at.isoformat() if notification.created_at else None,
         "read_at": notification.read_at.isoformat() if notification.read_at else None,
     }
