@@ -35,7 +35,8 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   Future<int> getUnreadCount() async {
     try {
       final response = await dioClient.dio.get(
-        '${ApiConstants.staffNotifications}/unread-count',
+        ApiConstants.staffNotifications,
+        queryParameters: {'limit': 1, 'skip': 0},
       );
       final data = response.data['data'] as Map<String, dynamic>;
       return data['unread_count'] as int;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,15 +32,45 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage>
+    with WidgetsBindingObserver {
   int _unreadCount = 0;
+  Timer? _pollTimer;
+  static const _pollInterval = Duration(seconds: 30);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
     context.read<PatientBloc>().add(const GetPatientsEvent());
     _fetchUnreadCount();
+    _startPolling();
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchUnreadCount();
+      _startPolling();
+    } else if (state == AppLifecycleState.paused) {
+      _pollTimer?.cancel();
+      _pollTimer = null;
+    }
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) {
+      _fetchUnreadCount();
+    });
   }
 
   Future<void> _fetchUnreadCount() async {
@@ -71,6 +102,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 );
                 context.read<PatientBloc>().add(const GetPatientsEvent());
                 _fetchUnreadCount();
+                _startPolling();
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
