@@ -23,16 +23,21 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     GetNotificationsEvent event,
     Emitter<NotificationState> emit,
   ) async {
-    emit(state.copyWith(status: NotificationLoadStatus.loading));
+    final hadData = state.notifications.isNotEmpty;
+    if (!hadData) {
+      emit(state.copyWith(status: NotificationLoadStatus.loading));
+    }
 
     final result = await getNotificationsUseCase(const NoParams());
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          status: NotificationLoadStatus.error,
-          errorMessage: () => _failureMessage(failure),
-        ));
+        if (!hadData) {
+          emit(state.copyWith(
+            status: NotificationLoadStatus.error,
+            errorMessage: () => _failureMessage(failure),
+          ));
+        }
       },
       (notifications) {
         emit(state.copyWith(

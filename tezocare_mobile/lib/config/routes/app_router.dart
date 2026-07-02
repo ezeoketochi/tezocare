@@ -44,7 +44,6 @@ import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/medication/presentation/pages/add_medication_page.dart';
 import '../../features/medication/presentation/pages/medications_page.dart';
-import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/patient/presentation/pages/create_patient_page.dart';
 import '../../features/patient/presentation/pages/edit_patient_page.dart';
@@ -342,13 +341,7 @@ class AppRouter {
       GoRoute(
         path: RouteNames.notifications,
         name: 'notifications',
-        builder: (context, state) => BlocProvider(
-          create: (_) => NotificationBloc(
-            getNotificationsUseCase: sl(),
-            markNotificationReadUseCase: sl(),
-          ),
-          child: const NotificationsPage(),
-        ),
+        builder: (context, state) => const NotificationsPage(),
       ),
     ],
   );

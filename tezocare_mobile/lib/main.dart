@@ -15,6 +15,9 @@ import 'features/auth/domain/usecases/login_usecase.dart';
 import 'features/auth/domain/usecases/logout_usecase.dart';
 import 'features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'features/auth/domain/usecases/refresh_token_usecase.dart';
+import 'features/notifications/presentation/bloc/notification_bloc.dart';
+import 'features/notifications/domain/usecases/get_notifications_usecase.dart';
+import 'features/notifications/domain/usecases/mark_notification_read_usecase.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -48,6 +51,12 @@ class TezoCareApp extends StatelessWidget {
             getCurrentUserUseCase: di.sl<GetCurrentUserUseCase>(),
             refreshTokenUseCase: di.sl<RefreshTokenUseCase>(),
           )..add(const AuthCheckRequested()),
+        ),
+        BlocProvider<NotificationBloc>(
+          create: (_) => NotificationBloc(
+            getNotificationsUseCase: di.sl<GetNotificationsUseCase>(),
+            markNotificationReadUseCase: di.sl<MarkNotificationReadUseCase>(),
+          ),
         ),
       ],
       child: ScreenUtilInit(

@@ -45,21 +45,6 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
-  Future<Either<Failure, int>> getUnreadCount() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final count = await remoteDataSource.getUnreadCount();
-        return Right(count);
-      } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
-      } catch (e) {
-        return Left(ServerFailure(message: 'Failed to fetch unread count'));
-      }
-    }
-    return Left(const NetworkFailure(message: 'No internet connection'));
-  }
-
-  @override
   Future<Either<Failure, void>> markAsRead(String notificationId) async {
     if (await networkInfo.isConnected) {
       try {

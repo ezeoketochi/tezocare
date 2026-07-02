@@ -4,11 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../config/routes/route_names.dart';
-import '../../../../core/usecases/usecase.dart';
-import '../../../../injection_container.dart';
-import '../../../auth/domain/entities/staff.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../../config/themes/app_colors.dart';
 import '../../../../config/themes/app_text_styles.dart';
 import '../../../../shared/widgets/app_section_header.dart';
@@ -16,7 +11,11 @@ import '../../../../shared/widgets/app_stat_card.dart';
 import '../../../../shared/widgets/app_avatar.dart';
 import '../../../../shared/widgets/app_loading.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
-import '../../../notifications/domain/usecases/get_unread_count_usecase.dart';
+import '../../../auth/domain/entities/staff.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../notifications/presentation/bloc/notification_bloc.dart';
+import '../../../notifications/presentation/bloc/notification_event.dart';
 import '../../../patient/domain/entities/patient.dart';
 import '../../../patient/presentation/bloc/patient_bloc.dart';
 import '../../../patient/presentation/bloc/patient_event.dart';
@@ -34,7 +33,6 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage>
     with WidgetsBindingObserver {
-  int _unreadCount = 0;
   Timer? _pollTimer;
   static const _pollInterval = Duration(seconds: 30);
 
@@ -44,7 +42,7 @@ class _DashboardPageState extends State<DashboardPage>
     WidgetsBinding.instance.addObserver(this);
     context.read<DashboardBloc>().add(const GetDashboardStatsEvent());
     context.read<PatientBloc>().add(const GetPatientsEvent());
-    _fetchUnreadCount();
+    context.read<NotificationBloc>().add(const GetNotificationsEvent());
     _startPolling();
   }
 
@@ -58,8 +56,8 @@ class _DashboardPageState extends State<DashboardPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _fetchUnreadCount();
       _startPolling();
+      context.read<NotificationBloc>().add(const GetNotificationsEvent());
     } else if (state == AppLifecycleState.paused) {
       _pollTimer?.cancel();
       _pollTimer = null;
@@ -69,26 +67,17 @@ class _DashboardPageState extends State<DashboardPage>
   void _startPolling() {
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(_pollInterval, (_) {
-      _fetchUnreadCount();
+      context.read<NotificationBloc>().add(const GetNotificationsEvent());
     });
-  }
-
-  Future<void> _fetchUnreadCount() async {
-    final useCase = sl<GetUnreadCountUseCase>();
-    final result = await useCase(const NoParams());
-    result.fold(
-      (_) {},
-      (count) {
-        if (mounted) setState(() => _unreadCount = count);
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     final staff = authState is AuthAuthenticated ? authState.staff : null;
-    // 2. Print its unique identity code
+    final unreadCount = context.select<NotificationBloc, int>(
+      (bloc) => bloc.state.unreadCount,
+    );
     debugPrint('DASHBOARD PAGE - AuthBloc HashCode: ${authState.hashCode}');
     debugPrint('DASHBOARD PAGE - State is: ${authState.runtimeType}');
     return Scaffold(
@@ -101,7 +90,9 @@ class _DashboardPageState extends State<DashboardPage>
                   const GetDashboardStatsEvent(),
                 );
                 context.read<PatientBloc>().add(const GetPatientsEvent());
-                _fetchUnreadCount();
+                context.read<NotificationBloc>().add(
+                  const GetNotificationsEvent(),
+                );
                 _startPolling();
               },
               child: SingleChildScrollView(
@@ -109,7 +100,7 @@ class _DashboardPageState extends State<DashboardPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(staff),
+                    _buildHeader(staff, unreadCount),
                     if (state is DashboardLoading)
                       _buildLoadingState()
                     else if (state is DashboardError)
@@ -128,7 +119,7 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
-  Widget _buildHeader(Staff? staff) {
+  Widget _buildHeader(Staff? staff, int unreadCount) {
     final greeting = _getGreeting();
     return Container(
       width: double.infinity,
@@ -187,7 +178,7 @@ class _DashboardPageState extends State<DashboardPage>
                           ),
                         ),
                       ),
-                      if (_unreadCount > 0)
+                      if (unreadCount > 0)
                         Positioned(
                           top: 0,
                           right: 0,
@@ -202,7 +193,7 @@ class _DashboardPageState extends State<DashboardPage>
                               minHeight: 18.w,
                             ),
                             child: Text(
-                              _unreadCount > 99 ? '99+' : '$_unreadCount',
+                              unreadCount > 99 ? '99+' : '$unreadCount',
                               style: TextStyle(
                                 color: AppColors.white,
                                 fontSize: 10.sp,

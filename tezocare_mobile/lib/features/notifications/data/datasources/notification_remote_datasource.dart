@@ -7,7 +7,6 @@ import '../models/notification_model.dart';
 abstract class NotificationRemoteDataSource {
   Future<List<NotificationModel>> getNotifications();
   Future<void> markAsRead(String notificationId);
-  Future<int> getUnreadCount();
 }
 
 class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
@@ -28,20 +27,6 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
           .toList();
     } on DioException catch (e) {
       throw _mapDioException(e, defaultMessage: 'Failed to fetch notifications');
-    }
-  }
-
-  @override
-  Future<int> getUnreadCount() async {
-    try {
-      final response = await dioClient.dio.get(
-        ApiConstants.staffNotifications,
-        queryParameters: {'limit': 1, 'skip': 0},
-      );
-      final data = response.data['data'] as Map<String, dynamic>;
-      return data['unread_count'] as int;
-    } on DioException catch (e) {
-      throw _mapDioException(e, defaultMessage: 'Failed to fetch unread count');
     }
   }
 
