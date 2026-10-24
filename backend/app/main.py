@@ -95,6 +95,15 @@ async def validation_exception_handler(
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    # The generic Exception handler runs outside CORSMiddleware, so its response
+    # would otherwise reach the browser without CORS headers and be reported as a
+    # cross-origin/security failure, masking the real 500.
+    headers = {}
+    origin = request.headers.get("origin")
+    if origin:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+        headers["Vary"] = "Origin"
     return JSONResponse(
         status_code=500,
         content={
@@ -102,6 +111,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             "message": "Internal server error",
             "data": None,
         },
+        headers=headers,
     )
 
 

@@ -1,0 +1,150 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Dark-only design system (HOT TIX): keep the variant so stray `dark:` classes
+   can never activate via prefers-color-scheme, since nothing ever adds `.dark`. */
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-ink: #0b0b10;
+  --color-surface: #181818;
+  --color-panel: #252525;
+  --color-line: #363636;
+  --color-field: #20202b;
+  --color-gold: #ffce48;
+  --color-gold-deep: #66521d;
+  --color-danger: #ff3236;
+  --color-success: #00a34c;
+  --color-faint: #777777;
+
+  /* Measured text ramp: title / value / label / muted / faint. */
+  --color-title: #ffffff;
+  --color-value: #e3e3e3;
+  --color-label: #bdbdbd;
+
+  /* The design does not use one monotonic radius scale: 2 / 4 / 6 / 8 px. */
+  --radius-btn: 2px;
+  --radius-field: 4px;
+  --radius-card: 6px;
+  --radius-nav: 8px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-public-sans);
+  --font-display: var(--font-manrope);
+  --font-heading: var(--font-manrope);
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: dark;
+
+  --background: #181818;
+  --foreground: #e3e3e3;
+  --card: #252525;
+  --card-foreground: #e3e3e3;
+  --popover: #20202b;
+  --popover-foreground: #e3e3e3;
+  --primary: #ffce48;
+  --primary-foreground: #0b0b10;
+  --secondary: #363636;
+  --secondary-foreground: #ffffff;
+  --muted: #252525;
+  --muted-foreground: #848484;
+  --accent: #363636;
+  --accent-foreground: #ffffff;
+  --destructive: #ff3236;
+  --border: #363636;
+  --input: #20202b;
+  --ring: #ffce48;
+  --radius: 4px;
+
+  --sidebar: #ffce48;
+  --sidebar-foreground: #0b0b10;
+  --sidebar-primary: #0b0b10;
+  --sidebar-primary-foreground: #ffce48;
+  --sidebar-accent: rgba(11, 11, 16, 0.12);
+  --sidebar-accent-foreground: #0b0b10;
+  --sidebar-border: #66521d;
+  --sidebar-ring: #0b0b10;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-ink);
+  }
+  * {
+    scrollbar-color: var(--color-line) transparent;
+  }
+}
+
+@layer components {
+  /* The Figma rail is a gold field with ink text; the photo overlay in the
+     export becomes this top-lit wash instead. */
+  .side-nav-tint {
+    background-image: linear-gradient(
+      180deg,
+      #ffd766 0%,
+      var(--color-gold) 34%,
+      #e0ae2c 100%
+    );
+  }
+
+  /* Page-canvas wash used by the auth screens. */
+  .gold-wash {
+    background-image: radial-gradient(
+      60rem 40rem at 18% -10%,
+      rgba(255, 206, 72, 0.14),
+      transparent 62%
+    );
+  }
+}
+
+[data-sonner-toast] {
+  border-radius: var(--radius-nav);
+  font-family: var(--font-public-sans);
+}
