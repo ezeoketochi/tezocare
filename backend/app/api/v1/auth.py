@@ -279,10 +279,6 @@ async def login(
             "Failed login attempt for email=%s from ip=%s",
             payload.email,
             request.client.host if request.client else "unknown",
-        
-            "Failed login attempt for email=%s from ip=%s",
-            payload.email,
-            request.client.host if request.client else "unknown",
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
