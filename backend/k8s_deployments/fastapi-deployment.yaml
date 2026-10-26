@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi-backend
+  template:
+    metadata:
+      labels:
+        app: fastapi-backend
+    spec:
+      volumes:
+      - name: storage-volume
+        hostPath:
+          path: /tmp/fastapi-data  # Folder on your actual host machine
+          type: DirectoryOrCreate
+      containers:
+      - name: fastapi
+        image: tezocare-media-upload-app:v1tezocare-backend:local
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80  # Matches the container port your server listens on
+        volumeMounts:
+        - name: storage-volume
+          mountPath: /app/uploads  # Matches UPLOAD_DIR in your FastAPI code
+        env:
+        - name: DATABASE_URL
+          value: "postgresql+asyncpg://tezo_user:tezo_password@postgres-service:5432/tezocare_db"

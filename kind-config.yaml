@@ -1,0 +1,23 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  # image: kindest/node:v1.28.15@sha256:a7b66236ca91f53131718cb6199a4e32049e0a0d9b541bb8ee2bf6895d97f394
+  kubeadmConfigPatches:
+  - |
+    apiVersion: kubeadm.k8s.io/v1beta3
+    kind: ClusterConfiguration
+    metadata:
+      name: config
+    apiServer:
+      certSANs:
+      - "localhost"
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
+- role: worker
+  # image: kindest/node:v1.28.15@sha256:a7b66236ca91f53131718cb6199a4e32049e0a0d9b541bb8ee2bf6895d97f394

@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tezocare-backend"
+version = "0.1.0"
+description = "FastAPI backend service for Tezocare"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "asyncpg>=0.29.0",
+    "pydantic-settings>=2.2.0",
+]
+
+# -----------------------------------------------------------------------------
+# Ruff Configuration (Linter & Formatter)
+# -----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+# E: pycodestyle, F: Pyflakes, I: isort, B: flake8-bugbear
+select = ["E", "F", "I", "B"]
+ignore = []
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+# -----------------------------------------------------------------------------
+# Black Configuration (Code Formatter)
+# -----------------------------------------------------------------------------
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+# -----------------------------------------------------------------------------
+# Pytest Configuration
+# -----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-q"
+testpaths = ["tests"]
+asyncio_mode = "auto"

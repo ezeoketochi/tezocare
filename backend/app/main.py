@@ -1,6 +1,6 @@
 import json
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile , File
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -13,7 +13,9 @@ from app.tasks.reminder_tasks import start_scheduler as start_reminder_scheduler
 from app.core.scheduler import start_scheduler as start_notification_scheduler, scheduler as notification_scheduler
 from app.utils.logger import logger
 from mangum import Mangum
-
+from fastapi.staticfiles import StaticFiles
+import shutil
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,6 +46,29 @@ app = FastAPI(
     redirect_slashes=True
 )
 handler = Mangum(app)
+UPLOAD_DIR = "/app/uploads"
+
+# 1. Mount the folder so it is publicly accessible at the "/public" URL path
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/public", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
+@app.post("/upload/")
+async def upload_image(request: Request, file: UploadFile = File(...)):
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    # 2. Dynamically build the absolute URL to the file
+    base_url = str(request.base_url) # e.g., "http://localhost:8000/"
+    file_url = f"{base_url}public/{file.filename}"
+        
+    return {
+        "filename": file.filename, 
+        "status": "Uploaded successfully!",
+        "url": file_url  # Returns the clickable URL
+    }
+
 
 app.add_middleware(
     CORSMiddleware,
