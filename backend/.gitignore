@@ -35,3 +35,6 @@ backend/firebase-service-account.json
 
 # Or block any fallback credentials inside the project
 *.json
+
+#kubectl binaries
+backend/kubectl
